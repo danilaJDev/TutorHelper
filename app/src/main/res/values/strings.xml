@@ -1,3 +1,43 @@
 <resources>
     <string name="app_name">TutorHelper</string>
+    <string name="tab_schedule">Schedule</string>
+    <string name="tab_students">Students</string>
+    <string name="tab_finance">Finance</string>
+    <string name="tab_summary">Summary</string>
+
+    <string name="schedule_mode_list">List</string>
+    <string name="schedule_mode_table">Table</string>
+    <string name="schedule_mode_calendar">Calendar</string>
+    <string name="schedule_calendar_hint">Upcoming lessons (calendar preview)</string>
+    <string name="lesson_duration_price">%1$d min · %2$.2f</string>
+
+    <string name="students_title">Students</string>
+    <string name="students_active">Active</string>
+    <string name="students_archived">Archived</string>
+    <string name="students_search">Search students</string>
+    <string name="students_archived_label">Archived</string>
+
+    <string name="finance_title">Finance</string>
+    <string name="finance_total_income">Total income: %1$.2f</string>
+    <string name="finance_paid_count">Paid lessons: %1$d</string>
+    <string name="finance_chart_title">Income overview</string>
+    <string name="finance_chart_label">Payments</string>
+    <string name="finance_payment_amount">Payment: %1$.2f</string>
+
+    <string name="summary_title">Summary</string>
+    <string name="summary_lessons">Lessons: %1$d</string>
+    <string name="summary_paid_lessons">Paid lessons: %1$d</string>
+    <string name="summary_students">Students: %1$d</string>
+    <string name="summary_archived_students">Archived students: %1$d</string>
+    <string name="summary_income">Income: %1$.2f</string>
+
+    <string name="settings_title">Settings</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_theme_system">System</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_language_system">System</string>
+    <string name="settings_language_en">English</string>
+    <string name="settings_language_ru">Russian</string>
 </resources>

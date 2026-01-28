@@ -4,44 +4,42 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import by.dreb.tutorhelper.ui.theme.TutorHelperTheme
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.core.os.LocaleListCompat
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.appcompat.app.AppCompatDelegate
+import by.dreb.tutorhelper.data.seed.SampleDataSeeder
+import by.dreb.tutorhelper.presentation.AppRoot
+import by.dreb.tutorhelper.presentation.settings.SettingsViewModel
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    @Inject
+    lateinit var sampleDataSeeder: SampleDataSeeder
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        sampleDataSeeder.seedIfEmpty()
         setContent {
-            TutorHelperTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+            val settingsViewModel: SettingsViewModel = hiltViewModel()
+            val settingsState by settingsViewModel.state.collectAsState()
+
+            LaunchedEffect(settingsState.languageTag) {
+                val locales = settingsState.languageTag?.let { LocaleListCompat.forLanguageTags(it) }
+                    ?: LocaleListCompat.getEmptyLocaleList()
+                AppCompatDelegate.setApplicationLocales(locales)
             }
+
+            AppRoot(
+                settingsState = settingsState,
+                onThemeSelected = settingsViewModel::updateTheme,
+                onLanguageSelected = settingsViewModel::updateLanguage
+            )
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    TutorHelperTheme {
-        Greeting("Android")
     }
 }
