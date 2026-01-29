@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -45,12 +46,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import by.dreb.tutorhelper.R
 import by.dreb.tutorhelper.domain.model.LessonDetails
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -69,16 +73,13 @@ fun ScheduleScreen(viewModel: ScheduleViewModel = hiltViewModel()) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Surface(
-                color = colorResource(R.color.lavender),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.schedule_title),
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    style = MaterialTheme.typography.titleLarge
+            Text(
+                text = stringResource(R.string.schedule_title),
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
                 )
-            }
+            )
 
             IconButton(
                 onClick = { /* TODO: Navigate to Add Lesson */ },
@@ -108,7 +109,7 @@ fun ScheduleScreen(viewModel: ScheduleViewModel = hiltViewModel()) {
                 TabRow(
                     selectedTabIndex = state.mode.ordinal,
                     containerColor = Color.Transparent,
-                    contentColor = MaterialTheme.colorScheme.primary,
+                    contentColor = Color.Black,
                     divider = {}
                 ) {
                     ScheduleMode.entries.forEachIndexed { index, mode ->
@@ -121,7 +122,9 @@ fun ScheduleScreen(viewModel: ScheduleViewModel = hiltViewModel()) {
                                         ScheduleMode.LIST -> stringResource(R.string.schedule_mode_list)
                                         ScheduleMode.TABLE -> stringResource(R.string.schedule_mode_table)
                                         ScheduleMode.CALENDAR -> stringResource(R.string.schedule_mode_calendar)
-                                    }
+                                    },
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.Black
                                 )
                             }
                         )
@@ -208,6 +211,7 @@ private fun ScheduleList(
     } else {
         val groupedLessons = lessons.groupBy { it.lesson.startTime.toLocalDate() }
         val sortedDates = groupedLessons.keys.sorted()
+        val russianLocale = Locale("ru")
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -217,12 +221,15 @@ private fun ScheduleList(
             sortedDates.forEach { date ->
                 item {
                     Text(
-                        text = date.format(DateTimeFormatter.ofPattern("dd.MM.yyyy, EEEE")),
+                        text = date.format(DateTimeFormatter.ofPattern("dd.MM.yyyy, EEEE", russianLocale)),
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 8.dp),
                         textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.labelLarge
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp
+                        )
                     )
                 }
                 items(groupedLessons[date] ?: emptyList()) { lesson ->
@@ -290,12 +297,15 @@ private fun LessonCard(
         Row(
             modifier = Modifier.padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Top
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "${lesson.lesson.startTime.format(timeFormatter)} - ${endTime.format(timeFormatter)}",
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
@@ -323,7 +333,8 @@ private fun LessonCard(
             IconButton(onClick = onMenuClick) {
                 Icon(
                     imageVector = Icons.Default.MoreVert,
-                    contentDescription = null
+                    contentDescription = null,
+                    modifier = Modifier.size(32.dp)
                 )
             }
         }
@@ -332,15 +343,22 @@ private fun LessonCard(
 
 @Composable
 private fun StatusLabel(text: String) {
+    val statusColors = when (text) {
+        stringResource(R.string.schedule_status_planned) -> Pair(colorResource(R.color.status_grey), Color.DarkGray)
+        stringResource(R.string.lesson_status_hw_not_sent) -> Pair(colorResource(R.color.status_yellow), Color(0xFF827717))
+        stringResource(R.string.schedule_status_done), stringResource(R.string.lesson_status_hw_sent) -> Pair(colorResource(R.color.status_green), Color(0xFF1B5E20))
+        else -> Pair(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer)
+    }
+
     Surface(
-        color = MaterialTheme.colorScheme.primaryContainer,
+        color = statusColors.first,
         shape = RoundedCornerShape(4.dp)
     ) {
         Text(
             text = text,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onPrimaryContainer
+            color = statusColors.second
         )
     }
 }
