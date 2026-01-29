@@ -19,11 +19,11 @@ class SettingsDataStore(private val context: Context) {
     }
 
     val themeMode: Flow<ThemeMode> = context.settingsDataStore.data.map { prefs ->
-        prefs[Keys.themeMode]?.let { ThemeMode.valueOf(it) } ?: ThemeMode.SYSTEM
+        prefs[Keys.themeMode]?.let { ThemeMode.valueOf(it) } ?: ThemeMode.LIGHT
     }
 
     val language: Flow<AppLanguage> = context.settingsDataStore.data.map { prefs ->
-        prefs[Keys.language]?.let { AppLanguage.valueOf(it) } ?: AppLanguage.SYSTEM
+        prefs[Keys.language]?.let { AppLanguage.valueOf(it) } ?: AppLanguage.RU
     }
 
     suspend fun updateTheme(mode: ThemeMode) {
