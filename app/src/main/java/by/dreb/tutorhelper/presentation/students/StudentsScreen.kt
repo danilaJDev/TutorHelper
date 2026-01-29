@@ -10,10 +10,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SegmentedButtonRow
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -25,6 +26,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import by.dreb.tutorhelper.R
 import by.dreb.tutorhelper.domain.model.Student
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StudentsScreen(viewModel: StudentsViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsState()
@@ -34,7 +36,7 @@ fun StudentsScreen(viewModel: StudentsViewModel = hiltViewModel()) {
             text = stringResource(R.string.students_title),
             style = MaterialTheme.typography.headlineSmall
         )
-        SegmentedButtonRow(modifier = Modifier.padding(top = 12.dp)) {
+        SingleChoiceSegmentedButtonRow(modifier = Modifier.padding(top = 12.dp)) {
             SegmentedButton(
                 selected = !state.isArchived,
                 onClick = { viewModel.toggleArchive(false) },
