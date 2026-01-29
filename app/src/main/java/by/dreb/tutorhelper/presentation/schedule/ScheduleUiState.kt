@@ -17,6 +17,5 @@ enum class ScheduleFilter {
 
 enum class ScheduleMode {
     LIST,
-    TABLE,
     CALENDAR
 }

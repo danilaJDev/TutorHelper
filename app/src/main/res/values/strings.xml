@@ -6,13 +6,11 @@
     <string name="tab_summary">Итоги</string>
 
     <string name="schedule_mode_list">Список</string>
-    <string name="schedule_mode_table">Таблица</string>
     <string name="schedule_mode_calendar">Календарь</string>
     <string name="schedule_title">Расписание</string>
     <string name="schedule_subtitle">Планируйте занятия и держите учеников в курсе</string>
     <string name="schedule_today_count">Сегодня: %1$d</string>
     <string name="schedule_upcoming_count">Предстоящие: %1$d</string>
-    <string name="schedule_calendar_hint">Ближайшие занятия (превью календаря)</string>
     <string name="lesson_duration_price">%1$d мин · %2$.2f</string>
     <string name="schedule_empty">Пока нет занятий. Добавьте первое, чтобы начать.</string>
     <string name="schedule_status_done">Состоялось</string>

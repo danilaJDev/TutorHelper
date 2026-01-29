@@ -1,6 +1,7 @@
 package by.dreb.tutorhelper.presentation.schedule
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +18,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
@@ -53,6 +56,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import by.dreb.tutorhelper.R
 import by.dreb.tutorhelper.domain.model.LessonDetails
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -120,7 +124,6 @@ fun ScheduleScreen(viewModel: ScheduleViewModel = hiltViewModel()) {
                                 Text(
                                     text = when (mode) {
                                         ScheduleMode.LIST -> stringResource(R.string.schedule_mode_list)
-                                        ScheduleMode.TABLE -> stringResource(R.string.schedule_mode_table)
                                         ScheduleMode.CALENDAR -> stringResource(R.string.schedule_mode_calendar)
                                     },
                                     fontWeight = FontWeight.Bold,
@@ -161,12 +164,10 @@ fun ScheduleScreen(viewModel: ScheduleViewModel = hiltViewModel()) {
                         lessons = state.lessons,
                         onMenuClick = { selectedLessonForMenu = it }
                     )
-                    ScheduleMode.TABLE -> ScheduleTable(
-                        lessons = state.lessons,
-                        onMenuClick = { selectedLessonForMenu = it }
-                    )
                     ScheduleMode.CALENDAR -> ScheduleCalendar(
+                        selectedDate = state.selectedDate,
                         lessons = state.lessons,
+                        onDateSelected = { viewModel.updateSelectedDate(it) },
                         onMenuClick = { selectedLessonForMenu = it }
                     )
                 }
@@ -243,38 +244,132 @@ private fun ScheduleList(
 }
 
 @Composable
-private fun ScheduleTable(
-    lessons: List<LessonDetails>,
-    onMenuClick: (LessonDetails) -> Unit
-) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        items(lessons) { lesson ->
-            LessonCard(lesson, onMenuClick = { onMenuClick(lesson) }, compact = true)
-        }
-    }
-}
-
-@Composable
 private fun ScheduleCalendar(
+    selectedDate: LocalDate,
     lessons: List<LessonDetails>,
+    onDateSelected: (LocalDate) -> Unit,
     onMenuClick: (LessonDetails) -> Unit
 ) {
+    var currentMonth by remember { mutableStateOf(selectedDate.withDayOfMonth(1)) }
+    val daysInMonth = currentMonth.lengthOfMonth()
+    val firstDayOfWeek = currentMonth.dayOfWeek.value // 1 (Mon) to 7 (Sun)
+    val days = (1..daysInMonth).toList()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            .padding(16.dp)
     ) {
-        Text(
-            text = stringResource(R.string.schedule_calendar_hint),
-            style = MaterialTheme.typography.titleMedium
-        )
-        lessons.take(5).forEach { lesson ->
-            LessonCard(lesson, onMenuClick = { onMenuClick(lesson) }, compact = true)
+        // Month Navigation
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = { currentMonth = currentMonth.minusMonths(1) }) {
+                Icon(imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null)
+            }
+            Text(
+                text = currentMonth.format(DateTimeFormatter.ofPattern("LLLL yyyy", Locale("ru"))).replaceFirstChar { it.uppercase() },
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            IconButton(onClick = { currentMonth = currentMonth.plusMonths(1) }) {
+                Icon(imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Days of week headers
+        Row(modifier = Modifier.fillMaxWidth()) {
+            val weekDays = listOf("Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс")
+            weekDays.forEach { day ->
+                Text(
+                    text = day,
+                    modifier = Modifier.weight(1f),
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Gray
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Calendar Grid
+        val totalCells = ((daysInMonth + firstDayOfWeek - 2) / 7 + 1) * 7
+        Column {
+            for (row in 0 until totalCells / 7) {
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    for (col in 0 until 7) {
+                        val dayIndex = row * 7 + col
+                        val dayOfMonth = dayIndex - firstDayOfWeek + 2
+                        if (dayOfMonth in 1..daysInMonth) {
+                            val date = currentMonth.withDayOfMonth(dayOfMonth)
+                            val isSelected = date == selectedDate
+                            val dayLessons = lessons.filter { it.lesson.startTime.toLocalDate() == date }
+
+                            Column(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(48.dp)
+                                    .background(
+                                        if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f) else Color.Transparent,
+                                        RoundedCornerShape(8.dp)
+                                    )
+                                    .clickable { onDateSelected(date) },
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Text(
+                                    text = dayOfMonth.toString(),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                    color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Black
+                                )
+                                if (dayLessons.isNotEmpty()) {
+                                    val hasIncomplete = dayLessons.any { !it.lesson.isCompleted }
+                                    val dotColor = if (hasIncomplete) Color.Red else Color.Black
+                                    Box(
+                                        modifier = Modifier
+                                            .size(4.dp)
+                                            .background(dotColor, CircleShape)
+                                    )
+                                } else {
+                                    Spacer(modifier = Modifier.size(4.dp))
+                                }
+                            }
+                        } else {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Lessons for selected date
+        val selectedDayLessons = lessons.filter { it.lesson.startTime.toLocalDate() == selectedDate }
+        if (selectedDayLessons.isEmpty()) {
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                Text(
+                    text = "Нет занятий на этот день",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(selectedDayLessons) { lesson ->
+                    LessonCard(lesson, onMenuClick = { onMenuClick(lesson) }, compact = true)
+                }
+            }
         }
     }
 }
