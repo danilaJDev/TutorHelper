@@ -3,12 +3,19 @@ package by.dreb.tutorhelper.presentation.summary
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.Insights
+import androidx.compose.material.icons.filled.Payments
+import androidx.compose.material.icons.filled.School
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -37,12 +44,17 @@ fun SummaryScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item {
-            Text(
-                text = stringResource(R.string.summary_title),
-                style = MaterialTheme.typography.headlineSmall
-            )
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(
+                    text = stringResource(R.string.summary_title),
+                    style = MaterialTheme.typography.headlineSmall
+                )
+                Text(text = stringResource(R.string.summary_subtitle))
+            }
         }
-        item { SummaryCard(state.summary) }
+        item { SummaryHeroCard(state.summary) }
+        item { SummaryStatsGrid(state.summary) }
+        item { InsightsCard(state.summary) }
         item {
             SettingsCard(
                 settingsState = settingsState,
@@ -54,14 +66,88 @@ fun SummaryScreen(
 }
 
 @Composable
-private fun SummaryCard(summary: by.dreb.tutorhelper.domain.model.Summary) {
+private fun SummaryHeroCard(summary: by.dreb.tutorhelper.domain.model.Summary) {
     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = stringResource(R.string.summary_lessons, summary.lessonsCount))
-            Text(text = stringResource(R.string.summary_paid_lessons, summary.paidLessonsCount))
-            Text(text = stringResource(R.string.summary_students, summary.studentsCount))
-            Text(text = stringResource(R.string.summary_archived_students, summary.archivedStudentsCount))
-            Text(text = stringResource(R.string.summary_income, summary.incomeTotal))
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(text = stringResource(R.string.summary_income), style = MaterialTheme.typography.titleMedium)
+            Text(
+                text = stringResource(R.string.summary_income_total, summary.incomeTotal),
+                style = MaterialTheme.typography.headlineSmall
+            )
+            Text(text = stringResource(R.string.summary_income_hint, summary.paidLessonsCount))
+        }
+    }
+}
+
+@Composable
+private fun SummaryStatsGrid(summary: by.dreb.tutorhelper.domain.model.Summary) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            SummaryStatCard(
+                label = stringResource(R.string.summary_lessons_short),
+                value = summary.lessonsCount.toString(),
+                icon = Icons.Default.School,
+                modifier = Modifier.weight(1f)
+            )
+            SummaryStatCard(
+                label = stringResource(R.string.summary_students_short),
+                value = summary.studentsCount.toString(),
+                icon = Icons.Default.Groups,
+                modifier = Modifier.weight(1f)
+            )
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            SummaryStatCard(
+                label = stringResource(R.string.summary_paid_short),
+                value = summary.paidLessonsCount.toString(),
+                icon = Icons.Default.Payments,
+                modifier = Modifier.weight(1f)
+            )
+            SummaryStatCard(
+                label = stringResource(R.string.summary_archived_short),
+                value = summary.archivedStudentsCount.toString(),
+                icon = Icons.Default.Insights,
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun SummaryStatCard(
+    label: String,
+    value: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier,
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surfaceVariant
+    ) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                androidx.compose.material3.Icon(icon, contentDescription = null)
+                Text(text = label, style = MaterialTheme.typography.bodyMedium)
+            }
+            Text(text = value, style = MaterialTheme.typography.titleLarge)
+        }
+    }
+}
+
+@Composable
+private fun InsightsCard(summary: by.dreb.tutorhelper.domain.model.Summary) {
+    val insights = listOf(
+        stringResource(R.string.summary_insight_lessons, summary.lessonsCount),
+        stringResource(R.string.summary_insight_students, summary.studentsCount),
+        stringResource(R.string.summary_insight_income, summary.incomeTotal)
+    )
+    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(text = stringResource(R.string.summary_insights_title), style = MaterialTheme.typography.titleMedium)
+            insights.forEach { insight ->
+                Text(text = insight, style = MaterialTheme.typography.bodyMedium)
+            }
         }
     }
 }

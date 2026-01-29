@@ -3,23 +3,33 @@ package by.dreb.tutorhelper.presentation.students
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Archive
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Unarchive
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -32,10 +42,30 @@ fun StudentsScreen(viewModel: StudentsViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsState()
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Text(
-            text = stringResource(R.string.students_title),
-            style = MaterialTheme.typography.headlineSmall
-        )
+        Text(text = stringResource(R.string.students_title), style = MaterialTheme.typography.headlineSmall)
+        Row(
+            modifier = Modifier.padding(top = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            AssistChip(
+                onClick = { viewModel.toggleArchive(false) },
+                label = { Text(text = stringResource(R.string.students_active_count, state.activeCount)) },
+                leadingIcon = { androidx.compose.material3.Icon(Icons.Default.Person, contentDescription = null) },
+                colors = AssistChipDefaults.assistChipColors(
+                    containerColor = if (!state.isArchived) MaterialTheme.colorScheme.primaryContainer
+                    else MaterialTheme.colorScheme.surfaceVariant
+                )
+            )
+            AssistChip(
+                onClick = { viewModel.toggleArchive(true) },
+                label = { Text(text = stringResource(R.string.students_archived_count, state.archivedCount)) },
+                leadingIcon = { androidx.compose.material3.Icon(Icons.Default.Archive, contentDescription = null) },
+                colors = AssistChipDefaults.assistChipColors(
+                    containerColor = if (state.isArchived) MaterialTheme.colorScheme.primaryContainer
+                    else MaterialTheme.colorScheme.surfaceVariant
+                )
+            )
+        }
         SingleChoiceSegmentedButtonRow(modifier = Modifier.padding(top = 12.dp)) {
             SegmentedButton(
                 selected = !state.isArchived,
@@ -54,7 +84,9 @@ fun StudentsScreen(viewModel: StudentsViewModel = hiltViewModel()) {
         }
 
         OutlinedTextField(
-            modifier = Modifier.padding(top = 12.dp),
+            modifier = Modifier
+                .padding(top = 12.dp)
+                .fillMaxWidth(),
             value = state.query,
             onValueChange = viewModel::updateQuery,
             label = { Text(stringResource(R.string.students_search)) }
@@ -65,27 +97,60 @@ fun StudentsScreen(viewModel: StudentsViewModel = hiltViewModel()) {
             contentPadding = PaddingValues(bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            if (state.students.isEmpty()) {
+                item {
+                    Text(
+                        text = stringResource(
+                            if (state.isArchived) R.string.students_empty_archived else R.string.students_empty_active
+                        ),
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(vertical = 12.dp)
+                    )
+                }
+            }
             items(state.students) { student ->
-                StudentCard(student)
+                StudentCard(
+                    student = student,
+                    onArchiveToggle = { archived ->
+                        viewModel.setStudentArchived(student.id, archived)
+                    }
+                )
             }
         }
     }
 }
 
 @Composable
-private fun StudentCard(student: Student) {
+private fun StudentCard(student: Student, onArchiveToggle: (Boolean) -> Unit) {
     Card(
+        modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = student.name, style = MaterialTheme.typography.titleMedium)
-            student.phone?.let { Text(text = it, style = MaterialTheme.typography.bodyMedium) }
-            student.note?.let { Text(text = it, style = MaterialTheme.typography.bodySmall) }
-            if (student.isArchived) {
-                Text(
-                    text = stringResource(R.string.students_archived_label),
-                    style = MaterialTheme.typography.labelMedium
-                )
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(text = student.name, style = MaterialTheme.typography.titleMedium)
+                    student.phone?.let { Text(text = it, style = MaterialTheme.typography.bodyMedium) }
+                    student.note?.let { Text(text = it, style = MaterialTheme.typography.bodySmall) }
+                    if (student.isArchived) {
+                        Text(
+                            text = stringResource(R.string.students_archived_label),
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                    }
+                }
+                TextButton(onClick = { onArchiveToggle(!student.isArchived) }) {
+                    androidx.compose.material3.Icon(
+                        if (student.isArchived) Icons.Default.Unarchive else Icons.Default.Archive,
+                        contentDescription = null
+                    )
+                    Text(
+                        text = stringResource(
+                            if (student.isArchived) R.string.students_restore else R.string.students_archive
+                        ),
+                        modifier = Modifier.padding(start = 6.dp)
+                    )
+                }
             }
         }
     }

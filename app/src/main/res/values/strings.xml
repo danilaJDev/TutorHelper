@@ -8,28 +8,51 @@
     <string name="schedule_mode_list">List</string>
     <string name="schedule_mode_table">Table</string>
     <string name="schedule_mode_calendar">Calendar</string>
+    <string name="schedule_title">Schedule</string>
+    <string name="schedule_subtitle">Plan sessions and stay in sync with students</string>
+    <string name="schedule_today_count">Today: %1$d</string>
+    <string name="schedule_upcoming_count">Upcoming: %1$d</string>
     <string name="schedule_calendar_hint">Upcoming lessons (calendar preview)</string>
     <string name="lesson_duration_price">%1$d min · %2$.2f</string>
+    <string name="schedule_empty">No lessons yet. Add your first session to get started.</string>
 
     <string name="students_title">Students</string>
     <string name="students_active">Active</string>
     <string name="students_archived">Archived</string>
     <string name="students_search">Search students</string>
     <string name="students_archived_label">Archived</string>
+    <string name="students_active_count">Active: %1$d</string>
+    <string name="students_archived_count">Archived: %1$d</string>
+    <string name="students_archive">Archive</string>
+    <string name="students_restore">Restore</string>
+    <string name="students_empty_active">No active students yet. Add new profiles to start teaching.</string>
+    <string name="students_empty_archived">Archived list is empty.</string>
 
     <string name="finance_title">Finance</string>
     <string name="finance_total_income">Total income: %1$.2f</string>
     <string name="finance_paid_count">Paid lessons: %1$d</string>
+    <string name="finance_unpaid_count">Unpaid: %1$d</string>
+    <string name="finance_average_income">Avg per lesson: %1$.2f</string>
     <string name="finance_chart_title">Income overview</string>
     <string name="finance_chart_label">Payments</string>
     <string name="finance_payment_amount">Payment: %1$.2f</string>
+    <string name="finance_payment_status_paid">Paid</string>
+    <string name="finance_payment_status_unpaid">Awaiting payment</string>
+    <string name="finance_empty">No payments recorded yet.</string>
 
     <string name="summary_title">Summary</string>
-    <string name="summary_lessons">Lessons: %1$d</string>
-    <string name="summary_paid_lessons">Paid lessons: %1$d</string>
-    <string name="summary_students">Students: %1$d</string>
-    <string name="summary_archived_students">Archived students: %1$d</string>
-    <string name="summary_income">Income: %1$.2f</string>
+    <string name="summary_subtitle">Overview of your tutoring activity</string>
+    <string name="summary_income">Income</string>
+    <string name="summary_income_total">%1$.2f</string>
+    <string name="summary_income_hint">Based on %1$d paid lessons</string>
+    <string name="summary_lessons_short">Lessons</string>
+    <string name="summary_students_short">Students</string>
+    <string name="summary_paid_short">Paid</string>
+    <string name="summary_archived_short">Archived</string>
+    <string name="summary_insights_title">Insights</string>
+    <string name="summary_insight_lessons">Scheduled lessons: %1$d</string>
+    <string name="summary_insight_students">Total students: %1$d</string>
+    <string name="summary_insight_income">Total income: %1$.2f</string>
 
     <string name="settings_title">Settings</string>
     <string name="settings_theme">Theme</string>

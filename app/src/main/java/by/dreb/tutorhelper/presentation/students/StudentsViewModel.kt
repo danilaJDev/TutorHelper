@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -22,14 +23,22 @@ class StudentsViewModel @Inject constructor(
     val state: StateFlow<StudentsUiState> = combine(
         isArchived,
         query,
-        isArchived.flatMapLatest { archived -> studentRepository.observeStudents(archived) }
-    ) { archived, queryValue, students ->
+        isArchived.flatMapLatest { archived -> studentRepository.observeStudents(archived) },
+        studentRepository.observeStudentsCount(false),
+        studentRepository.observeStudentsCount(true)
+    ) { archived, queryValue, students, activeCount, archivedCount ->
         val filtered = if (queryValue.isBlank()) {
             students
         } else {
             students.filter { it.name.contains(queryValue, ignoreCase = true) }
         }
-        StudentsUiState(isArchived = archived, query = queryValue, students = filtered)
+        StudentsUiState(
+            isArchived = archived,
+            query = queryValue,
+            students = filtered,
+            activeCount = activeCount,
+            archivedCount = archivedCount
+        )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), StudentsUiState())
 
     fun toggleArchive(showArchived: Boolean) {
@@ -38,5 +47,11 @@ class StudentsViewModel @Inject constructor(
 
     fun updateQuery(value: String) {
         query.value = value
+    }
+
+    fun setStudentArchived(studentId: Long, archived: Boolean) {
+        viewModelScope.launch {
+            studentRepository.archiveStudent(studentId, archived)
+        }
     }
 }

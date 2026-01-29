@@ -3,10 +3,17 @@ package by.dreb.tutorhelper.presentation.finance
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CurrencyExchange
+import androidx.compose.material.icons.filled.Payments
+import androidx.compose.material.icons.filled.Timeline
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -33,6 +40,12 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun FinanceScreen(viewModel: FinanceViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsState()
+    val unpaidCount = state.lessons.count { it.payment == null }
+    val averageIncome = if (state.lessons.isNotEmpty()) {
+        state.totalIncome / state.lessons.size
+    } else {
+        0.0
+    }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -46,10 +59,23 @@ fun FinanceScreen(viewModel: FinanceViewModel = hiltViewModel()) {
             )
         }
         item {
-            FinanceSummary(totalIncome = state.totalIncome, paidCount = state.paidCount)
+            FinanceSummary(
+                totalIncome = state.totalIncome,
+                paidCount = state.paidCount,
+                unpaidCount = unpaidCount,
+                averageIncome = averageIncome
+            )
         }
         item {
             FinanceChart(state.lessons)
+        }
+        if (state.lessons.isEmpty()) {
+            item {
+                Text(
+                    text = stringResource(R.string.finance_empty),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
         }
         items(state.lessons) { lesson ->
             FinanceLessonCard(lesson)
@@ -58,11 +84,24 @@ fun FinanceScreen(viewModel: FinanceViewModel = hiltViewModel()) {
 }
 
 @Composable
-private fun FinanceSummary(totalIncome: Double, paidCount: Int) {
+private fun FinanceSummary(totalIncome: Double, paidCount: Int, unpaidCount: Int, averageIncome: Double) {
     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(text = stringResource(R.string.finance_total_income, totalIncome))
             Text(text = stringResource(R.string.finance_paid_count, paidCount))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                AssistChip(
+                    onClick = {},
+                    label = { Text(text = stringResource(R.string.finance_unpaid_count, unpaidCount)) },
+                    leadingIcon = { androidx.compose.material3.Icon(Icons.Default.Payments, contentDescription = null) },
+                    colors = AssistChipDefaults.assistChipColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                )
+                AssistChip(
+                    onClick = {},
+                    label = { Text(text = stringResource(R.string.finance_average_income, averageIncome)) },
+                    leadingIcon = { androidx.compose.material3.Icon(Icons.Default.Timeline, contentDescription = null) }
+                )
+            }
         }
     }
 }
@@ -105,14 +144,27 @@ private fun FinanceChart(lessons: List<LessonDetails>) {
 private fun FinanceLessonCard(lesson: LessonDetails) {
     val formatter = DateTimeFormatter.ofPattern("dd MMM, HH:mm")
     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = lesson.student.name, style = MaterialTheme.typography.titleMedium)
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                androidx.compose.material3.Icon(Icons.Default.CurrencyExchange, contentDescription = null)
+                Text(
+                    text = lesson.student.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+            }
             Text(text = lesson.lesson.subject, style = MaterialTheme.typography.bodyMedium)
             Text(text = lesson.lesson.startTime.format(formatter), style = MaterialTheme.typography.bodyMedium)
             Text(
                 text = stringResource(R.string.finance_payment_amount, lesson.payment?.amount ?: 0.0),
                 style = MaterialTheme.typography.bodySmall
             )
+            val statusText = if (lesson.payment == null) {
+                stringResource(R.string.finance_payment_status_unpaid)
+            } else {
+                stringResource(R.string.finance_payment_status_paid)
+            }
+            Text(text = statusText, style = MaterialTheme.typography.labelMedium)
         }
     }
 }
