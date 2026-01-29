@@ -37,8 +37,7 @@ class MainActivity : ComponentActivity() {
 
             AppRoot(
                 settingsState = settingsState,
-                onThemeSelected = settingsViewModel::updateTheme,
-                onLanguageSelected = settingsViewModel::updateLanguage
+                onThemeSelected = settingsViewModel::updateTheme
             )
         }
     }

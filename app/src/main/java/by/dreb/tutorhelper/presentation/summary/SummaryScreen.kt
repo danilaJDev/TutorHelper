@@ -28,7 +28,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import by.dreb.tutorhelper.R
-import by.dreb.tutorhelper.domain.model.AppLanguage
 import by.dreb.tutorhelper.domain.model.ThemeMode
 import by.dreb.tutorhelper.presentation.settings.SettingsUiState
 
@@ -36,7 +35,6 @@ import by.dreb.tutorhelper.presentation.settings.SettingsUiState
 fun SummaryScreen(
     settingsState: SettingsUiState,
     onThemeSelected: (ThemeMode) -> Unit,
-    onLanguageSelected: (AppLanguage) -> Unit,
     viewModel: SummaryViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -61,8 +59,7 @@ fun SummaryScreen(
         item {
             SettingsCard(
                 settingsState = settingsState,
-                onThemeSelected = onThemeSelected,
-                onLanguageSelected = onLanguageSelected
+                onThemeSelected = onThemeSelected
             )
         }
     }
@@ -158,14 +155,12 @@ private fun InsightsCard(summary: by.dreb.tutorhelper.domain.model.Summary) {
 @Composable
 private fun SettingsCard(
     settingsState: SettingsUiState,
-    onThemeSelected: (ThemeMode) -> Unit,
-    onLanguageSelected: (AppLanguage) -> Unit
+    onThemeSelected: (ThemeMode) -> Unit
 ) {
     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(text = stringResource(R.string.settings_title), style = MaterialTheme.typography.titleMedium)
             ThemeSelector(settingsState.themeMode, onThemeSelected)
-            LanguageSelector(settingsState.language, onLanguageSelected)
         }
     }
 }
@@ -187,27 +182,5 @@ private fun ThemeSelector(selected: ThemeMode, onThemeSelected: (ThemeMode) -> U
         )
         androidx.compose.material3.Icon(Icons.Default.DarkMode, contentDescription = null)
         Text(text = stringResource(R.string.settings_theme_toggle_label))
-    }
-}
-
-@Composable
-private fun LanguageSelector(selected: AppLanguage, onLanguageSelected: (AppLanguage) -> Unit) {
-    Text(text = stringResource(R.string.settings_language))
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        listOf(AppLanguage.RU, AppLanguage.EN).forEach { language ->
-            androidx.compose.foundation.layout.Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                androidx.compose.material3.RadioButton(
-                    selected = selected == language,
-                    onClick = { onLanguageSelected(language) }
-                )
-                Text(
-                    text = when (language) {
-                        AppLanguage.EN -> stringResource(R.string.settings_language_en)
-                        AppLanguage.RU -> stringResource(R.string.settings_language_ru)
-                        AppLanguage.SYSTEM -> stringResource(R.string.settings_language_system)
-                    }
-                )
-            }
-        }
     }
 }

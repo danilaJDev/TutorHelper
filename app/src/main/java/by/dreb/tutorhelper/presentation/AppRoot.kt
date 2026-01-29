@@ -21,7 +21,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import by.dreb.tutorhelper.R
-import by.dreb.tutorhelper.domain.model.AppLanguage
 import by.dreb.tutorhelper.domain.model.ThemeMode
 import by.dreb.tutorhelper.presentation.finance.FinanceScreen
 import by.dreb.tutorhelper.presentation.schedule.ScheduleScreen
@@ -39,8 +38,7 @@ data class BottomDestination(
 @Composable
 fun AppRoot(
     settingsState: SettingsUiState,
-    onThemeSelected: (ThemeMode) -> Unit,
-    onLanguageSelected: (AppLanguage) -> Unit
+    onThemeSelected: (ThemeMode) -> Unit
 ) {
     val darkTheme = settingsState.themeMode == ThemeMode.DARK
 
@@ -106,8 +104,7 @@ fun AppRoot(
                 composable("summary") {
                     SummaryScreen(
                         settingsState = settingsState,
-                        onThemeSelected = onThemeSelected,
-                        onLanguageSelected = onLanguageSelected
+                        onThemeSelected = onThemeSelected
                     )
                 }
             }
