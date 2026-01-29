@@ -5,9 +5,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Insights
@@ -16,6 +18,8 @@ import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -30,6 +34,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import by.dreb.tutorhelper.R
 import by.dreb.tutorhelper.domain.model.ThemeMode
 import by.dreb.tutorhelper.presentation.settings.SettingsUiState
+import androidx.compose.foundation.shape.RoundedCornerShape
 
 @Composable
 fun SummaryScreen(
@@ -39,28 +44,56 @@ fun SummaryScreen(
 ) {
     val state by viewModel.state.collectAsState()
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        item {
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        Surface(
+            color = MaterialTheme.colorScheme.primary,
+            shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = stringResource(R.string.summary_title),
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                    IconButton(onClick = {}) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                }
                 Text(
-                    text = stringResource(R.string.summary_title),
-                    style = MaterialTheme.typography.headlineSmall
+                    text = stringResource(R.string.summary_subtitle),
+                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f)
                 )
-                Text(text = stringResource(R.string.summary_subtitle))
             }
         }
-        item { SummaryHeroCard(state.summary) }
-        item { SummaryStatsGrid(state.summary) }
-        item { InsightsCard(state.summary) }
-        item {
-            SettingsCard(
-                settingsState = settingsState,
-                onThemeSelected = onThemeSelected
-            )
+
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            item { SummaryHeroCard(state.summary) }
+            item { SummaryStatsGrid(state.summary) }
+            item { InsightsCard(state.summary) }
+            item {
+                SettingsCard(
+                    settingsState = settingsState,
+                    onThemeSelected = onThemeSelected
+                )
+            }
         }
     }
 }

@@ -5,10 +5,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CurrencyExchange
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Timeline
@@ -16,7 +18,10 @@ import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -36,6 +41,7 @@ import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import java.time.format.DateTimeFormatter
+import androidx.compose.foundation.shape.RoundedCornerShape
 
 @Composable
 fun FinanceScreen(viewModel: FinanceViewModel = hiltViewModel()) {
@@ -47,38 +53,60 @@ fun FinanceScreen(viewModel: FinanceViewModel = hiltViewModel()) {
         0.0
     }
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        item {
-            Text(
-                text = stringResource(R.string.finance_title),
-                style = MaterialTheme.typography.headlineSmall
-            )
-        }
-        item {
-            FinanceSummary(
-                totalIncome = state.totalIncome,
-                paidCount = state.paidCount,
-                unpaidCount = unpaidCount,
-                averageIncome = averageIncome
-            )
-        }
-        item {
-            FinanceChart(state.lessons)
-        }
-        if (state.lessons.isEmpty()) {
-            item {
+    Column(modifier = Modifier.fillMaxSize()) {
+        Surface(
+            color = MaterialTheme.colorScheme.primary,
+            shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 24.dp),
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
                 Text(
-                    text = stringResource(R.string.finance_empty),
-                    style = MaterialTheme.typography.bodyMedium
+                    text = stringResource(R.string.finance_title),
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.onPrimary
                 )
+                IconButton(onClick = {}) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
             }
         }
-        items(state.lessons) { lesson ->
-            FinanceLessonCard(lesson)
+
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            item {
+                FinanceSummary(
+                    totalIncome = state.totalIncome,
+                    paidCount = state.paidCount,
+                    unpaidCount = unpaidCount,
+                    averageIncome = averageIncome
+                )
+            }
+            item {
+                FinanceChart(state.lessons)
+            }
+            if (state.lessons.isEmpty()) {
+                item {
+                    Text(
+                        text = stringResource(R.string.finance_empty),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+            items(state.lessons) { lesson ->
+                FinanceLessonCard(lesson)
+            }
         }
     }
 }
