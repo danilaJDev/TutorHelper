@@ -6,6 +6,7 @@ import by.dreb.tutorhelper.domain.model.LessonDetails
 import by.dreb.tutorhelper.domain.repository.LessonRepository
 import by.dreb.tutorhelper.domain.usecase.GetScheduleUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.time.LocalDate
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -21,12 +22,14 @@ class ScheduleViewModel @Inject constructor(
 ) : ViewModel() {
     private val mode = MutableStateFlow(ScheduleMode.LIST)
     private val filter = MutableStateFlow(ScheduleFilter.ACTIVE)
+    private val selectedDate = MutableStateFlow(LocalDate.now())
 
     val state: StateFlow<ScheduleUiState> = combine(
         getScheduleUseCase(),
         mode,
-        filter
-    ) { lessons, modeValue, filterValue ->
+        filter,
+        selectedDate
+    ) { lessons, modeValue, filterValue, dateValue ->
         val filteredLessons = lessons.filter {
             when (filterValue) {
                 ScheduleFilter.ACTIVE -> !it.lesson.isHidden
@@ -36,7 +39,8 @@ class ScheduleViewModel @Inject constructor(
         ScheduleUiState(
             lessons = filteredLessons,
             mode = modeValue,
-            filter = filterValue
+            filter = filterValue,
+            selectedDate = dateValue
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ScheduleUiState())
 
@@ -46,6 +50,10 @@ class ScheduleViewModel @Inject constructor(
 
     fun updateFilter(filter: ScheduleFilter) {
         this.filter.value = filter
+    }
+
+    fun updateSelectedDate(date: LocalDate) {
+        this.selectedDate.value = date
     }
 
     fun toggleHidden(lesson: LessonDetails) {
