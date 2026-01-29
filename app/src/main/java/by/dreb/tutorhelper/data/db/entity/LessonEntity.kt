@@ -19,5 +19,8 @@ data class LessonEntity(
     val startTime: String,
     val durationMinutes: Int,
     val price: Double,
-    val note: String?
+    val note: String?,
+    val isHidden: Boolean = false,
+    val isHomeworkSent: Boolean = false,
+    val isCompleted: Boolean = false
 )

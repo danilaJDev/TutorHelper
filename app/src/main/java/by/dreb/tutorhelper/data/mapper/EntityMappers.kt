@@ -34,7 +34,10 @@ fun LessonEntity.toDomain() = Lesson(
     startTime = LocalDateTime.parse(startTime),
     durationMinutes = durationMinutes,
     price = price,
-    note = note
+    note = note,
+    isHidden = isHidden,
+    isHomeworkSent = isHomeworkSent,
+    isCompleted = isCompleted
 )
 
 fun Lesson.toEntity() = LessonEntity(
@@ -44,7 +47,10 @@ fun Lesson.toEntity() = LessonEntity(
     startTime = startTime.toString(),
     durationMinutes = durationMinutes,
     price = price,
-    note = note
+    note = note,
+    isHidden = isHidden,
+    isHomeworkSent = isHomeworkSent,
+    isCompleted = isCompleted
 )
 
 fun PaymentEntity.toDomain() = Payment(

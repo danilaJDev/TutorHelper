@@ -2,6 +2,8 @@ package by.dreb.tutorhelper.di
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import by.dreb.tutorhelper.data.db.TutorHelperDatabase
 import by.dreb.tutorhelper.data.db.dao.LessonDao
 import by.dreb.tutorhelper.data.db.dao.PaymentDao
@@ -30,10 +32,19 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
+    private val MIGRATION_1_2 = object : Migration(1, 2) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE lessons ADD COLUMN isHidden INTEGER NOT NULL DEFAULT 0")
+            db.execSQL("ALTER TABLE lessons ADD COLUMN isHomeworkSent INTEGER NOT NULL DEFAULT 0")
+            db.execSQL("ALTER TABLE lessons ADD COLUMN isCompleted INTEGER NOT NULL DEFAULT 0")
+        }
+    }
+
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): TutorHelperDatabase =
         Room.databaseBuilder(context, TutorHelperDatabase::class.java, "tutor_helper.db")
+            .addMigrations(MIGRATION_1_2)
             .fallbackToDestructiveMigration()
             .build()
 
