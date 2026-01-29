@@ -8,14 +8,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.School
+import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -170,22 +173,20 @@ private fun SettingsCard(
 @Composable
 private fun ThemeSelector(selected: ThemeMode, onThemeSelected: (ThemeMode) -> Unit) {
     Text(text = stringResource(R.string.settings_theme))
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        ThemeMode.entries.forEach { mode ->
-            androidx.compose.foundation.layout.Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                androidx.compose.material3.RadioButton(
-                    selected = selected == mode,
-                    onClick = { onThemeSelected(mode) }
-                )
-                Text(
-                    text = when (mode) {
-                        ThemeMode.SYSTEM -> stringResource(R.string.settings_theme_system)
-                        ThemeMode.LIGHT -> stringResource(R.string.settings_theme_light)
-                        ThemeMode.DARK -> stringResource(R.string.settings_theme_dark)
-                    }
-                )
+    Row(
+        modifier = Modifier.padding(top = 8.dp),
+        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        androidx.compose.material3.Icon(Icons.Default.WbSunny, contentDescription = null)
+        Switch(
+            checked = selected == ThemeMode.DARK,
+            onCheckedChange = { isDark ->
+                onThemeSelected(if (isDark) ThemeMode.DARK else ThemeMode.LIGHT)
             }
-        }
+        )
+        androidx.compose.material3.Icon(Icons.Default.DarkMode, contentDescription = null)
+        Text(text = stringResource(R.string.settings_theme_toggle_label))
     }
 }
 
@@ -193,7 +194,7 @@ private fun ThemeSelector(selected: ThemeMode, onThemeSelected: (ThemeMode) -> U
 private fun LanguageSelector(selected: AppLanguage, onLanguageSelected: (AppLanguage) -> Unit) {
     Text(text = stringResource(R.string.settings_language))
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        AppLanguage.entries.forEach { language ->
+        listOf(AppLanguage.RU, AppLanguage.EN).forEach { language ->
             androidx.compose.foundation.layout.Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                 androidx.compose.material3.RadioButton(
                     selected = selected == language,
@@ -201,9 +202,9 @@ private fun LanguageSelector(selected: AppLanguage, onLanguageSelected: (AppLang
                 )
                 Text(
                     text = when (language) {
-                        AppLanguage.SYSTEM -> stringResource(R.string.settings_language_system)
                         AppLanguage.EN -> stringResource(R.string.settings_language_en)
                         AppLanguage.RU -> stringResource(R.string.settings_language_ru)
+                        AppLanguage.SYSTEM -> stringResource(R.string.settings_language_system)
                     }
                 )
             }

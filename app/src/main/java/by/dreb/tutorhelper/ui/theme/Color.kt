@@ -2,10 +2,13 @@ package by.dreb.tutorhelper.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+val LavenderPrimary = Color(0xFFB57EDC)
+val LavenderSecondary = Color(0xFFDCC6F1)
+val LavenderAccent = Color(0xFF8A6BBE)
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+val LavenderDarkPrimary = Color(0xFF6D4BA6)
+val LavenderDarkSecondary = Color(0xFF4A3A6A)
+val LavenderDarkAccent = Color(0xFF9C7DD4)
+
+val WhiteBase = Color(0xFFFFFFFF)
+val LavenderSurface = Color(0xFFF5F0FB)

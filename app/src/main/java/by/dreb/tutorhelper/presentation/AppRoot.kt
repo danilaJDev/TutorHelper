@@ -42,13 +42,9 @@ fun AppRoot(
     onThemeSelected: (ThemeMode) -> Unit,
     onLanguageSelected: (AppLanguage) -> Unit
 ) {
-    val darkTheme = when (settingsState.themeMode) {
-        ThemeMode.DARK -> true
-        ThemeMode.LIGHT -> false
-        ThemeMode.SYSTEM -> null
-    }
+    val darkTheme = settingsState.themeMode == ThemeMode.DARK
 
-    TutorHelperTheme(darkTheme = darkTheme ?: androidx.compose.foundation.isSystemInDarkTheme()) {
+    TutorHelperTheme(darkTheme = darkTheme) {
         val navController = rememberNavController()
         val destinations = listOf(
             BottomDestination(
