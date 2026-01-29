@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.hilt)
@@ -8,7 +9,7 @@ plugins {
 
 android {
     namespace = "by.dreb.tutorhelper"
-    compileSdk = 36
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "by.dreb.tutorhelper"
