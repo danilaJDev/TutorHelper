@@ -215,7 +215,6 @@ private fun ScheduleList(
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             sortedDates.forEach { date ->
@@ -344,7 +343,7 @@ private fun LessonCard(
 @Composable
 private fun StatusLabel(text: String) {
     val statusColors = when (text) {
-        stringResource(R.string.schedule_status_planned) -> Pair(colorResource(R.color.status_grey), Color.DarkGray)
+        stringResource(R.string.schedule_status_planned) -> Pair(colorResource(R.color.status_blue), Color.DarkGray)
         stringResource(R.string.lesson_status_hw_not_sent) -> Pair(colorResource(R.color.status_yellow), Color(0xFF827717))
         stringResource(R.string.schedule_status_done), stringResource(R.string.lesson_status_hw_sent) -> Pair(colorResource(R.color.status_green), Color(0xFF1B5E20))
         else -> Pair(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer)
