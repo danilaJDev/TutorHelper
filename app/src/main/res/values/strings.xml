@@ -9,14 +9,20 @@
     <string name="schedule_mode_table">Таблица</string>
     <string name="schedule_mode_calendar">Календарь</string>
     <string name="schedule_title">Расписание</string>
-    <string name="schedule_subtitle">Планируйте занятия и держите учеников в курсе</string>
-    <string name="schedule_today_count">Сегодня: %1$d</string>
-    <string name="schedule_upcoming_count">Предстоящие: %1$d</string>
     <string name="schedule_calendar_hint">Ближайшие занятия (превью календаря)</string>
     <string name="lesson_duration_price">%1$d мин · %2$.2f</string>
     <string name="schedule_empty">Пока нет занятий. Добавьте первое, чтобы начать.</string>
+    <string name="schedule_active">Действующие</string>
+    <string name="schedule_hidden">Скрытые</string>
     <string name="schedule_status_done">Состоялось</string>
     <string name="schedule_status_planned">Запланировано</string>
+    <string name="schedule_status_homework_sent">ДЗ отправлено</string>
+    <string name="schedule_status_homework_missing">ДЗ не отправлено</string>
+    <string name="schedule_menu_title">Действия</string>
+    <string name="schedule_menu_edit">Редактировать занятие</string>
+    <string name="schedule_menu_mark_done">Отметить как состоявшееся</string>
+    <string name="schedule_menu_hide">Скрыть занятие</string>
+    <string name="schedule_menu_close">Закрыть</string>
 
     <string name="students_title">Ученики</string>
     <string name="students_active">Активные</string>

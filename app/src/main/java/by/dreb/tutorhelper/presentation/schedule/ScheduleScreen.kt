@@ -1,6 +1,7 @@
 package by.dreb.tutorhelper.presentation.schedule
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -13,33 +14,43 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.ListAlt
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.TableRows
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import by.dreb.tutorhelper.R
 import by.dreb.tutorhelper.domain.model.LessonDetails
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import java.util.Locale
 
 @Composable
 fun ScheduleScreen(viewModel: ScheduleViewModel = hiltViewModel()) {
@@ -47,82 +58,71 @@ fun ScheduleScreen(viewModel: ScheduleViewModel = hiltViewModel()) {
 
     Column(modifier = Modifier.fillMaxSize()) {
         ScheduleHeader(
-            lessons = state.lessons,
+            mode = state.mode,
+            showHidden = state.showHidden,
+            onModeSelected = viewModel::updateMode,
+            onHiddenSelected = viewModel::updateHidden,
             onAddClick = {}
-        )
-        TabRow(
-            selectedTabIndex = state.mode.ordinal,
-            containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.onPrimary
-        ) {
-            ScheduleMode.entries.forEachIndexed { index, mode ->
-                Tab(
-                    selected = state.mode.ordinal == index,
-                    onClick = { viewModel.updateMode(mode) },
-                    icon = {
-                        Icon(
-                            imageVector = when (mode) {
-                                ScheduleMode.LIST -> Icons.Default.ListAlt
-                                ScheduleMode.TABLE -> Icons.Default.TableRows
-                                ScheduleMode.CALENDAR -> Icons.Default.CalendarMonth
-                            },
-                            contentDescription = null
-                        )
-                    },
-                    text = {
-                        Text(
-                            text = when (mode) {
-                                ScheduleMode.LIST -> stringResource(R.string.schedule_mode_list)
-                                ScheduleMode.TABLE -> stringResource(R.string.schedule_mode_table)
-                                ScheduleMode.CALENDAR -> stringResource(R.string.schedule_mode_calendar)
-                            }
-                        )
-                    }
-                )
-            }
         }
 
         when (state.mode) {
-            ScheduleMode.LIST -> ScheduleList(state.lessons)
-            ScheduleMode.TABLE -> ScheduleTable(state.lessons)
+            ScheduleMode.LIST -> ScheduleList(state.lessons, state.showHidden)
+            ScheduleMode.TABLE -> ScheduleTable(state.lessons, state.showHidden)
             ScheduleMode.CALENDAR -> ScheduleCalendar(state.lessons)
         }
     }
 }
 
 @Composable
-private fun ScheduleList(lessons: List<LessonDetails>) {
+private fun ScheduleList(lessons: List<LessonDetails>, showHidden: Boolean) {
+    val now = LocalDateTime.now()
+    val filtered = lessons.filter { lesson ->
+        val isPast = lesson.lesson.startTime.isBefore(now)
+        if (showHidden) isPast else !isPast
+    }
+
+    if (filtered.isEmpty()) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text(
+                text = stringResource(R.string.schedule_empty),
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+        return
+    }
+
+    val grouped = filtered
+        .groupBy { it.lesson.startTime.toLocalDate() }
+        .toSortedMap()
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        if (lessons.isEmpty()) {
+        grouped.forEach { (date, dayLessons) ->
             item {
                 Text(
-                    text = stringResource(R.string.schedule_empty),
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(vertical = 8.dp)
+                    text = date.format(DateTimeFormatter.ofPattern("dd.MM.yyyy, EEEE", Locale("ru"))),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 6.dp),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center
                 )
             }
-        }
-        items(lessons) { lesson ->
-            LessonCard(lesson)
+            items(dayLessons) { lesson ->
+                LessonCard(lesson)
+            }
         }
     }
 }
 
 @Composable
-private fun ScheduleTable(lessons: List<LessonDetails>) {
+private fun ScheduleTable(lessons: List<LessonDetails>, showHidden: Boolean) {
     Surface(modifier = Modifier.fillMaxSize()) {
-        LazyColumn(
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(lessons) { lesson ->
-                LessonCard(lesson, compact = true)
-            }
-        }
+        ScheduleList(lessons = lessons, showHidden = showHidden)
     }
 }
 
@@ -145,11 +145,13 @@ private fun ScheduleCalendar(lessons: List<LessonDetails>) {
 }
 
 @Composable
-private fun ScheduleHeader(lessons: List<LessonDetails>, onAddClick: () -> Unit) {
-    val today = LocalDate.now()
-    val todayLessons = lessons.count { it.lesson.startTime.toLocalDate() == today }
-    val upcomingLessons = lessons.count { it.lesson.startTime.toLocalDate() >= today }
-
+private fun ScheduleHeader(
+    mode: ScheduleMode,
+    showHidden: Boolean,
+    onModeSelected: (ScheduleMode) -> Unit,
+    onHiddenSelected: (Boolean) -> Unit,
+    onAddClick: () -> Unit
+) {
     Surface(
         color = MaterialTheme.colorScheme.primary,
         modifier = Modifier.fillMaxWidth(),
@@ -164,46 +166,80 @@ private fun ScheduleHeader(lessons: List<LessonDetails>, onAddClick: () -> Unit)
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(
-                        text = stringResource(R.string.schedule_title),
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
-                    Text(
-                        text = stringResource(R.string.schedule_subtitle),
-                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f)
-                    )
-                }
-                IconButton(
-                    onClick = onAddClick,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
+                Text(
+                    text = stringResource(R.string.schedule_title),
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+                Surface(
+                    shape = RoundedCornerShape(50),
+                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.18f)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimary
+                    IconButton(onClick = onAddClick) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                }
+            }
+            TabRow(
+                selectedTabIndex = mode.ordinal,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            ) {
+                ScheduleMode.entries.forEachIndexed { index, tabMode ->
+                    Tab(
+                        selected = mode.ordinal == index,
+                        onClick = { onModeSelected(tabMode) },
+                        icon = {
+                            Icon(
+                                imageVector = when (tabMode) {
+                                    ScheduleMode.LIST -> Icons.Default.ListAlt
+                                    ScheduleMode.TABLE -> Icons.Default.TableRows
+                                    ScheduleMode.CALENDAR -> Icons.Default.CalendarMonth
+                                },
+                                contentDescription = null
+                            )
+                        },
+                        text = {
+                            Text(
+                                text = when (tabMode) {
+                                    ScheduleMode.LIST -> stringResource(R.string.schedule_mode_list)
+                                    ScheduleMode.TABLE -> stringResource(R.string.schedule_mode_table)
+                                    ScheduleMode.CALENDAR -> stringResource(R.string.schedule_mode_calendar)
+                                }
+                            )
+                        }
                     )
                 }
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                AssistChip(
-                    onClick = {},
-                    label = { Text(text = stringResource(R.string.schedule_today_count, todayLessons)) },
-                    colors = AssistChipDefaults.assistChipColors(
-                        containerColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.18f),
-                        labelColor = MaterialTheme.colorScheme.onPrimary
-                    )
-                )
-                AssistChip(
-                    onClick = {},
-                    label = { Text(text = stringResource(R.string.schedule_upcoming_count, upcomingLessons)) },
-                    colors = AssistChipDefaults.assistChipColors(
-                        containerColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.18f),
-                        labelColor = MaterialTheme.colorScheme.onPrimary
-                    )
-                )
+            Surface(
+                color = MaterialTheme.colorScheme.onPrimary,
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                SingleChoiceSegmentedButtonRow(
+                    modifier = Modifier
+                        .padding(6.dp)
+                        .fillMaxWidth()
+                ) {
+                    SegmentedButton(
+                        selected = !showHidden,
+                        onClick = { onHiddenSelected(false) },
+                        shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)
+                    ) {
+                        Text(text = stringResource(R.string.schedule_active))
+                    }
+                    SegmentedButton(
+                        selected = showHidden,
+                        onClick = { onHiddenSelected(true) },
+                        shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)
+                    ) {
+                        Text(text = stringResource(R.string.schedule_hidden))
+                    }
+                }
             }
         }
     }
@@ -212,7 +248,6 @@ private fun ScheduleHeader(lessons: List<LessonDetails>, onAddClick: () -> Unit)
 @Composable
 private fun LessonCard(lesson: LessonDetails, compact: Boolean = false) {
     val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
-    val dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy, EEEE")
     val titleStyle = if (compact) MaterialTheme.typography.titleSmall else MaterialTheme.typography.titleMedium
     val bodyStyle = if (compact) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium
     val endTime = lesson.lesson.startTime.plusMinutes(lesson.lesson.durationMinutes.toLong())
@@ -222,21 +257,27 @@ private fun LessonCard(lesson: LessonDetails, compact: Boolean = false) {
     } else {
         stringResource(R.string.schedule_status_planned)
     }
+    val homeworkText = if (lesson.lesson.id % 2L == 0L) {
+        stringResource(R.string.schedule_status_homework_sent)
+    } else {
+        stringResource(R.string.schedule_status_homework_missing)
+    }
+    var showMenu by remember { mutableStateOf(false) }
 
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(
-                text = lesson.lesson.startTime.toLocalDate().format(dateFormatter),
-                style = MaterialTheme.typography.labelMedium
-            )
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = "${lesson.lesson.startTime.format(timeFormatter)} - ${endTime.format(timeFormatter)}",
                     style = titleStyle
                 )
+                Box(modifier = Modifier.weight(1f))
+                IconButton(onClick = { showMenu = true }) {
+                    Icon(imageVector = Icons.Default.MoreVert, contentDescription = null)
+                }
             }
             Text(text = lesson.student.name, style = bodyStyle)
             Text(text = lesson.lesson.subject, style = bodyStyle)
@@ -244,14 +285,43 @@ private fun LessonCard(lesson: LessonDetails, compact: Boolean = false) {
                 text = stringResource(R.string.lesson_duration_price, lesson.lesson.durationMinutes, lesson.lesson.price),
                 style = bodyStyle
             )
-            AssistChip(
-                onClick = {},
-                label = { Text(text = statusText) },
-                colors = AssistChipDefaults.assistChipColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    labelColor = MaterialTheme.colorScheme.onPrimaryContainer
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                AssistChip(
+                    onClick = {},
+                    label = { Text(text = statusText) },
+                    colors = AssistChipDefaults.assistChipColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        labelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
                 )
-            )
+                AssistChip(
+                    onClick = {},
+                    label = { Text(text = homeworkText) },
+                    colors = AssistChipDefaults.assistChipColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        labelColor = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                )
+            }
         }
+    }
+
+    if (showMenu) {
+        AlertDialog(
+            onDismissRequest = { showMenu = false },
+            title = { Text(text = stringResource(R.string.schedule_menu_title)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(text = stringResource(R.string.schedule_menu_edit))
+                    Text(text = stringResource(R.string.schedule_menu_mark_done))
+                    Text(text = stringResource(R.string.schedule_menu_hide))
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showMenu = false }) {
+                    Text(text = stringResource(R.string.schedule_menu_close))
+                }
+            }
+        )
     }
 }

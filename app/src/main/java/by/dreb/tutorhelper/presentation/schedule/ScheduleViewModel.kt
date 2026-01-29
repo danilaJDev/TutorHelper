@@ -16,15 +16,21 @@ class ScheduleViewModel @Inject constructor(
     getScheduleUseCase: GetScheduleUseCase
 ) : ViewModel() {
     private val mode = MutableStateFlow(ScheduleMode.LIST)
+    private val showHidden = MutableStateFlow(false)
 
     val state: StateFlow<ScheduleUiState> = combine(
         getScheduleUseCase(),
-        mode
-    ) { lessons, modeValue ->
-        ScheduleUiState(lessons = lessons, mode = modeValue)
+        mode,
+        showHidden
+    ) { lessons, modeValue, hiddenValue ->
+        ScheduleUiState(lessons = lessons, mode = modeValue, showHidden = hiddenValue)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ScheduleUiState())
 
     fun updateMode(mode: ScheduleMode) {
         this.mode.value = mode
+    }
+
+    fun updateHidden(showHidden: Boolean) {
+        this.showHidden.value = showHidden
     }
 }
