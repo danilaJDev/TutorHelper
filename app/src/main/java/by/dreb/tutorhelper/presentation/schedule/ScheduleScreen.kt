@@ -1,133 +1,262 @@
 package by.dreb.tutorhelper.presentation.schedule
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.ListAlt
-import androidx.compose.material.icons.filled.TableRows
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import by.dreb.tutorhelper.R
 import by.dreb.tutorhelper.domain.model.LessonDetails
-import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import androidx.compose.foundation.shape.RoundedCornerShape
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScheduleScreen(viewModel: ScheduleViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsState()
+    var selectedLessonForMenu by remember { mutableStateOf<LessonDetails?>(null) }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        ScheduleHeader(
-            lessons = state.lessons,
-            onAddClick = {}
-        )
-        TabRow(
-            selectedTabIndex = state.mode.ordinal,
-            containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.onPrimary
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        // 1. Header Row
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            ScheduleMode.entries.forEachIndexed { index, mode ->
-                Tab(
-                    selected = state.mode.ordinal == index,
-                    onClick = { viewModel.updateMode(mode) },
-                    icon = {
-                        Icon(
-                            imageVector = when (mode) {
-                                ScheduleMode.LIST -> Icons.Default.ListAlt
-                                ScheduleMode.TABLE -> Icons.Default.TableRows
-                                ScheduleMode.CALENDAR -> Icons.Default.CalendarMonth
-                            },
-                            contentDescription = null
-                        )
-                    },
-                    text = {
-                        Text(
-                            text = when (mode) {
-                                ScheduleMode.LIST -> stringResource(R.string.schedule_mode_list)
-                                ScheduleMode.TABLE -> stringResource(R.string.schedule_mode_table)
-                                ScheduleMode.CALENDAR -> stringResource(R.string.schedule_mode_calendar)
-                            }
-                        )
-                    }
+            Surface(
+                color = colorResource(R.color.lavender),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.schedule_title),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    style = MaterialTheme.typography.titleLarge
+                )
+            }
+
+            IconButton(
+                onClick = { /* TODO: Navigate to Add Lesson */ },
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.primary, CircleShape)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = null,
+                    tint = Color.White
                 )
             }
         }
 
-        when (state.mode) {
-            ScheduleMode.LIST -> ScheduleList(state.lessons)
-            ScheduleMode.TABLE -> ScheduleTable(state.lessons)
-            ScheduleMode.CALENDAR -> ScheduleCalendar(state.lessons)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // 2. Combined Block (Tabs + Filters + Content)
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            Column {
+                TabRow(
+                    selectedTabIndex = state.mode.ordinal,
+                    containerColor = Color.Transparent,
+                    contentColor = MaterialTheme.colorScheme.primary,
+                    divider = {}
+                ) {
+                    ScheduleMode.entries.forEachIndexed { index, mode ->
+                        Tab(
+                            selected = state.mode.ordinal == index,
+                            onClick = { viewModel.updateMode(mode) },
+                            text = {
+                                Text(
+                                    text = when (mode) {
+                                        ScheduleMode.LIST -> stringResource(R.string.schedule_mode_list)
+                                        ScheduleMode.TABLE -> stringResource(R.string.schedule_mode_table)
+                                        ScheduleMode.CALENDAR -> stringResource(R.string.schedule_mode_calendar)
+                                    }
+                                )
+                            }
+                        )
+                    }
+                }
+
+                SingleChoiceSegmentedButtonRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    ScheduleFilter.entries.forEachIndexed { index, filter ->
+                        SegmentedButton(
+                            selected = state.filter == filter,
+                            onClick = { viewModel.updateFilter(filter) },
+                            shape = SegmentedButtonDefaults.itemShape(
+                                index = index,
+                                count = ScheduleFilter.entries.size
+                            ),
+                            label = {
+                                Text(
+                                    text = when (filter) {
+                                        ScheduleFilter.ACTIVE -> stringResource(R.string.schedule_filter_active)
+                                        ScheduleFilter.HIDDEN -> stringResource(R.string.schedule_filter_hidden)
+                                    }
+                                )
+                            }
+                        )
+                    }
+                }
+
+                when (state.mode) {
+                    ScheduleMode.LIST -> ScheduleList(
+                        lessons = state.lessons,
+                        onMenuClick = { selectedLessonForMenu = it }
+                    )
+                    ScheduleMode.TABLE -> ScheduleTable(
+                        lessons = state.lessons,
+                        onMenuClick = { selectedLessonForMenu = it }
+                    )
+                    ScheduleMode.CALENDAR -> ScheduleCalendar(
+                        lessons = state.lessons,
+                        onMenuClick = { selectedLessonForMenu = it }
+                    )
+                }
+            }
+        }
+    }
+
+    selectedLessonForMenu?.let { lesson ->
+        LessonActionsDialog(
+            lesson = lesson,
+            onDismiss = { selectedLessonForMenu = null },
+            onToggleHidden = {
+                viewModel.toggleHidden(lesson)
+                selectedLessonForMenu = null
+            },
+            onToggleHomework = {
+                viewModel.toggleHomework(lesson)
+                selectedLessonForMenu = null
+            },
+            onToggleCompleted = {
+                viewModel.toggleCompleted(lesson)
+                selectedLessonForMenu = null
+            }
+        )
+    }
+}
+
+@Composable
+private fun ScheduleList(
+    lessons: List<LessonDetails>,
+    onMenuClick: (LessonDetails) -> Unit
+) {
+    if (lessons.isEmpty()) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text(
+                text = stringResource(R.string.schedule_empty),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(32.dp),
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+    } else {
+        val groupedLessons = lessons.groupBy { it.lesson.startTime.toLocalDate() }
+        val sortedDates = groupedLessons.keys.sorted()
+
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            sortedDates.forEach { date ->
+                item {
+                    Text(
+                        text = date.format(DateTimeFormatter.ofPattern("dd.MM.yyyy, EEEE")),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
+                items(groupedLessons[date] ?: emptyList()) { lesson ->
+                    LessonCard(
+                        lesson = lesson,
+                        onMenuClick = { onMenuClick(lesson) }
+                    )
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun ScheduleList(lessons: List<LessonDetails>) {
+private fun ScheduleTable(
+    lessons: List<LessonDetails>,
+    onMenuClick: (LessonDetails) -> Unit
+) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        if (lessons.isEmpty()) {
-            item {
-                Text(
-                    text = stringResource(R.string.schedule_empty),
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-            }
-        }
         items(lessons) { lesson ->
-            LessonCard(lesson)
+            LessonCard(lesson, onMenuClick = { onMenuClick(lesson) }, compact = true)
         }
     }
 }
 
 @Composable
-private fun ScheduleTable(lessons: List<LessonDetails>) {
-    Surface(modifier = Modifier.fillMaxSize()) {
-        LazyColumn(
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(lessons) { lesson ->
-                LessonCard(lesson, compact = true)
-            }
-        }
-    }
-}
-
-@Composable
-private fun ScheduleCalendar(lessons: List<LessonDetails>) {
+private fun ScheduleCalendar(
+    lessons: List<LessonDetails>,
+    onMenuClick: (LessonDetails) -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -138,120 +267,147 @@ private fun ScheduleCalendar(lessons: List<LessonDetails>) {
             text = stringResource(R.string.schedule_calendar_hint),
             style = MaterialTheme.typography.titleMedium
         )
-        lessons.take(3).forEach { lesson ->
-            LessonCard(lesson, compact = true)
+        lessons.take(5).forEach { lesson ->
+            LessonCard(lesson, onMenuClick = { onMenuClick(lesson) }, compact = true)
         }
     }
 }
 
 @Composable
-private fun ScheduleHeader(lessons: List<LessonDetails>, onAddClick: () -> Unit) {
-    val today = LocalDate.now()
-    val todayLessons = lessons.count { it.lesson.startTime.toLocalDate() == today }
-    val upcomingLessons = lessons.count { it.lesson.startTime.toLocalDate() >= today }
-
-    Surface(
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(
-                        text = stringResource(R.string.schedule_title),
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
-                    Text(
-                        text = stringResource(R.string.schedule_subtitle),
-                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f)
-                    )
-                }
-                IconButton(
-                    onClick = onAddClick,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimary
-                    )
-                }
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                AssistChip(
-                    onClick = {},
-                    label = { Text(text = stringResource(R.string.schedule_today_count, todayLessons)) },
-                    colors = AssistChipDefaults.assistChipColors(
-                        containerColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.18f),
-                        labelColor = MaterialTheme.colorScheme.onPrimary
-                    )
-                )
-                AssistChip(
-                    onClick = {},
-                    label = { Text(text = stringResource(R.string.schedule_upcoming_count, upcomingLessons)) },
-                    colors = AssistChipDefaults.assistChipColors(
-                        containerColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.18f),
-                        labelColor = MaterialTheme.colorScheme.onPrimary
-                    )
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun LessonCard(lesson: LessonDetails, compact: Boolean = false) {
+private fun LessonCard(
+    lesson: LessonDetails,
+    onMenuClick: () -> Unit,
+    compact: Boolean = false
+) {
     val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
-    val dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy, EEEE")
-    val titleStyle = if (compact) MaterialTheme.typography.titleSmall else MaterialTheme.typography.titleMedium
-    val bodyStyle = if (compact) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium
     val endTime = lesson.lesson.startTime.plusMinutes(lesson.lesson.durationMinutes.toLong())
-    val isPast = lesson.lesson.startTime.isBefore(LocalDateTime.now())
-    val statusText = if (isPast) {
-        stringResource(R.string.schedule_status_done)
-    } else {
-        stringResource(R.string.schedule_status_planned)
-    }
 
     Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-        modifier = Modifier.fillMaxWidth()
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(
-                text = lesson.lesson.startTime.toLocalDate().format(dateFormatter),
-                style = MaterialTheme.typography.labelMedium
-            )
-            Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Top
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "${lesson.lesson.startTime.format(timeFormatter)} - ${endTime.format(timeFormatter)}",
-                    style = titleStyle
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = lesson.student.name,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                if (!compact) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        StatusLabel(
+                            text = if (lesson.lesson.isCompleted)
+                                stringResource(R.string.schedule_status_done)
+                            else
+                                stringResource(R.string.schedule_status_planned)
+                        )
+                        StatusLabel(
+                            text = if (lesson.lesson.isHomeworkSent)
+                                stringResource(R.string.lesson_status_hw_sent)
+                            else
+                                stringResource(R.string.lesson_status_hw_not_sent)
+                        )
+                    }
+                }
+            }
+            IconButton(onClick = onMenuClick) {
+                Icon(
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = null
                 )
             }
-            Text(text = lesson.student.name, style = bodyStyle)
-            Text(text = lesson.lesson.subject, style = bodyStyle)
-            Text(
-                text = stringResource(R.string.lesson_duration_price, lesson.lesson.durationMinutes, lesson.lesson.price),
-                style = bodyStyle
-            )
-            AssistChip(
-                onClick = {},
-                label = { Text(text = statusText) },
-                colors = AssistChipDefaults.assistChipColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    labelColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            )
         }
     }
+}
+
+@Composable
+private fun StatusLabel(text: String) {
+    Surface(
+        color = MaterialTheme.colorScheme.primaryContainer,
+        shape = RoundedCornerShape(4.dp)
+    ) {
+        Text(
+            text = text,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+    }
+}
+
+@Composable
+private fun LessonActionsDialog(
+    lesson: LessonDetails,
+    onDismiss: () -> Unit,
+    onToggleHidden: () -> Unit,
+    onToggleHomework: () -> Unit,
+    onToggleCompleted: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = stringResource(R.string.lesson_actions_title),
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
+            )
+        },
+        text = {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                TextButton(
+                    onClick = onToggleCompleted,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(text = stringResource(R.string.action_mark_completed))
+                }
+                TextButton(
+                    onClick = onToggleHomework,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(text = stringResource(R.string.action_mark_hw))
+                }
+                TextButton(
+                    onClick = onToggleHidden,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = if (lesson.lesson.isHidden)
+                            stringResource(R.string.action_show)
+                        else
+                            stringResource(R.string.action_hide)
+                    )
+                }
+                TextButton(
+                    onClick = { /* TODO: Edit */ },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(text = stringResource(R.string.action_edit))
+                }
+                TextButton(
+                    onClick = { /* TODO: Delete */ },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text(text = stringResource(R.string.action_delete))
+                }
+            }
+        },
+        confirmButton = {
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                TextButton(onClick = onDismiss) {
+                    Text(text = stringResource(R.string.action_close))
+                }
+            }
+        }
+    )
 }

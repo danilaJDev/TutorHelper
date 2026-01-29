@@ -12,7 +12,7 @@ import by.dreb.tutorhelper.data.db.entity.StudentEntity
 
 @Database(
     entities = [StudentEntity::class, LessonEntity::class, PaymentEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(TutorHelperTypeConverters::class)

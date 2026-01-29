@@ -17,6 +17,18 @@
     <string name="schedule_empty">Пока нет занятий. Добавьте первое, чтобы начать.</string>
     <string name="schedule_status_done">Состоялось</string>
     <string name="schedule_status_planned">Запланировано</string>
+    <string name="schedule_filter_active">Действующие</string>
+    <string name="schedule_filter_hidden">Скрытые</string>
+    <string name="lesson_status_hw_sent">ДЗ отправлено</string>
+    <string name="lesson_status_hw_not_sent">ДЗ не отправлено</string>
+    <string name="lesson_actions_title">Функции</string>
+    <string name="action_edit">Изменить</string>
+    <string name="action_delete">Удалить</string>
+    <string name="action_hide">Скрыть</string>
+    <string name="action_show">Показать</string>
+    <string name="action_mark_hw">Отметить ДЗ</string>
+    <string name="action_mark_completed">Отметить как выполненное</string>
+    <string name="action_close">Закрыть</string>
 
     <string name="students_title">Ученики</string>
     <string name="students_active">Активные</string>
