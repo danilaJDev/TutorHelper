@@ -73,4 +73,10 @@ class ScheduleViewModel @Inject constructor(
             lessonRepository.upsertLesson(lesson.lesson.copy(isCompleted = !lesson.lesson.isCompleted))
         }
     }
+
+    fun deleteLesson(lesson: LessonDetails) {
+        viewModelScope.launch {
+            lessonRepository.deleteLesson(lesson.lesson)
+        }
+    }
 }

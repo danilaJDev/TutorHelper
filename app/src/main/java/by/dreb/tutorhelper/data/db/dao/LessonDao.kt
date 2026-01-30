@@ -24,4 +24,7 @@ interface LessonDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(lesson: LessonEntity): Long
+
+    @androidx.room.Delete
+    suspend fun delete(lesson: LessonEntity)
 }

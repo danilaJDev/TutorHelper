@@ -10,4 +10,5 @@ interface LessonRepository {
     fun observeLessonDetails(): Flow<List<LessonDetails>>
     fun observeLessonsByDate(date: LocalDate): Flow<List<LessonDetails>>
     suspend fun upsertLesson(lesson: Lesson)
+    suspend fun deleteLesson(lesson: Lesson)
 }

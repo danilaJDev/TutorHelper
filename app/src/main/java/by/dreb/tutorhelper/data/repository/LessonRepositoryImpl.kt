@@ -28,4 +28,8 @@ class LessonRepositoryImpl @Inject constructor(
     override suspend fun upsertLesson(lesson: Lesson) {
         lessonDao.upsert(lesson.toEntity())
     }
+
+    override suspend fun deleteLesson(lesson: Lesson) {
+        lessonDao.delete(lesson.toEntity())
+    }
 }

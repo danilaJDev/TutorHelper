@@ -22,6 +22,9 @@
     <string name="lesson_actions_title">Функции</string>
     <string name="action_edit">Изменить</string>
     <string name="action_delete">Удалить</string>
+    <string name="action_delete_confirm_title">Удалить занятие?</string>
+    <string name="action_delete_confirm_message">Вы уверены, что хотите полностью удалить это занятие? Это действие нельзя отменить.</string>
+    <string name="action_cancel">Отмена</string>
     <string name="action_hide">Скрыть</string>
     <string name="action_show">Показать</string>
     <string name="action_mark_hw">Отметить ДЗ</string>
