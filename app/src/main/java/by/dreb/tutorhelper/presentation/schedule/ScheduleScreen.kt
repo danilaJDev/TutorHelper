@@ -21,8 +21,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BorderStroke
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -31,9 +33,9 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -91,18 +93,16 @@ fun ScheduleScreen(
 
         MainContentCard(modifier = Modifier.weight(1f)) {
             Column(modifier = Modifier.padding(16.dp)) {
-                SingleChoiceSegmentedButtonRow(
+                val modeTabs = ScheduleMode.entries
+                TabRow(
+                    selectedTabIndex = modeTabs.indexOf(state.mode),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    ScheduleMode.entries.forEachIndexed { index, mode ->
-                        SegmentedButton(
+                    modeTabs.forEach { mode ->
+                        Tab(
                             selected = state.mode == mode,
                             onClick = { viewModel.updateMode(mode) },
-                            shape = SegmentedButtonDefaults.itemShape(
-                                index = index,
-                                count = ScheduleMode.entries.size
-                            ),
-                            label = {
+                            text = {
                                 Text(
                                     text = when (mode) {
                                         ScheduleMode.LIST -> stringResource(R.string.schedule_mode_list)
@@ -477,11 +477,20 @@ private fun StatusChip(text: String, isCompleted: Boolean) {
 
 @Composable
 private fun HomeworkChip(isSent: Boolean) {
-    TutorHelperStatusChip(
-        text = if (isSent) stringResource(R.string.lesson_status_hw_sent) else stringResource(R.string.lesson_status_hw_not_sent),
-        containerColor = if (isSent) StatusGreen else StatusYellow,
-        contentColor = if (isSent) StatusOnGreen else StatusOnYellow
-    )
+    val containerColor = if (isSent) StatusGreen else StatusYellow
+    val contentColor = if (isSent) StatusOnGreen else StatusOnYellow
+    Box(
+        modifier = Modifier
+            .background(containerColor, CircleShape)
+            .padding(6.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Default.Home,
+            contentDescription = null,
+            tint = contentColor,
+            modifier = Modifier.size(16.dp)
+        )
+    }
 }
 
 @Composable
@@ -495,11 +504,10 @@ private fun LessonActionsDialog(
     onDeleteClick: () -> Unit
 ) {
     TutorHelperActionDialog(
-        onDismiss = onDismiss,
-        title = stringResource(R.string.lesson_actions_title)
+        onDismiss = onDismiss
     ) {
         ActionItem(
-            text = if (lesson.lesson.isCompleted) "Отменить отметку о выполнении" else stringResource(R.string.action_mark_completed),
+            text = if (lesson.lesson.isCompleted) stringResource(R.string.action_unmark_completed) else stringResource(R.string.action_mark_completed),
             onClick = onToggleCompleted
         )
         HorizontalDivider(modifier = Modifier.padding(horizontal = 8.dp), color = MaterialTheme.colorScheme.outlineVariant)
@@ -525,9 +533,12 @@ private fun LessonActionsDialog(
         )
 
         Spacer(modifier = Modifier.height(16.dp))
-        TextButton(
+        OutlinedButton(
             onClick = onDismiss,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(8.dp),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
         ) {
             Text(text = stringResource(R.string.action_close))
         }
@@ -550,7 +561,9 @@ private fun ActionItem(
         Text(
             text = text,
             style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Medium
+            fontWeight = FontWeight.Medium,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
         )
     }
 }
