@@ -31,9 +31,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -91,18 +90,16 @@ fun ScheduleScreen(
 
         MainContentCard(modifier = Modifier.weight(1f)) {
             Column(modifier = Modifier.padding(16.dp)) {
-                SingleChoiceSegmentedButtonRow(
+                val modeTabs = ScheduleMode.entries
+                TabRow(
+                    selectedTabIndex = modeTabs.indexOf(state.mode),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    ScheduleMode.entries.forEachIndexed { index, mode ->
-                        SegmentedButton(
+                    modeTabs.forEach { mode ->
+                        Tab(
                             selected = state.mode == mode,
                             onClick = { viewModel.updateMode(mode) },
-                            shape = SegmentedButtonDefaults.itemShape(
-                                index = index,
-                                count = ScheduleMode.entries.size
-                            ),
-                            label = {
+                            text = {
                                 Text(
                                     text = when (mode) {
                                         ScheduleMode.LIST -> stringResource(R.string.schedule_mode_list)
