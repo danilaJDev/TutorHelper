@@ -80,7 +80,11 @@
     <string name="finance_payment_amount">Платеж: %1$.2f</string>
     <string name="finance_payment_status_paid">Оплачено</string>
     <string name="finance_payment_status_unpaid">Ожидает оплаты</string>
+    <string name="finance_payment_status_future_unpaid">Не оплачен</string>
     <string name="finance_empty">Платежей пока нет.</string>
+    <string name="finance_filter_unpaid">Не оплачено</string>
+    <string name="finance_filter_paid">Оплачено</string>
+    <string name="action_mark_as_paid">Отметить как оплаченное</string>
 
     <string name="summary_title">Итоги</string>
     <string name="summary_subtitle">Обзор вашей преподавательской активности</string>
