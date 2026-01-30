@@ -15,7 +15,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
-import java.time.LocalDateTime
 import javax.inject.Inject
 
 @HiltViewModel
@@ -32,17 +31,7 @@ class FinanceViewModel @Inject constructor(
         _filter,
         _expandedStudentIds
     ) { lessons, filter, expandedIds ->
-        val now = LocalDateTime.now()
-        val processedLessons = lessons.map { details ->
-            val endTime = details.lesson.startTime.plusMinutes(details.lesson.durationMinutes.toLong())
-            if (now.isAfter(endTime) && !details.lesson.isCompleted) {
-                details.copy(lesson = details.lesson.copy(isCompleted = true))
-            } else {
-                details
-            }
-        }
-
-        val filteredLessons = processedLessons.filter { details ->
+        val filteredLessons = lessons.filter { details ->
             if (details.lesson.isHidden) return@filter false
 
             val isPaid = details.payment != null
@@ -56,7 +45,7 @@ class FinanceViewModel @Inject constructor(
 
         val grouped = filteredLessons
             .groupBy { it.student }
-            .toSortedMap(compareBy { it.name })
+            .toSortedMap(compareBy<by.dreb.tutorhelper.domain.model.Student> { it.name }.thenBy { it.id })
 
         val listItems = mutableListOf<FinanceListItem>()
         grouped.forEach { (student, studentLessons) ->
@@ -109,7 +98,7 @@ class FinanceViewModel @Inject constructor(
 
     fun toggleHidden(details: LessonDetails) {
         viewModelScope.launch {
-            lessonRepository.upsertLesson(details.lesson.copy(isHidden = true))
+            lessonRepository.upsertLesson(details.lesson.copy(isHidden = !details.lesson.isHidden))
         }
     }
 

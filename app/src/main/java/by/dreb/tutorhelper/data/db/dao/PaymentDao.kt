@@ -23,4 +23,7 @@ interface PaymentDao {
 
     @Query("DELETE FROM payments WHERE lessonId = :lessonId")
     suspend fun deleteByLessonId(lessonId: Long)
+
+    @Query("DELETE FROM payments WHERE lessonId IN (SELECT id FROM lessons WHERE studentId = :studentId)")
+    suspend fun deleteByStudentId(studentId: Long)
 }

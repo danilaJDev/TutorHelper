@@ -1,6 +1,7 @@
 package by.dreb.tutorhelper.data.repository
 
 import by.dreb.tutorhelper.data.db.dao.LessonDao
+import by.dreb.tutorhelper.data.db.dao.PaymentDao
 import by.dreb.tutorhelper.data.mapper.toDomain
 import by.dreb.tutorhelper.data.mapper.toEntity
 import by.dreb.tutorhelper.domain.model.Lesson
@@ -14,7 +15,8 @@ import javax.inject.Singleton
 
 @Singleton
 class LessonRepositoryImpl @Inject constructor(
-    private val lessonDao: LessonDao
+    private val lessonDao: LessonDao,
+    private val paymentDao: PaymentDao
 ) : LessonRepository {
     override fun observeLessons(): Flow<List<Lesson>> =
         lessonDao.observeLessons().map { entities -> entities.map { it.toDomain() } }
@@ -33,6 +35,7 @@ class LessonRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteLesson(lesson: Lesson) {
+        paymentDao.deleteByLessonId(lesson.id)
         lessonDao.delete(lesson.toEntity())
     }
 }
