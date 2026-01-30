@@ -35,10 +35,7 @@ class MainActivity : ComponentActivity() {
                 AppCompatDelegate.setApplicationLocales(locales)
             }
 
-            AppRoot(
-                settingsState = settingsState,
-                onThemeSelected = settingsViewModel::updateTheme
-            )
+            AppRoot()
         }
     }
 }

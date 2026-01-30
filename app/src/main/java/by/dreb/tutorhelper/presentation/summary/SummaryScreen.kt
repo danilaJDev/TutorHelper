@@ -56,11 +56,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import by.dreb.tutorhelper.R
 import by.dreb.tutorhelper.domain.model.MonthlyStat
 import by.dreb.tutorhelper.domain.model.Summary
-import by.dreb.tutorhelper.domain.model.ThemeMode
-import by.dreb.tutorhelper.presentation.settings.SettingsUiState
-import androidx.compose.material3.Switch
-import androidx.compose.material.icons.filled.WbSunny
-import androidx.compose.material.icons.filled.DarkMode
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -70,8 +65,6 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SummaryScreen(
-    settingsState: SettingsUiState,
-    onThemeSelected: (ThemeMode) -> Unit,
     viewModel: SummaryViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -126,12 +119,6 @@ fun SummaryScreen(
                 item { SummaryHeroCard(state.summary) }
                 item { SummaryStatsGrid(state.summary) }
                 item { MonthlyIncomeSection(state.summary.monthlyStats) }
-                item {
-                    SettingsCard(
-                        settingsState = settingsState,
-                        onThemeSelected = onThemeSelected
-                    )
-                }
             }
         }
     }
@@ -184,39 +171,6 @@ private fun PeriodFilterBar(
                 Icon(imageVector = Icons.Default.DateRange, contentDescription = null, modifier = Modifier.size(24.dp))
             }
         }
-    }
-}
-
-@Composable
-private fun SettingsCard(
-    settingsState: SettingsUiState,
-    onThemeSelected: (ThemeMode) -> Unit
-) {
-    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(text = stringResource(R.string.settings_title), style = MaterialTheme.typography.titleMedium)
-            ThemeSelector(settingsState.themeMode, onThemeSelected)
-        }
-    }
-}
-
-@Composable
-private fun ThemeSelector(selected: ThemeMode, onThemeSelected: (ThemeMode) -> Unit) {
-    Text(text = stringResource(R.string.settings_theme))
-    Row(
-        modifier = Modifier.padding(top = 8.dp),
-        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        androidx.compose.material3.Icon(Icons.Default.WbSunny, contentDescription = null)
-        Switch(
-            checked = selected == ThemeMode.DARK,
-            onCheckedChange = { isDark ->
-                onThemeSelected(if (isDark) ThemeMode.DARK else ThemeMode.LIGHT)
-            }
-        )
-        androidx.compose.material3.Icon(Icons.Default.DarkMode, contentDescription = null)
-        Text(text = stringResource(R.string.settings_theme_toggle_label))
     }
 }
 
@@ -396,7 +350,7 @@ private fun MonthIncomeRow(month: String, income: Double, maxIncome: Double) {
         Text(
             text = month,
             style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-            modifier = Modifier.width(40.dp)
+            modifier = Modifier.width(60.dp)
         )
 
         Box(modifier = Modifier.weight(1f).height(24.dp), contentAlignment = Alignment.CenterStart) {

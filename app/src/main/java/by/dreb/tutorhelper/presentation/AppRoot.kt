@@ -44,13 +44,8 @@ data class BottomDestination(
 )
 
 @Composable
-fun AppRoot(
-    settingsState: SettingsUiState,
-    onThemeSelected: (ThemeMode) -> Unit
-) {
-    val darkTheme = settingsState.themeMode == ThemeMode.DARK
-
-    TutorHelperTheme(darkTheme = darkTheme) {
+fun AppRoot() {
+    TutorHelperTheme(darkTheme = false) {
         val navController = rememberNavController()
         val destinations = listOf(
             BottomDestination(
@@ -186,10 +181,7 @@ fun AppRoot(
                 }
                 composable("finance") { FinanceScreen() }
                 composable("summary") {
-                    SummaryScreen(
-                        settingsState = settingsState,
-                        onThemeSelected = onThemeSelected
-                    )
+                    SummaryScreen()
                 }
             }
         }
