@@ -1,55 +1,56 @@
 package by.dreb.tutorhelper.presentation.students
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Unarchive
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Surface
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.foundation.clickable
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import by.dreb.tutorhelper.R
 import by.dreb.tutorhelper.domain.model.Student
-import androidx.compose.foundation.shape.RoundedCornerShape
+import by.dreb.tutorhelper.ui.components.MainContentCard
+import by.dreb.tutorhelper.ui.components.TutorHelperHeader
+import by.dreb.tutorhelper.ui.theme.StatusGreen
+import by.dreb.tutorhelper.ui.theme.StatusOnGreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,99 +66,67 @@ fun StudentsScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // 1. Header Row
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = stringResource(R.string.students_title),
-                style = MaterialTheme.typography.headlineMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = androidx.compose.ui.graphics.Color.Black
-                )
-            )
+        TutorHelperHeader(
+            title = stringResource(R.string.students_title),
+            actionIcon = Icons.Default.Add,
+            onActionClick = onAddStudentClick
+        )
 
-            IconButton(
-                onClick = onAddStudentClick,
-                modifier = Modifier
-                    .size(48.dp)
-                    .background(MaterialTheme.colorScheme.primary, androidx.compose.foundation.shape.CircleShape)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = null,
-                    tint = androidx.compose.ui.graphics.Color.White
-                )
-            }
-        }
-
-        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(16.dp))
-
-        // 2. Combined Block
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-        ) {
-            Column {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                        SegmentedButton(
-                            selected = !state.isArchived,
-                            onClick = { viewModel.toggleArchive(false) },
-                            shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
-                            label = { Text(text = stringResource(R.string.students_active) + " (${state.activeCount})") }
-                        )
-                        SegmentedButton(
-                            selected = state.isArchived,
-                            onClick = { viewModel.toggleArchive(true) },
-                            shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
-                            label = { Text(text = stringResource(R.string.students_archived) + " (${state.archivedCount})") }
-                        )
-                    }
-
-                    OutlinedTextField(
-                        modifier = Modifier
-                            .padding(top = 12.dp)
-                            .fillMaxWidth(),
-                        value = state.query,
-                        onValueChange = viewModel::updateQuery,
-                        label = { Text(stringResource(R.string.students_search)) }
+        MainContentCard(modifier = Modifier.weight(1f)) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                    SegmentedButton(
+                        selected = !state.isArchived,
+                        onClick = { viewModel.toggleArchive(false) },
+                        shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
+                        label = { Text(text = stringResource(R.string.students_active) + " (${state.activeCount})") }
+                    )
+                    SegmentedButton(
+                        selected = state.isArchived,
+                        onClick = { viewModel.toggleArchive(true) },
+                        shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
+                        label = { Text(text = stringResource(R.string.students_archived) + " (${state.archivedCount})") }
                     )
                 }
 
-                androidx.compose.foundation.layout.Box(modifier = Modifier.fillMaxSize()) {
-                    if (state.students.isEmpty()) {
-                        Text(
-                            text = stringResource(
-                                if (state.isArchived) R.string.students_empty_archived else R.string.students_empty_active
-                            ),
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.align(Alignment.Center)
-                        )
-                    } else {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            items(state.students) { student ->
-                                StudentCard(
-                                    student = student,
-                                    onStudentClick = onStudentClick,
-                                    onArchiveToggle = { archived ->
-                                        viewModel.setStudentArchived(student.id, archived)
-                                    },
-                                    onDeleteClick = {
-                                        viewModel.deleteStudent(student.id)
-                                    }
-                                )
-                            }
+                OutlinedTextField(
+                    modifier = Modifier
+                        .padding(top = 12.dp)
+                        .fillMaxWidth(),
+                    value = state.query,
+                    onValueChange = viewModel::updateQuery,
+                    label = { Text(stringResource(R.string.students_search)) },
+                    shape = MaterialTheme.shapes.medium
+                )
+            }
+
+            Box(modifier = Modifier.fillMaxSize()) {
+                if (state.students.isEmpty()) {
+                    Text(
+                        text = stringResource(
+                            if (state.isArchived) R.string.students_empty_archived else R.string.students_empty_active
+                        ),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(state.students) { student ->
+                            StudentCard(
+                                student = student,
+                                onStudentClick = onStudentClick,
+                                onArchiveToggle = { archived ->
+                                    viewModel.setStudentArchived(student.id, archived)
+                                },
+                                onDeleteClick = {
+                                    viewModel.deleteStudent(student.id)
+                                }
+                            )
                         }
                     }
                 }
@@ -225,10 +194,13 @@ private fun StudentCard(
             title = { Text(stringResource(R.string.student_delete_confirm_title)) },
             text = { Text(stringResource(R.string.student_delete_confirm_message)) },
             confirmButton = {
-                TextButton(onClick = {
-                    onDeleteClick()
-                    showDeleteDialog = false
-                }) {
+                TextButton(
+                    onClick = {
+                        onDeleteClick()
+                        showDeleteDialog = false
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                ) {
                     Text(stringResource(R.string.action_ok))
                 }
             },
@@ -244,56 +216,62 @@ private fun StudentCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onStudentClick(student.id) },
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        shape = MaterialTheme.shapes.medium
     ) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(modifier = Modifier.weight(1f)) {
+        Row(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = student.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                student.phone?.let {
                     Text(
-                        text = student.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
+                        text = it,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    student.phone?.let {
-                        Text(
-                            text = it,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                    student.note?.let { Text(text = it, style = MaterialTheme.typography.bodySmall) }
-                    if (student.isArchived) {
-                        Text(
-                            text = stringResource(R.string.students_archived_label),
-                            style = MaterialTheme.typography.labelMedium
-                        )
-                    }
                 }
-                Row {
-                    IconButton(
-                        onClick = {
-                            if (student.isArchived) {
-                                showRestoreDialog = true
-                            } else {
-                                showArchiveDialog = true
-                            }
+                student.note?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1
+                    )
+                }
+            }
+            Row {
+                IconButton(
+                    onClick = {
+                        if (student.isArchived) {
+                            showRestoreDialog = true
+                        } else {
+                            showArchiveDialog = true
                         }
-                    ) {
-                        Icon(
-                            imageVector = if (student.isArchived) Icons.Default.Unarchive else Icons.Default.Archive,
-                            contentDescription = null,
-                            tint = if (student.isArchived) androidx.compose.ui.graphics.Color(0xFF4CAF50) else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
                     }
-                    if (student.isArchived) {
-                        IconButton(onClick = { showDeleteDialog = true }) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = null,
-                                tint = androidx.compose.ui.graphics.Color.Red
-                            )
-                        }
+                ) {
+                    Icon(
+                        imageVector = if (student.isArchived) Icons.Default.Unarchive else Icons.Default.Archive,
+                        contentDescription = null,
+                        tint = if (student.isArchived) StatusOnGreen else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                if (student.isArchived) {
+                    IconButton(onClick = { showDeleteDialog = true }) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error
+                        )
                     }
                 }
             }

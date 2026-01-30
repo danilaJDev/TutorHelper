@@ -1,46 +1,42 @@
 package by.dreb.tutorhelper.ui.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
-private val DarkColorScheme = darkColorScheme(
-    primary = LavenderDarkPrimary,
-    secondary = LavenderDarkSecondary,
-    tertiary = LavenderDarkAccent,
-    background = Color(0xFF15121C),
-    surface = Color(0xFF1E1A26),
-    onPrimary = WhiteBase,
-    onSecondary = WhiteBase,
-    onTertiary = WhiteBase,
-    onBackground = WhiteBase,
-    onSurface = WhiteBase
-)
-
 private val LightColorScheme = lightColorScheme(
-    primary = LavenderPrimary,
-    secondary = LavenderSecondary,
-    tertiary = LavenderAccent,
-    background = WhiteBase,
-    surface = LavenderSurface,
-    onPrimary = WhiteBase,
-    onSecondary = Color(0xFF2D2540),
-    onTertiary = WhiteBase,
-    onBackground = Color(0xFF1D1B21),
-    onSurface = Color(0xFF1D1B21)
+    primary = md_theme_light_primary,
+    onPrimary = md_theme_light_onPrimary,
+    primaryContainer = md_theme_light_primaryContainer,
+    onPrimaryContainer = md_theme_light_onPrimaryContainer,
+    secondary = md_theme_light_secondary,
+    onSecondary = md_theme_light_onSecondary,
+    secondaryContainer = md_theme_light_secondaryContainer,
+    onSecondaryContainer = md_theme_light_onSecondaryContainer,
+    tertiary = md_theme_light_tertiary,
+    onTertiary = md_theme_light_onTertiary,
+    tertiaryContainer = md_theme_light_tertiaryContainer,
+    onTertiaryContainer = md_theme_light_onTertiaryContainer,
+    error = md_theme_light_error,
+    onError = md_theme_light_onError,
+    background = md_theme_light_background,
+    onBackground = md_theme_light_onBackground,
+    surface = md_theme_light_surface,
+    onSurface = md_theme_light_onSurface,
+    surfaceVariant = md_theme_light_surfaceVariant,
+    onSurfaceVariant = md_theme_light_onSurfaceVariant,
+    outline = md_theme_light_outline
 )
 
 @Composable
 fun TutorHelperTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
+    darkTheme: Boolean = false, // Always light as per requirements
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    // We ignore darkTheme and dynamicColor to maintain the "calm and neat" light style requested
+    val colorScheme = LightColorScheme
 
     MaterialTheme(
         colorScheme = colorScheme,
