@@ -196,31 +196,38 @@ private fun LessonPaymentCard(
 
     when {
         isArchive -> {
-            backgroundColor = Color(0xFFE8F5E9) // Case 3: Greenish
+            backgroundColor = Color(0xFFE8F5E9)
             priceColor = Color(0xFF1B5E20)
             status1Color = Color(0xFF1B5E20)
             status2Color = Color(0xFF1B5E20)
             textColor = Color(0xFF1B5E20)
         }
-        !isCompleted && isPaid -> {
-            backgroundColor = Color(0xFFEEEEEE) // Case 1: Gray
-            priceColor = Color(0xFF4CAF50)
-            status1Color = Color(0xFF4CAF50)
-            status2Color = Color(0xFF4CAF50)
-            textColor = Color.DarkGray
+        !isCompleted -> {
+            backgroundColor = Color(0xFFEEEEEE)
+            if (isPaid) {
+                priceColor = Color(0xFF4CAF50)
+                status1Color = Color.Gray
+                status2Color = Color(0xFF4CAF50)
+                textColor = Color.DarkGray
+            } else {
+                priceColor = Color.Black
+                status1Color = Color.Gray
+                status2Color = Color.Gray
+                textColor = Color.Black
+            }
         }
         isCompleted && !isPaid -> {
-            backgroundColor = Color(0xFFFFF3E0) // Case 2: Light Orange
-            priceColor = Color(0xFFE65100) // Dark Orange
-            status1Color = Color(0xFF4CAF50) // "Состоялось" green
+            backgroundColor = Color(0xFFFFF3E0)
+            priceColor = Color(0xFFE65100)
+            status1Color = Color(0xFF4CAF50)
             status2Color = Color(0xFFE65100)
             textColor = Color.Black
         }
         else -> {
             backgroundColor = MaterialTheme.colorScheme.surfaceVariant
-            priceColor = MaterialTheme.colorScheme.primary
-            status1Color = Color.Gray
-            status2Color = Color.Gray
+            priceColor = Color(0xFF4CAF50)
+            status1Color = Color(0xFF4CAF50)
+            status2Color = Color(0xFF4CAF50)
             textColor = Color.Black
         }
     }
@@ -273,7 +280,7 @@ private fun LessonPaymentCard(
             }
             Text(
                 text = "${details.lesson.price} ${stringResource(R.string.currency_rub)}",
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = priceColor
             )
