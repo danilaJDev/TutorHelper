@@ -418,9 +418,13 @@ private fun LessonCard(
 
     Card(
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(
-                alpha = 0.5f
-            )
+            containerColor = if (lesson.lesson.isCompleted && lesson.lesson.isHomeworkSent) {
+                StatusGreen.copy(alpha = 0.16f)
+            } else {
+                MaterialTheme.colorScheme.surfaceVariant.copy(
+                    alpha = 0.5f
+                )
+            }
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         modifier = Modifier
@@ -526,6 +530,7 @@ private fun HideLessonButton(onClick: () -> Unit) {
         modifier = Modifier
             .size(36.dp)
             .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
+            .border(1.dp, Color.Black, CircleShape)
     ) {
         Icon(
             imageVector = Icons.Default.VisibilityOff,
