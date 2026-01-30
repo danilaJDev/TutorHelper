@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -25,7 +24,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -40,6 +38,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import by.dreb.tutorhelper.R
 import by.dreb.tutorhelper.domain.model.LessonDetails
 import by.dreb.tutorhelper.domain.model.Student
+import by.dreb.tutorhelper.ui.components.MainContentCard
+import by.dreb.tutorhelper.ui.components.TutorHelperHeader
+import by.dreb.tutorhelper.ui.theme.StatusGreen
+import by.dreb.tutorhelper.ui.theme.StatusOnGreen
+import by.dreb.tutorhelper.ui.theme.StatusOnRed
+import by.dreb.tutorhelper.ui.theme.StatusOnYellow
+import by.dreb.tutorhelper.ui.theme.StatusRed
+import by.dreb.tutorhelper.ui.theme.StatusYellow
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -53,88 +59,63 @@ fun FinanceScreen(viewModel: FinanceViewModel = hiltViewModel()) {
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // 1. Header Row
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = stringResource(R.string.finance_title),
-                style = MaterialTheme.typography.headlineMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black
-                )
-            )
-        }
+        TutorHelperHeader(title = stringResource(R.string.finance_title))
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // 2. Content Block
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-        ) {
-            Column {
-                SingleChoiceSegmentedButtonRow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    FinanceFilter.entries.forEachIndexed { index, filter ->
-                        SegmentedButton(
-                            selected = state.filter == filter,
-                            onClick = { viewModel.updateFilter(filter) },
-                            shape = SegmentedButtonDefaults.itemShape(
-                                index = index,
-                                count = FinanceFilter.entries.size
-                            ),
-                            label = {
-                                Text(
-                                    text = when (filter) {
-                                        FinanceFilter.ACTIVE -> stringResource(R.string.finance_filter_unpaid)
-                                        FinanceFilter.ARCHIVED -> stringResource(R.string.finance_filter_paid)
-                                    }
-                                )
-                            }
-                        )
-                    }
+        MainContentCard(modifier = Modifier.weight(1f)) {
+            SingleChoiceSegmentedButtonRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                FinanceFilter.entries.forEachIndexed { index, filter ->
+                    SegmentedButton(
+                        selected = state.filter == filter,
+                        onClick = { viewModel.updateFilter(filter) },
+                        shape = SegmentedButtonDefaults.itemShape(
+                            index = index,
+                            count = FinanceFilter.entries.size
+                        ),
+                        label = {
+                            Text(
+                                text = when (filter) {
+                                    FinanceFilter.ACTIVE -> stringResource(R.string.finance_filter_unpaid)
+                                    FinanceFilter.ARCHIVED -> stringResource(R.string.finance_filter_paid)
+                                }
+                            )
+                        }
+                    )
                 }
+            }
 
-                if (state.listItems.isEmpty()) {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(
-                            text = stringResource(R.string.finance_empty),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.Gray
-                        )
-                    }
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(bottom = 16.dp)
-                    ) {
-                        items(state.listItems, key = { item ->
-                            when (item) {
-                                is FinanceListItem.StudentHeader -> "student_${item.student.id}"
-                                is FinanceListItem.LessonItem -> "lesson_${item.details.lesson.id}"
-                            }
-                        }) { item ->
-                            when (item) {
-                                is FinanceListItem.StudentHeader -> StudentHeaderRow(
-                                    student = item.student,
-                                    isExpanded = item.isExpanded,
-                                    onToggle = { viewModel.toggleStudentExpanded(item.student.id) }
-                                )
-                                is FinanceListItem.LessonItem -> LessonPaymentCard(
-                                    details = item.details,
-                                    onTap = { viewModel.togglePayment(item.details) }
-                                )
-                            }
+            if (state.listItems.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = stringResource(R.string.finance_empty),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 16.dp)
+                ) {
+                    items(state.listItems, key = { item ->
+                        when (item) {
+                            is FinanceListItem.StudentHeader -> "student_${item.student.id}"
+                            is FinanceListItem.LessonItem -> "lesson_${item.details.lesson.id}"
+                        }
+                    }) { item ->
+                        when (item) {
+                            is FinanceListItem.StudentHeader -> StudentHeaderRow(
+                                student = item.student,
+                                isExpanded = item.isExpanded,
+                                onToggle = { viewModel.toggleStudentExpanded(item.student.id) }
+                            )
+                            is FinanceListItem.LessonItem -> LessonPaymentCard(
+                                details = item.details,
+                                onTap = { viewModel.togglePayment(item.details) }
+                            )
                         }
                     }
                 }
@@ -159,15 +140,13 @@ private fun StudentHeaderRow(
     ) {
         Text(
             text = student.name,
-            style = MaterialTheme.typography.titleMedium.copy(
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
-            )
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.primary
         )
         Icon(
             imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
             contentDescription = null,
-            tint = Color.Gray
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -187,59 +166,16 @@ private fun LessonPaymentCard(
     val isHomeworkSent = details.lesson.isHomeworkSent
     val isArchive = isCompleted && isHomeworkSent && isPaid
 
-    // Case selection
-    val backgroundColor: Color
-    val priceColor: Color
-    val status1Color: Color
-    val status2Color: Color
-    val textColor: Color
-
-    when {
-        isArchive -> {
-            backgroundColor = Color(0xFFE8F5E9)
-            priceColor = Color(0xFF1B5E20)
-            status1Color = Color(0xFF1B5E20)
-            status2Color = Color(0xFF1B5E20)
-            textColor = Color(0xFF1B5E20)
-        }
-        !isCompleted -> {
-            backgroundColor = Color(0xFFEEEEEE)
-            if (isPaid) {
-                priceColor = Color(0xFF4CAF50)
-                status1Color = Color.Gray
-                status2Color = Color(0xFF4CAF50)
-                textColor = Color.DarkGray
-            } else {
-                priceColor = Color.Black
-                status1Color = Color.Gray
-                status2Color = Color.Gray
-                textColor = Color.Black
-            }
-        }
-        isCompleted && !isPaid -> {
-            backgroundColor = Color(0xFFFFF3E0)
-            priceColor = Color(0xFFE65100)
-            status1Color = Color(0xFF4CAF50)
-            status2Color = Color(0xFFE65100)
-            textColor = Color.Black
-        }
-        else -> {
-            backgroundColor = MaterialTheme.colorScheme.surfaceVariant
-            priceColor = Color(0xFF4CAF50)
-            status1Color = Color(0xFF4CAF50)
-            status2Color = Color(0xFF4CAF50)
-            textColor = Color.Black
-        }
-    }
+    val cardTheme = getPaymentCardTheme(isCompleted, isPaid, isArchive)
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 6.dp)
             .clickable { onTap() },
-        colors = CardDefaults.cardColors(containerColor = backgroundColor),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        shape = RoundedCornerShape(12.dp)
+        colors = CardDefaults.cardColors(containerColor = cardTheme.backgroundColor),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        shape = MaterialTheme.shapes.medium
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -251,20 +187,20 @@ private fun LessonPaymentCard(
                     text = details.lesson.startTime.format(dateFormatter),
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Bold,
-                    color = textColor
+                    color = cardTheme.textColor
                 )
                 Text(
                     text = "${details.lesson.startTime.format(timeFormatter)} - ${endTime.format(timeFormatter)}",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = textColor
+                    color = cardTheme.textColor.copy(alpha = 0.7f)
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
                         text = if (isCompleted) stringResource(R.string.schedule_status_done) else stringResource(R.string.schedule_status_planned),
                         style = MaterialTheme.typography.labelMedium,
-                        color = status1Color,
-                        fontWeight = FontWeight.Medium
+                        color = cardTheme.status1Color,
+                        fontWeight = FontWeight.SemiBold
                     )
                     Text(
                         text = when {
@@ -273,8 +209,8 @@ private fun LessonPaymentCard(
                             else -> stringResource(R.string.finance_payment_status_future_unpaid)
                         },
                         style = MaterialTheme.typography.labelMedium,
-                        color = status2Color,
-                        fontWeight = FontWeight.Medium
+                        color = cardTheme.status2Color,
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
             }
@@ -282,8 +218,70 @@ private fun LessonPaymentCard(
                 text = "${details.lesson.price} ${stringResource(R.string.currency_rub)}",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = priceColor
+                color = cardTheme.priceColor
             )
         }
+    }
+}
+
+private data class PaymentCardTheme(
+    val backgroundColor: Color,
+    val textColor: Color,
+    val priceColor: Color,
+    val status1Color: Color,
+    val status2Color: Color
+)
+
+@Composable
+private fun getPaymentCardTheme(
+    isCompleted: Boolean,
+    isPaid: Boolean,
+    isArchive: Boolean
+): PaymentCardTheme {
+    val surfaceVariant = MaterialTheme.colorScheme.surfaceVariant
+    val onSurface = MaterialTheme.colorScheme.onSurface
+    val primary = MaterialTheme.colorScheme.primary
+
+    return when {
+        isArchive -> PaymentCardTheme(
+            backgroundColor = StatusGreen.copy(alpha = 0.3f),
+            textColor = StatusOnGreen,
+            priceColor = StatusOnGreen,
+            status1Color = StatusOnGreen,
+            status2Color = StatusOnGreen
+        )
+        !isCompleted -> {
+            if (isPaid) {
+                PaymentCardTheme(
+                    backgroundColor = surfaceVariant.copy(alpha = 0.3f),
+                    textColor = onSurface,
+                    priceColor = StatusOnGreen,
+                    status1Color = onSurface.copy(alpha = 0.6f),
+                    status2Color = StatusOnGreen
+                )
+            } else {
+                PaymentCardTheme(
+                    backgroundColor = surfaceVariant.copy(alpha = 0.3f),
+                    textColor = onSurface,
+                    priceColor = primary,
+                    status1Color = onSurface.copy(alpha = 0.6f),
+                    status2Color = onSurface.copy(alpha = 0.6f)
+                )
+            }
+        }
+        isCompleted && !isPaid -> PaymentCardTheme(
+            backgroundColor = StatusYellow.copy(alpha = 0.3f),
+            textColor = onSurface,
+            priceColor = StatusOnRed,
+            status1Color = StatusOnGreen,
+            status2Color = StatusOnRed
+        )
+        else -> PaymentCardTheme( // Completed and Paid but not Homework sent (so not Archive yet)
+            backgroundColor = surfaceVariant.copy(alpha = 0.5f),
+            textColor = onSurface,
+            priceColor = StatusOnGreen,
+            status1Color = StatusOnGreen,
+            status2Color = StatusOnGreen
+        )
     }
 }
