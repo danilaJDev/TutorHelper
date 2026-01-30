@@ -56,4 +56,10 @@ class StudentsViewModel @Inject constructor(
             studentRepository.archiveStudent(studentId, archived)
         }
     }
+
+    fun deleteStudent(studentId: Long) {
+        viewModelScope.launch {
+            studentRepository.deleteStudentFull(studentId)
+        }
+    }
 }

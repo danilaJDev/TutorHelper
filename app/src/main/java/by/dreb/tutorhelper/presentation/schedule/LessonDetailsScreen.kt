@@ -148,16 +148,12 @@ fun LessonDetailsScreen(
                             label = stringResource(R.string.finance_payment_amount).replace(": %1$.2f", ""),
                             value = "${lesson.price} ${stringResource(R.string.currency_rub)}"
                         )
-                        lesson.note?.let { note ->
-                            if (note.isNotBlank()) {
-                                HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-                                DetailItem(
-                                    icon = Icons.Default.Notes,
-                                    label = stringResource(R.string.lesson_label_note),
-                                    value = note
-                                )
-                            }
-                        }
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+                        DetailItem(
+                            icon = Icons.Default.Notes,
+                            label = stringResource(R.string.lesson_label_note),
+                            value = lesson.note?.takeIf { it.isNotBlank() } ?: stringResource(R.string.field_not_filled)
+                        )
                     }
                 }
             }

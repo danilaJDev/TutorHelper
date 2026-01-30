@@ -31,4 +31,7 @@ interface LessonDao {
 
     @androidx.room.Delete
     suspend fun delete(lesson: LessonEntity)
+
+    @Query("DELETE FROM lessons WHERE studentId = :studentId")
+    suspend fun deleteLessonsByStudentId(studentId: Long)
 }

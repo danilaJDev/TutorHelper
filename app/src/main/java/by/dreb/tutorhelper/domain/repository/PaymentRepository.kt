@@ -5,5 +5,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface PaymentRepository {
     fun observePayments(): Flow<List<Payment>>
+    fun observeTotalIncome(): Flow<Double>
+    fun observePaymentsCount(): Flow<Int>
     suspend fun upsertPayment(payment: Payment)
 }

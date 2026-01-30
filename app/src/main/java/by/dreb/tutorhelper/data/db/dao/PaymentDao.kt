@@ -14,4 +14,10 @@ interface PaymentDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(payment: PaymentEntity): Long
+
+    @Query("SELECT SUM(amount) FROM payments")
+    fun observeTotalIncome(): Flow<Double?>
+
+    @Query("SELECT COUNT(*) FROM payments")
+    fun observePaymentsCount(): Flow<Int>
 }

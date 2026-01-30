@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Archive
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Unarchive
 import androidx.compose.material3.Card
@@ -151,6 +152,9 @@ fun StudentsScreen(
                                     onStudentClick = onStudentClick,
                                     onArchiveToggle = { archived ->
                                         viewModel.setStudentArchived(student.id, archived)
+                                    },
+                                    onDeleteClick = {
+                                        viewModel.deleteStudent(student.id)
                                     }
                                 )
                             }
@@ -166,9 +170,12 @@ fun StudentsScreen(
 private fun StudentCard(
     student: Student,
     onStudentClick: (Long) -> Unit,
-    onArchiveToggle: (Boolean) -> Unit
+    onArchiveToggle: (Boolean) -> Unit,
+    onDeleteClick: () -> Unit
 ) {
     var showArchiveDialog by remember { mutableStateOf(false) }
+    var showRestoreDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     if (showArchiveDialog) {
         AlertDialog(
@@ -191,6 +198,48 @@ private fun StudentCard(
         )
     }
 
+    if (showRestoreDialog) {
+        AlertDialog(
+            onDismissRequest = { showRestoreDialog = false },
+            title = { Text(stringResource(R.string.student_restore_confirm_title)) },
+            text = { Text(stringResource(R.string.student_restore_confirm_message)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    onArchiveToggle(false)
+                    showRestoreDialog = false
+                }) {
+                    Text(stringResource(R.string.action_ok))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRestoreDialog = false }) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            }
+        )
+    }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text(stringResource(R.string.student_delete_confirm_title)) },
+            text = { Text(stringResource(R.string.student_delete_confirm_message)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    onDeleteClick()
+                    showDeleteDialog = false
+                }) {
+                    Text(stringResource(R.string.action_ok))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            }
+        )
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -203,13 +252,14 @@ private fun StudentCard(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = student.name,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
                     )
                     student.phone?.let {
                         Text(
                             text = it,
-                            style = MaterialTheme.typography.bodyLarge
+                            style = MaterialTheme.typography.bodyMedium
                         )
                     }
                     student.note?.let { Text(text = it, style = MaterialTheme.typography.bodySmall) }
@@ -220,20 +270,31 @@ private fun StudentCard(
                         )
                     }
                 }
-                IconButton(
-                    onClick = {
-                        if (student.isArchived) {
-                            onArchiveToggle(false)
-                        } else {
-                            showArchiveDialog = true
+                Row {
+                    IconButton(
+                        onClick = {
+                            if (student.isArchived) {
+                                showRestoreDialog = true
+                            } else {
+                                showArchiveDialog = true
+                            }
+                        }
+                    ) {
+                        Icon(
+                            imageVector = if (student.isArchived) Icons.Default.Unarchive else Icons.Default.Archive,
+                            contentDescription = null,
+                            tint = if (student.isArchived) androidx.compose.ui.graphics.Color(0xFF4CAF50) else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    if (student.isArchived) {
+                        IconButton(onClick = { showDeleteDialog = true }) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = null,
+                                tint = androidx.compose.ui.graphics.Color.Red
+                            )
                         }
                     }
-                ) {
-                    Icon(
-                        imageVector = if (student.isArchived) Icons.Default.Unarchive else Icons.Default.Archive,
-                        contentDescription = null,
-                        tint = if (student.isArchived) androidx.compose.ui.graphics.Color(0xFF4CAF50) else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
                 }
             }
         }

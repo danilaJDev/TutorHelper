@@ -97,34 +97,26 @@ fun StudentDetailsScreen(
                         DetailItem(
                             icon = Icons.Default.Person,
                             label = stringResource(R.string.student_label_name),
-                            value = s.name
+                            value = s.name.ifBlank { stringResource(R.string.field_not_filled) }
                         )
-                        s.phone?.let { phone ->
-                            if (phone.isNotBlank()) {
-                                HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-                                DetailItem(
-                                    icon = Icons.Default.Phone,
-                                    label = stringResource(R.string.student_label_phone),
-                                    value = phone
-                                )
-                            }
-                        }
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+                        DetailItem(
+                            icon = Icons.Default.Phone,
+                            label = stringResource(R.string.student_label_phone),
+                            value = s.phone?.takeIf { it.isNotBlank() } ?: stringResource(R.string.field_not_filled)
+                        )
                         HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
                         DetailItem(
                             icon = Icons.Default.Payments,
                             label = stringResource(R.string.student_label_default_price),
                             value = "${s.defaultPrice} ${stringResource(R.string.currency_rub)}"
                         )
-                        s.note?.let { note ->
-                            if (note.isNotBlank()) {
-                                HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-                                DetailItem(
-                                    icon = Icons.Default.Notes,
-                                    label = stringResource(R.string.student_label_note),
-                                    value = note
-                                )
-                            }
-                        }
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+                        DetailItem(
+                            icon = Icons.Default.Notes,
+                            label = stringResource(R.string.student_label_note),
+                            value = s.note?.takeIf { it.isNotBlank() } ?: stringResource(R.string.field_not_filled)
+                        )
                     }
                 }
             }

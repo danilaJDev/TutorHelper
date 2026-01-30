@@ -10,4 +10,5 @@ interface StudentRepository {
     fun observeStudentById(id: Long): Flow<Student?>
     suspend fun upsertStudent(student: Student)
     suspend fun archiveStudent(studentId: Long, archived: Boolean)
+    suspend fun deleteStudentFull(studentId: Long)
 }

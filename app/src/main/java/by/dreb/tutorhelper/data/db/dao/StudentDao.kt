@@ -33,4 +33,7 @@ interface StudentDao {
 
     @Query("UPDATE students SET isArchived = :archived WHERE id = :studentId")
     suspend fun updateArchived(studentId: Long, archived: Boolean)
+
+    @Query("DELETE FROM students WHERE id = :id")
+    suspend fun deleteById(id: Long)
 }
