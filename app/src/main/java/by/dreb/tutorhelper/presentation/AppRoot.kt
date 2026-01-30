@@ -27,6 +27,7 @@ import androidx.navigation.navArgument
 import by.dreb.tutorhelper.presentation.finance.FinanceScreen
 import by.dreb.tutorhelper.presentation.schedule.LessonCreateScreen
 import by.dreb.tutorhelper.presentation.schedule.LessonDetailsScreen
+import by.dreb.tutorhelper.presentation.schedule.LessonEditScreen
 import by.dreb.tutorhelper.presentation.schedule.ScheduleScreen
 import by.dreb.tutorhelper.presentation.settings.SettingsUiState
 import by.dreb.tutorhelper.presentation.students.StudentsScreen
@@ -107,6 +108,9 @@ fun AppRoot(
                         onLessonClick = { lessonId ->
                             navController.navigate("lesson_details/$lessonId")
                         },
+                        onEditClick = { lessonId ->
+                            navController.navigate("lesson_edit/$lessonId")
+                        },
                         onAddLessonClick = {
                             navController.navigate("lesson_create")
                         }
@@ -120,7 +124,19 @@ fun AppRoot(
                     LessonDetailsScreen(
                         lessonId = lessonId,
                         onBackClick = { navController.popBackStack() },
-                        onEditClick = { /* TODO: Navigate to Edit */ }
+                        onEditClick = { id ->
+                            navController.navigate("lesson_edit/$id")
+                        }
+                    )
+                }
+                composable(
+                    route = "lesson_edit/{lessonId}",
+                    arguments = listOf(navArgument("lessonId") { type = NavType.LongType })
+                ) { backStackEntry ->
+                    val lessonId = backStackEntry.arguments?.getLong("lessonId") ?: return@composable
+                    LessonEditScreen(
+                        lessonId = lessonId,
+                        onBackClick = { navController.popBackStack() }
                     )
                 }
                 composable("lesson_create") {

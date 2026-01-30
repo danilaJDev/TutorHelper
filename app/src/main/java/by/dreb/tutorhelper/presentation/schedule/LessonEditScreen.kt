@@ -13,15 +13,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenu
@@ -35,10 +34,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -52,10 +51,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import by.dreb.tutorhelper.R
-import by.dreb.tutorhelper.domain.model.Lesson
 import by.dreb.tutorhelper.domain.model.Student
 import by.dreb.tutorhelper.domain.repository.LessonRepository
 import by.dreb.tutorhelper.domain.repository.StudentRepository
@@ -72,51 +71,47 @@ import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 @HiltViewModel
-class LessonCreateViewModel @Inject constructor(
+class LessonEditViewModel @Inject constructor(
     private val lessonRepository: LessonRepository,
-    private val studentRepository: StudentRepository
+    private val studentRepository: StudentRepository,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+    val lessonId: Long = checkNotNull(savedStateHandle["lessonId"])
+
     val students = studentRepository.observeStudents(false)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    fun createLesson(
+    val lessonDetails = lessonRepository.observeLessonDetailsById(lessonId)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    fun updateLesson(
         studentId: Long,
         startTime: LocalDateTime,
         durationMinutes: Int,
         price: Double,
-        note: String?,
-        isDuplicate: Boolean,
-        duplicateUntil: LocalDate?
+        note: String?
     ) {
         viewModelScope.launch {
-            val baseLesson = Lesson(
-                id = 0,
+            val current = lessonDetails.value?.lesson ?: return@launch
+            lessonRepository.upsertLesson(current.copy(
                 studentId = studentId,
-                subject = "Занятие", // Default subject
                 startTime = startTime,
                 durationMinutes = durationMinutes,
                 price = price,
                 note = note
-            )
-            lessonRepository.upsertLesson(baseLesson)
-
-            if (isDuplicate && duplicateUntil != null) {
-                var currentStartTime = startTime.plusWeeks(1)
-                while (!currentStartTime.toLocalDate().isAfter(duplicateUntil)) {
-                    lessonRepository.upsertLesson(baseLesson.copy(startTime = currentStartTime))
-                    currentStartTime = currentStartTime.plusWeeks(1)
-                }
-            }
+            ))
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LessonCreateScreen(
+fun LessonEditScreen(
+    lessonId: Long,
     onBackClick: () -> Unit,
-    viewModel: LessonCreateViewModel = hiltViewModel()
+    viewModel: LessonEditViewModel = hiltViewModel()
 ) {
+    val details by viewModel.lessonDetails.collectAsState()
     val students by viewModel.students.collectAsState()
 
     var selectedStudent by remember { mutableStateOf<Student?>(null) }
@@ -125,13 +120,21 @@ fun LessonCreateScreen(
     var endTime by remember { mutableStateOf(LocalTime.of(13, 0)) }
     var price by remember { mutableStateOf("") }
     var note by remember { mutableStateOf("") }
-    var isDuplicate by remember { mutableStateOf(false) }
-    var duplicateUntil by remember { mutableStateOf(LocalDate.now().plusMonths(1)) }
+
+    LaunchedEffect(details) {
+        details?.let {
+            selectedStudent = it.student
+            selectedDate = it.lesson.startTime.toLocalDate()
+            startTime = it.lesson.startTime.toLocalTime()
+            endTime = it.lesson.startTime.toLocalTime().plusMinutes(it.lesson.durationMinutes.toLong())
+            price = it.lesson.price.toString()
+            note = it.lesson.note ?: ""
+        }
+    }
 
     var showDatePicker by remember { mutableStateOf(false) }
     var showStartTimePicker by remember { mutableStateOf(false) }
     var showEndTimePicker by remember { mutableStateOf(false) }
-    var showDuplicateUntilPicker by remember { mutableStateOf(false) }
     var studentDropdownExpanded by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -150,7 +153,7 @@ fun LessonCreateScreen(
                     )
                 }
                 Text(
-                    text = stringResource(R.string.lesson_create_title),
+                    text = "Редактирование занятия",
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp
@@ -163,14 +166,12 @@ fun LessonCreateScreen(
                         selectedStudent?.let { student ->
                             val startDateTime = LocalDateTime.of(selectedDate, startTime)
                             val duration = java.time.Duration.between(startTime, endTime).toMinutes().toInt()
-                            viewModel.createLesson(
+                            viewModel.updateLesson(
                                 studentId = student.id,
                                 startTime = startDateTime,
                                 durationMinutes = if (duration > 0) duration else 60,
                                 price = price.toDoubleOrNull() ?: student.defaultPrice,
-                                note = note.ifBlank { null },
-                                isDuplicate = isDuplicate,
-                                duplicateUntil = if (isDuplicate) duplicateUntil else null
+                                note = note.ifBlank { null }
                             )
                             onBackClick()
                         }
@@ -227,7 +228,6 @@ fun LessonCreateScreen(
                                     text = { Text(student.name) },
                                     onClick = {
                                         selectedStudent = student
-                                        price = student.defaultPrice.toString()
                                         studentDropdownExpanded = false
                                     }
                                 )
@@ -282,30 +282,8 @@ fun LessonCreateScreen(
                         label = { Text(stringResource(R.string.lesson_label_note)) },
                         modifier = Modifier.fillMaxWidth()
                     )
-
-                    // Duplicate Checkbox
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(checked = isDuplicate, onCheckedChange = { isDuplicate = it })
-                        Text(stringResource(R.string.lesson_label_duplicate), modifier = Modifier.clickable { isDuplicate = !isDuplicate })
-                    }
-
-                    if (isDuplicate) {
-                        OutlinedTextField(
-                            value = duplicateUntil.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
-                            onValueChange = {},
-                            label = { Text(stringResource(R.string.lesson_label_duplicate_until)) },
-                            modifier = Modifier.fillMaxWidth(),
-                            readOnly = true,
-                            trailingIcon = {
-                                Icon(Icons.Default.ArrowDropDown, null, Modifier.clickable { showDuplicateUntilPicker = true })
-                            }
-                        )
-                        Box(modifier = Modifier.fillMaxWidth().height(56.dp).clickable { showDuplicateUntilPicker = true })
-                    }
                 }
             }
-
-            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 
@@ -365,56 +343,6 @@ fun LessonCreateScreen(
             }
         ) {
             TimePicker(state = timePickerState)
-        }
-    }
-
-    if (showDuplicateUntilPicker) {
-        val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = duplicateUntil.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli(),
-            selectableDates = object : androidx.compose.material3.SelectableDates {
-                override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                    val today = LocalDate.now().atStartOfDay(ZoneId.of("UTC")).toInstant().toEpochMilli()
-                    return utcTimeMillis >= today
-                }
-            }
-        )
-        DatePickerDialog(
-            onDismissRequest = { showDuplicateUntilPicker = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    datePickerState.selectedDateMillis?.let {
-                        duplicateUntil = Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
-                    }
-                    showDuplicateUntilPicker = false
-                }) { Text(stringResource(R.string.action_ok)) }
-            }
-        ) {
-            DatePicker(state = datePickerState)
-        }
-    }
-}
-
-@Composable
-fun TimePickerDialog(
-    onDismissRequest: () -> Unit,
-    confirmButton: @Composable () -> Unit,
-    content: @Composable () -> Unit
-) {
-    androidx.compose.ui.window.Dialog(onDismissRequest = onDismissRequest) {
-        androidx.compose.material3.Surface(
-            shape = MaterialTheme.shapes.extraLarge,
-            tonalElevation = 6.dp,
-            modifier = Modifier.width(320.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                content()
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    confirmButton()
-                }
-            }
         }
     }
 }

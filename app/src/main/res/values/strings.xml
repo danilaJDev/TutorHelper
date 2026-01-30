@@ -20,7 +20,7 @@
     <string name="lesson_status_hw_sent">ДЗ отправлено</string>
     <string name="lesson_status_hw_not_sent">ДЗ не отправлено</string>
     <string name="lesson_actions_title">Функции</string>
-    <string name="action_edit">Изменить</string>
+    <string name="action_edit">Редактировать</string>
     <string name="action_delete">Удалить</string>
     <string name="action_delete_confirm_title">Удалить занятие?</string>
     <string name="action_delete_confirm_message">Вы уверены, что хотите полностью удалить это занятие? Это действие нельзя отменить.</string>

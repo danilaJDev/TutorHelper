@@ -65,6 +65,7 @@ import java.util.Locale
 @Composable
 fun ScheduleScreen(
     onLessonClick: (Long) -> Unit,
+    onEditClick: (Long) -> Unit,
     onAddLessonClick: () -> Unit,
     viewModel: ScheduleViewModel = hiltViewModel()
 ) {
@@ -197,6 +198,10 @@ fun ScheduleScreen(
             },
             onToggleCompleted = {
                 viewModel.toggleCompleted(lesson)
+                selectedLessonForMenu = null
+            },
+            onEditClick = {
+                onEditClick(lesson.lesson.id)
                 selectedLessonForMenu = null
             },
             onDeleteClick = {
@@ -439,7 +444,8 @@ private fun LessonCard(
     val endTime = lesson.lesson.startTime.plusMinutes(lesson.lesson.durationMinutes.toLong())
 
     Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onLessonClick() },
@@ -521,6 +527,7 @@ private fun LessonActionsDialog(
     onToggleHidden: () -> Unit,
     onToggleHomework: () -> Unit,
     onToggleCompleted: () -> Unit,
+    onEditClick: () -> Unit,
     onDeleteClick: () -> Unit
 ) {
     val actionTextStyle = MaterialTheme.typography.bodyLarge.copy(
@@ -529,11 +536,18 @@ private fun LessonActionsDialog(
         fontWeight = FontWeight.Medium
     )
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = null,
-        text = {
-            Column(modifier = Modifier.fillMaxWidth()) {
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f)),
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 TextButton(
                     onClick = onToggleCompleted,
                     modifier = Modifier.fillMaxWidth()
@@ -546,6 +560,13 @@ private fun LessonActionsDialog(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(text = stringResource(R.string.action_mark_hw), style = actionTextStyle)
+                }
+                HorizontalDivider()
+                TextButton(
+                    onClick = onEditClick,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(text = stringResource(R.string.action_edit), style = actionTextStyle)
                 }
                 HorizontalDivider()
                 TextButton(
@@ -562,13 +583,6 @@ private fun LessonActionsDialog(
                 }
                 HorizontalDivider()
                 TextButton(
-                    onClick = { /* TODO: Edit */ },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(text = stringResource(R.string.action_edit), style = actionTextStyle)
-                }
-                HorizontalDivider()
-                TextButton(
                     onClick = onDeleteClick,
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
@@ -578,14 +592,12 @@ private fun LessonActionsDialog(
                         style = actionTextStyle.copy(color = MaterialTheme.colorScheme.error)
                     )
                 }
-            }
-        },
-        confirmButton = {
-            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+
+                Spacer(modifier = Modifier.height(8.dp))
                 TextButton(onClick = onDismiss) {
                     Text(text = stringResource(R.string.action_close), color = Color.Gray)
                 }
             }
         }
-    )
+    }
 }
