@@ -1,5 +1,6 @@
 package by.dreb.tutorhelper.presentation.schedule
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -24,7 +25,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.BorderStroke
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -34,6 +34,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
@@ -146,6 +149,7 @@ fun ScheduleScreen(
                     onLessonClick = onLessonClick,
                     onMenuClick = { selectedLessonForMenu = it }
                 )
+
                 ScheduleMode.CALENDAR -> ScheduleCalendar(
                     selectedDate = state.selectedDate,
                     lessons = state.lessons,
@@ -207,7 +211,10 @@ fun ScheduleScreen(
                     },
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
                 ) {
-                    Text(text = stringResource(R.string.action_delete), fontWeight = FontWeight.Bold)
+                    Text(
+                        text = stringResource(R.string.action_delete),
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             },
             dismissButton = {
@@ -248,7 +255,12 @@ private fun ScheduleList(
             sortedDates.forEach { date ->
                 item {
                     Text(
-                        text = date.format(DateTimeFormatter.ofPattern("dd.MM.yyyy, EEEE", russianLocale)),
+                        text = date.format(
+                            DateTimeFormatter.ofPattern(
+                                "dd.MM.yyyy, EEEE",
+                                russianLocale
+                            )
+                        ),
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 16.dp, bottom = 8.dp),
@@ -293,15 +305,22 @@ private fun ScheduleCalendar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = { currentMonth = currentMonth.minusMonths(1) }) {
-                Icon(imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null)
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                    contentDescription = null
+                )
             }
             Text(
-                text = currentMonth.format(DateTimeFormatter.ofPattern("LLLL yyyy", Locale("ru"))).replaceFirstChar { it.uppercase() },
+                text = currentMonth.format(DateTimeFormatter.ofPattern("LLLL yyyy", Locale("ru")))
+                    .replaceFirstChar { it.uppercase() },
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
             IconButton(onClick = { currentMonth = currentMonth.plusMonths(1) }) {
-                Icon(imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = null
+                )
             }
         }
 
@@ -334,7 +353,8 @@ private fun ScheduleCalendar(
                         if (dayOfMonth in 1..daysInMonth) {
                             val date = currentMonth.withDayOfMonth(dayOfMonth)
                             val isSelected = date == selectedDate
-                            val dayLessons = lessons.filter { it.lesson.startTime.toLocalDate() == date }
+                            val dayLessons =
+                                lessons.filter { it.lesson.startTime.toLocalDate() == date }
 
                             Column(
                                 modifier = Modifier
@@ -356,7 +376,8 @@ private fun ScheduleCalendar(
                                 )
                                 if (dayLessons.isNotEmpty()) {
                                     val hasIncomplete = dayLessons.any { !it.lesson.isCompleted }
-                                    val dotColor = if (hasIncomplete) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+                                    val dotColor =
+                                        if (hasIncomplete) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
                                     Box(
                                         modifier = Modifier
                                             .size(4.dp)
@@ -377,7 +398,8 @@ private fun ScheduleCalendar(
         Spacer(modifier = Modifier.height(16.dp))
 
         // Lessons for selected date
-        val selectedDayLessons = lessons.filter { it.lesson.startTime.toLocalDate() == selectedDate }
+        val selectedDayLessons =
+            lessons.filter { it.lesson.startTime.toLocalDate() == selectedDate }
         if (selectedDayLessons.isEmpty()) {
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 Text(
@@ -416,7 +438,11 @@ private fun LessonCard(
     val endTime = lesson.lesson.startTime.plusMinutes(lesson.lesson.durationMinutes.toLong())
 
     Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(
+                alpha = 0.5f
+            )
+        ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         modifier = Modifier
             .fillMaxWidth()
@@ -431,7 +457,11 @@ private fun LessonCard(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "${lesson.lesson.startTime.format(timeFormatter)} - ${endTime.format(timeFormatter)}",
+                    text = "${lesson.lesson.startTime.format(timeFormatter)} - ${
+                        endTime.format(
+                            timeFormatter
+                        )
+                    }",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -507,25 +537,41 @@ private fun LessonActionsDialog(
         onDismiss = onDismiss
     ) {
         ActionItem(
-            text = if (lesson.lesson.isCompleted) stringResource(R.string.action_unmark_completed) else stringResource(R.string.action_mark_completed),
+            text = if (lesson.lesson.isCompleted) stringResource(R.string.action_unmark_completed) else stringResource(
+                R.string.action_mark_completed
+            ),
             onClick = onToggleCompleted
         )
-        HorizontalDivider(modifier = Modifier.padding(horizontal = 8.dp), color = MaterialTheme.colorScheme.outlineVariant)
+        HorizontalDivider(
+            modifier = Modifier.padding(horizontal = 8.dp),
+            color = MaterialTheme.colorScheme.outlineVariant
+        )
         ActionItem(
             text = if (lesson.lesson.isHomeworkSent) "Отменить отметку о дз" else stringResource(R.string.action_mark_hw),
             onClick = onToggleHomework
         )
-        HorizontalDivider(modifier = Modifier.padding(horizontal = 8.dp), color = MaterialTheme.colorScheme.outlineVariant)
+        HorizontalDivider(
+            modifier = Modifier.padding(horizontal = 8.dp),
+            color = MaterialTheme.colorScheme.outlineVariant
+        )
         ActionItem(
             text = stringResource(R.string.action_edit),
             onClick = onEditClick
         )
-        HorizontalDivider(modifier = Modifier.padding(horizontal = 8.dp), color = MaterialTheme.colorScheme.outlineVariant)
+        HorizontalDivider(
+            modifier = Modifier.padding(horizontal = 8.dp),
+            color = MaterialTheme.colorScheme.outlineVariant
+        )
         ActionItem(
-            text = if (lesson.lesson.isHidden) stringResource(R.string.action_show) else stringResource(R.string.action_hide),
+            text = if (lesson.lesson.isHidden) stringResource(R.string.action_show) else stringResource(
+                R.string.action_hide
+            ),
             onClick = onToggleHidden
         )
-        HorizontalDivider(modifier = Modifier.padding(horizontal = 8.dp), color = MaterialTheme.colorScheme.outlineVariant)
+        HorizontalDivider(
+            modifier = Modifier.padding(horizontal = 8.dp),
+            color = MaterialTheme.colorScheme.outlineVariant
+        )
         ActionItem(
             text = stringResource(R.string.action_delete),
             onClick = onDeleteClick,
