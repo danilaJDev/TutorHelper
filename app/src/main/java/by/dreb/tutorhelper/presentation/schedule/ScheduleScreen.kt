@@ -117,7 +117,7 @@ fun ScheduleScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 SingleChoiceSegmentedButtonRow(
                     modifier = Modifier.fillMaxWidth()
@@ -249,8 +249,7 @@ private fun ScheduleList(
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(bottom = 16.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             sortedDates.forEach { date ->
                 item {
@@ -263,7 +262,7 @@ private fun ScheduleList(
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 16.dp, bottom = 8.dp),
+                            .padding(top = 8.dp, bottom = 8.dp),
                         textAlign = TextAlign.Center,
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary
@@ -489,7 +488,7 @@ private fun LessonCard(
                 Icon(
                     imageVector = Icons.Default.MoreVert,
                     contentDescription = null,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(28.dp)
                 )
             }
         }
