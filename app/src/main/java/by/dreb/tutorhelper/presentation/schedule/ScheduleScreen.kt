@@ -1,6 +1,7 @@
 package by.dreb.tutorhelper.presentation.schedule
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -459,9 +460,9 @@ private fun LessonCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 HomeworkStatusButton(
                     isSent = lesson.lesson.isHomeworkSent,
@@ -489,12 +490,13 @@ private fun HomeworkStatusButton(
         modifier = Modifier
             .size(36.dp)
             .background(containerColor, CircleShape)
+            .border(1.dp, Color.Black, CircleShape)
     ) {
         Icon(
             imageVector = Icons.Default.Home,
             contentDescription = null,
             tint = contentColor,
-            modifier = Modifier.size(16.dp)
+            modifier = Modifier.size(18.dp)
         )
     }
 }
@@ -505,13 +507,14 @@ private fun DeleteLessonButton(onClick: () -> Unit) {
         onClick = onClick,
         modifier = Modifier
             .size(36.dp)
-            .background(MaterialTheme.colorScheme.surface, CircleShape)
+            .background(Color.Transparent, CircleShape)
+            .border(1.dp, MaterialTheme.colorScheme.error, CircleShape)
     ) {
         Icon(
             imageVector = Icons.Default.Close,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.error,
-            modifier = Modifier.size(16.dp)
+            modifier = Modifier.size(18.dp)
         )
     }
 }
@@ -528,7 +531,7 @@ private fun HideLessonButton(onClick: () -> Unit) {
             imageVector = Icons.Default.VisibilityOff,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(16.dp)
+            modifier = Modifier.size(18.dp)
         )
     }
 }
