@@ -465,7 +465,7 @@ private fun LessonCard(
                 )
             }
             Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(20.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 HomeworkStatusButton(
