@@ -17,6 +17,12 @@ class PaymentRepositoryImpl @Inject constructor(
     override fun observePayments(): Flow<List<Payment>> =
         paymentDao.observePayments().map { entities -> entities.map { it.toDomain() } }
 
+    override fun observeTotalIncome(): Flow<Double> =
+        paymentDao.observeTotalIncome().map { it ?: 0.0 }
+
+    override fun observePaymentsCount(): Flow<Int> =
+        paymentDao.observePaymentsCount()
+
     override suspend fun upsertPayment(payment: Payment) {
         paymentDao.upsert(payment.toEntity())
     }

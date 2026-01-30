@@ -13,6 +13,12 @@ interface StudentDao {
     @Query("SELECT * FROM students WHERE isArchived = :isArchived ORDER BY name ASC")
     fun observeStudents(isArchived: Boolean): Flow<List<StudentEntity>>
 
+    @Query("SELECT * FROM students WHERE id = :id")
+    suspend fun getStudentById(id: Long): StudentEntity?
+
+    @Query("SELECT * FROM students WHERE id = :id")
+    fun observeStudentById(id: Long): Flow<StudentEntity?>
+
     @Query("SELECT COUNT(*) FROM students WHERE (:isArchived IS NULL OR isArchived = :isArchived)")
     fun observeStudentsCount(isArchived: Boolean?): Flow<Int>
 
@@ -27,4 +33,7 @@ interface StudentDao {
 
     @Query("UPDATE students SET isArchived = :archived WHERE id = :studentId")
     suspend fun updateArchived(studentId: Long, archived: Boolean)
+
+    @Query("DELETE FROM students WHERE id = :id")
+    suspend fun deleteById(id: Long)
 }
