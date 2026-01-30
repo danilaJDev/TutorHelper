@@ -30,6 +30,9 @@ import by.dreb.tutorhelper.presentation.schedule.LessonDetailsScreen
 import by.dreb.tutorhelper.presentation.schedule.LessonEditScreen
 import by.dreb.tutorhelper.presentation.schedule.ScheduleScreen
 import by.dreb.tutorhelper.presentation.settings.SettingsUiState
+import by.dreb.tutorhelper.presentation.students.StudentCreateScreen
+import by.dreb.tutorhelper.presentation.students.StudentDetailsScreen
+import by.dreb.tutorhelper.presentation.students.StudentEditScreen
 import by.dreb.tutorhelper.presentation.students.StudentsScreen
 import by.dreb.tutorhelper.presentation.summary.SummaryScreen
 import by.dreb.tutorhelper.ui.theme.TutorHelperTheme
@@ -144,7 +147,43 @@ fun AppRoot(
                         onBackClick = { navController.popBackStack() }
                     )
                 }
-                composable("students") { StudentsScreen() }
+                composable("students") {
+                    StudentsScreen(
+                        onStudentClick = { studentId ->
+                            navController.navigate("student_details/$studentId")
+                        },
+                        onAddStudentClick = {
+                            navController.navigate("student_create")
+                        }
+                    )
+                }
+                composable(
+                    route = "student_details/{studentId}",
+                    arguments = listOf(navArgument("studentId") { type = NavType.LongType })
+                ) { backStackEntry ->
+                    val studentId = backStackEntry.arguments?.getLong("studentId") ?: return@composable
+                    StudentDetailsScreen(
+                        studentId = studentId,
+                        onBackClick = { navController.popBackStack() },
+                        onEditClick = { id ->
+                            navController.navigate("student_edit/$id")
+                        }
+                    )
+                }
+                composable(
+                    route = "student_edit/{studentId}",
+                    arguments = listOf(navArgument("studentId") { type = NavType.LongType })
+                ) { backStackEntry ->
+                    val studentId = backStackEntry.arguments?.getLong("studentId") ?: return@composable
+                    StudentEditScreen(
+                        onBackClick = { navController.popBackStack() }
+                    )
+                }
+                composable("student_create") {
+                    StudentCreateScreen(
+                        onBackClick = { navController.popBackStack() }
+                    )
+                }
                 composable("finance") { FinanceScreen() }
                 composable("summary") {
                     SummaryScreen(

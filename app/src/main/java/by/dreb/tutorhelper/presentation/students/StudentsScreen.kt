@@ -27,6 +27,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.Icon
@@ -35,6 +36,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.foundation.clickable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.stringResource
@@ -47,7 +52,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StudentsScreen(viewModel: StudentsViewModel = hiltViewModel()) {
+fun StudentsScreen(
+    onStudentClick: (Long) -> Unit,
+    onAddStudentClick: () -> Unit,
+    viewModel: StudentsViewModel = hiltViewModel()
+) {
     val state by viewModel.state.collectAsState()
 
     Column(
@@ -70,7 +79,7 @@ fun StudentsScreen(viewModel: StudentsViewModel = hiltViewModel()) {
             )
 
             IconButton(
-                onClick = { /* TODO: Navigate to Add Student */ },
+                onClick = onAddStudentClick,
                 modifier = Modifier
                     .size(48.dp)
                     .background(MaterialTheme.colorScheme.primary, androidx.compose.foundation.shape.CircleShape)
@@ -95,45 +104,19 @@ fun StudentsScreen(viewModel: StudentsViewModel = hiltViewModel()) {
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    AssistChip(
-                        onClick = { viewModel.toggleArchive(false) },
-                        label = { Text(text = stringResource(R.string.students_active_count, state.activeCount)) },
-                        leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
-                        colors = AssistChipDefaults.assistChipColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer,
-                            labelColor = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                    )
-                    AssistChip(
-                        onClick = { viewModel.toggleArchive(true) },
-                        label = { Text(text = stringResource(R.string.students_archived_count, state.archivedCount)) },
-                        leadingIcon = { Icon(Icons.Default.Archive, contentDescription = null) },
-                        colors = AssistChipDefaults.assistChipColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                            labelColor = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    )
-                }
-
-                Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                Column(modifier = Modifier.padding(16.dp)) {
                     SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                         SegmentedButton(
                             selected = !state.isArchived,
                             onClick = { viewModel.toggleArchive(false) },
                             shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
-                            label = { Text(text = stringResource(R.string.students_active)) }
+                            label = { Text(text = stringResource(R.string.students_active) + " (${state.activeCount})") }
                         )
                         SegmentedButton(
                             selected = state.isArchived,
                             onClick = { viewModel.toggleArchive(true) },
                             shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
-                            label = { Text(text = stringResource(R.string.students_archived)) }
+                            label = { Text(text = stringResource(R.string.students_archived) + " (${state.archivedCount})") }
                         )
                     }
 
@@ -147,29 +130,31 @@ fun StudentsScreen(viewModel: StudentsViewModel = hiltViewModel()) {
                     )
                 }
 
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
+                androidx.compose.foundation.layout.Box(modifier = Modifier.fillMaxSize()) {
                     if (state.students.isEmpty()) {
-                        item {
-                            Text(
-                                text = stringResource(
-                                    if (state.isArchived) R.string.students_empty_archived else R.string.students_empty_active
-                                ),
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(vertical = 12.dp)
-                            )
-                        }
-                    }
-                    items(state.students) { student ->
-                        StudentCard(
-                            student = student,
-                            onArchiveToggle = { archived ->
-                                viewModel.setStudentArchived(student.id, archived)
-                            }
+                        Text(
+                            text = stringResource(
+                                if (state.isArchived) R.string.students_empty_archived else R.string.students_empty_active
+                            ),
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.align(Alignment.Center)
                         )
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            items(state.students) { student ->
+                                StudentCard(
+                                    student = student,
+                                    onStudentClick = onStudentClick,
+                                    onArchiveToggle = { archived ->
+                                        viewModel.setStudentArchived(student.id, archived)
+                                    }
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -178,17 +163,55 @@ fun StudentsScreen(viewModel: StudentsViewModel = hiltViewModel()) {
 }
 
 @Composable
-private fun StudentCard(student: Student, onArchiveToggle: (Boolean) -> Unit) {
+private fun StudentCard(
+    student: Student,
+    onStudentClick: (Long) -> Unit,
+    onArchiveToggle: (Boolean) -> Unit
+) {
+    var showArchiveDialog by remember { mutableStateOf(false) }
+
+    if (showArchiveDialog) {
+        AlertDialog(
+            onDismissRequest = { showArchiveDialog = false },
+            title = { Text(stringResource(R.string.student_archive_confirm_title)) },
+            text = { Text(stringResource(R.string.student_archive_confirm_message)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    onArchiveToggle(true)
+                    showArchiveDialog = false
+                }) {
+                    Text(stringResource(R.string.action_ok))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showArchiveDialog = false }) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            }
+        )
+    }
+
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onStudentClick(student.id) },
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(text = student.name, style = MaterialTheme.typography.titleMedium)
-                    student.phone?.let { Text(text = it, style = MaterialTheme.typography.bodyMedium) }
+                    Text(
+                        text = student.name,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    student.phone?.let {
+                        Text(
+                            text = it,
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
                     student.note?.let { Text(text = it, style = MaterialTheme.typography.bodySmall) }
                     if (student.isArchived) {
                         Text(
@@ -197,16 +220,19 @@ private fun StudentCard(student: Student, onArchiveToggle: (Boolean) -> Unit) {
                         )
                     }
                 }
-                TextButton(onClick = { onArchiveToggle(!student.isArchived) }) {
-                    androidx.compose.material3.Icon(
-                        if (student.isArchived) Icons.Default.Unarchive else Icons.Default.Archive,
-                        contentDescription = null
-                    )
-                    Text(
-                        text = stringResource(
-                            if (student.isArchived) R.string.students_restore else R.string.students_archive
-                        ),
-                        modifier = Modifier.padding(start = 6.dp)
+                IconButton(
+                    onClick = {
+                        if (student.isArchived) {
+                            onArchiveToggle(false)
+                        } else {
+                            showArchiveDialog = true
+                        }
+                    }
+                ) {
+                    Icon(
+                        imageVector = if (student.isArchived) Icons.Default.Unarchive else Icons.Default.Archive,
+                        contentDescription = null,
+                        tint = if (student.isArchived) androidx.compose.ui.graphics.Color(0xFF4CAF50) else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }

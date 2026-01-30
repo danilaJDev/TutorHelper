@@ -20,6 +20,12 @@ class StudentRepositoryImpl @Inject constructor(
     override fun observeStudentsCount(isArchived: Boolean?): Flow<Int> =
         studentDao.observeStudentsCount(isArchived)
 
+    override suspend fun getStudentById(id: Long): Student? =
+        studentDao.getStudentById(id)?.toDomain()
+
+    override fun observeStudentById(id: Long): Flow<Student?> =
+        studentDao.observeStudentById(id).map { it?.toDomain() }
+
     override suspend fun upsertStudent(student: Student) {
         studentDao.upsert(student.toEntity())
     }

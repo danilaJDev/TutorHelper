@@ -48,14 +48,22 @@
     <string name="students_title">Ученики</string>
     <string name="students_active">Активные</string>
     <string name="students_archived">В архиве</string>
-    <string name="students_search">Поиск учеников</string>
+    <string name="students_search">Поиск ученика</string>
     <string name="students_archived_label">Архивирован</string>
     <string name="students_active_count">Активные: %1$d</string>
     <string name="students_archived_count">В архиве: %1$d</string>
     <string name="students_archive">В архив</string>
     <string name="students_restore">Восстановить</string>
-    <string name="students_empty_active">Пока нет активных учеников. Добавьте новые анкеты.</string>
-    <string name="students_empty_archived">Архив пуст.</string>
+    <string name="students_empty_active">Список пуст</string>
+    <string name="students_empty_archived">Список пуст</string>
+    <string name="student_archive_confirm_title">В архив?</string>
+    <string name="student_archive_confirm_message">Вы уверены, что хотите переместить ученика в архив?</string>
+    <string name="student_create_title">Новый ученик</string>
+    <string name="student_edit_title">Редактирование ученика</string>
+    <string name="student_label_name">Имя</string>
+    <string name="student_label_phone">Телефон</string>
+    <string name="student_label_note">Заметка</string>
+    <string name="student_label_default_price">Стоимость занятия по умолчанию</string>
 
     <string name="finance_title">Финансы</string>
     <string name="finance_total_income">Общий доход: %1$.2f</string>
