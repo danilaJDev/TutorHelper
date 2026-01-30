@@ -489,7 +489,7 @@ private fun LessonCard(
                 Icon(
                     imageVector = Icons.Default.MoreVert,
                     contentDescription = null,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(28.dp)
                 )
             }
         }
