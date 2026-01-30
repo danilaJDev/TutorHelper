@@ -97,6 +97,8 @@
     <string name="summary_total_students">Все ученики</string>
     <string name="summary_select_period">Выбрать период</string>
     <string name="summary_period_all_time">За всё время</string>
+    <string name="summary_period_title">Период</string>
+    <string name="summary_period_hint">Выберите даты начала и конца</string>
     <string name="summary_monthly_income">Доход по месяцам</string>
 
     <string name="settings_title">Настройки</string>

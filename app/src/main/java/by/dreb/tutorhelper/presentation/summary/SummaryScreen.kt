@@ -23,9 +23,9 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.School
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -48,6 +48,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import by.dreb.tutorhelper.R
 import by.dreb.tutorhelper.domain.model.MonthlyStat
@@ -167,35 +168,96 @@ private fun PeriodRangePickerDialog(
     onDateRangeSelected: (LocalDate, LocalDate) -> Unit
 ) {
     val dateRangePickerState = rememberDateRangePickerState()
+    val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
 
-    DatePickerDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    val startMillis = dateRangePickerState.selectedStartDateMillis
-                    val endMillis = dateRangePickerState.selectedEndDateMillis
-                    if (startMillis != null && endMillis != null) {
-                        val start = Instant.ofEpochMilli(startMillis).atZone(ZoneId.systemDefault()).toLocalDate()
-                        val end = Instant.ofEpochMilli(endMillis).atZone(ZoneId.systemDefault()).toLocalDate()
-                        onDateRangeSelected(start, end)
-                    }
-                },
-                enabled = dateRangePickerState.selectedEndDateMillis != null
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            shape = RoundedCornerShape(28.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp)
             ) {
-                Text(stringResource(R.string.action_ok))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.action_cancel))
+                Text(
+                    text = stringResource(R.string.summary_period_title),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = stringResource(R.string.summary_period_hint),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 4.dp, bottom = 16.dp)
+                )
+                val startMillis = dateRangePickerState.selectedStartDateMillis
+                val endMillis = dateRangePickerState.selectedEndDateMillis
+                val rangeText = if (startMillis != null && endMillis != null) {
+                    val start = Instant.ofEpochMilli(startMillis).atZone(ZoneId.systemDefault()).toLocalDate()
+                    val end = Instant.ofEpochMilli(endMillis).atZone(ZoneId.systemDefault()).toLocalDate()
+                    "${start.format(formatter)} - ${end.format(formatter)}"
+                } else {
+                    stringResource(R.string.summary_select_period)
+                }
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CalendarMonth,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = rangeText,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                DateRangePicker(
+                    state = dateRangePickerState,
+                    showModeToggle = false
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.End)
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text(stringResource(R.string.action_cancel))
+                    }
+                    Button(
+                        onClick = {
+                            val selectedStart = dateRangePickerState.selectedStartDateMillis
+                            val selectedEnd = dateRangePickerState.selectedEndDateMillis
+                            if (selectedStart != null && selectedEnd != null) {
+                                val start = Instant.ofEpochMilli(selectedStart).atZone(ZoneId.systemDefault()).toLocalDate()
+                                val end = Instant.ofEpochMilli(selectedEnd).atZone(ZoneId.systemDefault()).toLocalDate()
+                                onDateRangeSelected(start, end)
+                            }
+                        },
+                        enabled = dateRangePickerState.selectedEndDateMillis != null
+                    ) {
+                        Text(stringResource(R.string.action_ok))
+                    }
+                }
             }
         }
-    ) {
-        DateRangePicker(
-            state = dateRangePickerState,
-            modifier = Modifier.weight(1f)
-        )
     }
 }
 
