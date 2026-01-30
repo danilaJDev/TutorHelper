@@ -182,10 +182,10 @@ private fun LessonPaymentCard(
     val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
     val endTime = details.lesson.startTime.plusMinutes(details.lesson.durationMinutes.toLong())
 
-    val isCompleted = details.lesson.isCompleted
+    val isCompletedOrConducted = details.lesson.isCompleted || details.isConducted
     val isPaid = details.payment != null
     val isHomeworkSent = details.lesson.isHomeworkSent
-    val isArchive = isCompleted && isHomeworkSent && isPaid
+    val isArchive = details.lesson.isCompleted && isHomeworkSent && isPaid
 
     // Case selection
     val backgroundColor: Color
@@ -202,7 +202,7 @@ private fun LessonPaymentCard(
             status2Color = Color(0xFF1B5E20)
             textColor = Color(0xFF1B5E20)
         }
-        !isCompleted -> {
+        !isCompletedOrConducted -> {
             backgroundColor = Color(0xFFEEEEEE)
             if (isPaid) {
                 priceColor = Color(0xFF4CAF50)
@@ -216,7 +216,7 @@ private fun LessonPaymentCard(
                 textColor = Color.Black
             }
         }
-        isCompleted && !isPaid -> {
+        isCompletedOrConducted && !isPaid -> {
             backgroundColor = Color(0xFFFFF3E0)
             priceColor = Color(0xFFE65100)
             status1Color = Color(0xFF4CAF50)
@@ -261,7 +261,7 @@ private fun LessonPaymentCard(
                 Spacer(modifier = Modifier.height(4.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
-                        text = if (isCompleted) stringResource(R.string.schedule_status_done) else stringResource(R.string.schedule_status_planned),
+                        text = if (isCompletedOrConducted) stringResource(R.string.schedule_status_done) else stringResource(R.string.schedule_status_planned),
                         style = MaterialTheme.typography.labelMedium,
                         color = status1Color,
                         fontWeight = FontWeight.Medium
@@ -269,7 +269,7 @@ private fun LessonPaymentCard(
                     Text(
                         text = when {
                             isPaid -> stringResource(R.string.finance_payment_status_paid)
-                            isCompleted -> stringResource(R.string.finance_payment_status_unpaid)
+                            isCompletedOrConducted -> stringResource(R.string.finance_payment_status_unpaid)
                             else -> stringResource(R.string.finance_payment_status_future_unpaid)
                         },
                         style = MaterialTheme.typography.labelMedium,

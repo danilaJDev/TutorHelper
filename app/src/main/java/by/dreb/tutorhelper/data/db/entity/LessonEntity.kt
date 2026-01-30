@@ -3,6 +3,7 @@ package by.dreb.tutorhelper.data.db.entity
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import java.time.LocalDateTime
 
 @Entity(
     tableName = "lessons",
@@ -16,7 +17,7 @@ data class LessonEntity(
     val id: Long = 0,
     val studentId: Long,
     val subject: String,
-    val startTime: String,
+    val startTime: LocalDateTime,
     val durationMinutes: Int,
     val price: Double,
     val note: String?,

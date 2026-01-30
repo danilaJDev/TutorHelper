@@ -38,7 +38,7 @@ class SampleDataSeeder @Inject constructor(
                 LessonEntity(
                     studentId = aliceId,
                     subject = "English",
-                    startTime = LocalDateTime.now().minusDays(1).withHour(16).withMinute(0).withSecond(0).withNano(0).toString(),
+                    startTime = LocalDateTime.now().minusDays(1).withHour(16).withMinute(0).withSecond(0).withNano(0),
                     durationMinutes = 60,
                     price = 25.0,
                     note = "Grammar practice"
@@ -48,7 +48,7 @@ class SampleDataSeeder @Inject constructor(
                 LessonEntity(
                     studentId = bobId,
                     subject = "Mathematics",
-                    startTime = LocalDateTime.now().plusDays(1).withHour(12).withMinute(0).withSecond(0).withNano(0).toString(),
+                    startTime = LocalDateTime.now().plusDays(1).withHour(12).withMinute(0).withSecond(0).withNano(0),
                     durationMinutes = 90,
                     price = 30.0,
                     note = "Geometry"
@@ -59,7 +59,7 @@ class SampleDataSeeder @Inject constructor(
                 LessonEntity(
                     studentId = archivedId,
                     subject = "History",
-                    startTime = LocalDateTime.now().minusWeeks(1).withHour(11).withMinute(0).withSecond(0).withNano(0).toString(),
+                    startTime = LocalDateTime.now().minusWeeks(1).withHour(11).withMinute(0).withSecond(0).withNano(0),
                     durationMinutes = 45,
                     price = 20.0,
                     note = "Archived student"
@@ -70,7 +70,7 @@ class SampleDataSeeder @Inject constructor(
                 PaymentEntity(
                     lessonId = lesson1Id,
                     amount = 25.0,
-                    paidOn = LocalDateTime.now().minusDays(1).toLocalDate().toString(),
+                    paidOn = LocalDateTime.now().minusDays(1).toLocalDate(),
                     method = "Cash"
                 )
             )

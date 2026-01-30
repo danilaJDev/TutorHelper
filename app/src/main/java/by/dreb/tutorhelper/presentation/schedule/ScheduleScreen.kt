@@ -175,6 +175,7 @@ fun ScheduleScreen(
                     ScheduleMode.CALENDAR -> ScheduleCalendar(
                         selectedDate = state.selectedDate,
                         lessons = state.lessons,
+                        calendarLessonsByDate = state.calendarLessonsByDate,
                         onDateSelected = { viewModel.updateSelectedDate(it) },
                         onLessonClick = onLessonClick,
                         onMenuClick = { selectedLessonForMenu = it }
@@ -300,6 +301,7 @@ private fun ScheduleList(
 private fun ScheduleCalendar(
     selectedDate: LocalDate,
     lessons: List<LessonDetails>,
+    calendarLessonsByDate: Map<LocalDate, List<LessonDetails>>,
     onDateSelected: (LocalDate) -> Unit,
     onLessonClick: (Long) -> Unit,
     onMenuClick: (LessonDetails) -> Unit
@@ -362,7 +364,7 @@ private fun ScheduleCalendar(
                         if (dayOfMonth in 1..daysInMonth) {
                             val date = currentMonth.withDayOfMonth(dayOfMonth)
                             val isSelected = date == selectedDate
-                            val dayLessons = lessons.filter { it.lesson.startTime.toLocalDate() == date }
+                            val dayLessons = calendarLessonsByDate[date] ?: emptyList()
 
                             Column(
                                 modifier = Modifier
@@ -404,9 +406,8 @@ private fun ScheduleCalendar(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Lessons for selected date
-        val selectedDayLessons = lessons.filter { it.lesson.startTime.toLocalDate() == selectedDate }
-        if (selectedDayLessons.isEmpty()) {
+        // Lessons for selected date (already filtered in ViewModel)
+        if (lessons.isEmpty()) {
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 Text(
                     text = "Нет занятий на этот день",
@@ -420,7 +421,7 @@ private fun ScheduleCalendar(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(selectedDayLessons) { lesson ->
+                items(lessons) { lesson ->
                     LessonCard(
                         lesson = lesson,
                         onLessonClick = { onLessonClick(lesson.lesson.id) },
@@ -473,7 +474,7 @@ private fun LessonCard(
                     Spacer(modifier = Modifier.height(8.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         StatusLabel(
-                            text = if (lesson.lesson.isCompleted)
+                            text = if (lesson.lesson.isCompleted || lesson.isConducted)
                                 stringResource(R.string.schedule_status_done)
                             else
                                 stringResource(R.string.schedule_status_planned)

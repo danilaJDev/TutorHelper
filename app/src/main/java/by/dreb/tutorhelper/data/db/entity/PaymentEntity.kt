@@ -3,6 +3,7 @@ package by.dreb.tutorhelper.data.db.entity
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import java.time.LocalDate
 
 @Entity(
     tableName = "payments",
@@ -17,6 +18,6 @@ data class PaymentEntity(
     val lessonId: Long,
     val studentId: Long = 0,
     val amount: Double,
-    val paidOn: String?,
+    val paidOn: LocalDate?,
     val method: String?
 )

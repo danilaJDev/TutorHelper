@@ -33,7 +33,7 @@ fun LessonEntity.toDomain() = Lesson(
     id = id,
     studentId = studentId,
     subject = subject,
-    startTime = LocalDateTime.parse(startTime),
+    startTime = startTime,
     durationMinutes = durationMinutes,
     price = price,
     note = note,
@@ -46,7 +46,7 @@ fun Lesson.toEntity() = LessonEntity(
     id = id,
     studentId = studentId,
     subject = subject,
-    startTime = startTime.toString(),
+    startTime = startTime,
     durationMinutes = durationMinutes,
     price = price,
     note = note,
@@ -60,7 +60,7 @@ fun PaymentEntity.toDomain() = Payment(
     lessonId = lessonId,
     studentId = studentId,
     amount = amount,
-    paidOn = paidOn?.let { LocalDate.parse(it) },
+    paidOn = paidOn,
     method = method
 )
 
@@ -69,7 +69,7 @@ fun Payment.toEntity() = PaymentEntity(
     lessonId = lessonId,
     studentId = studentId,
     amount = amount,
-    paidOn = paidOn?.toString(),
+    paidOn = paidOn,
     method = method
 )
 

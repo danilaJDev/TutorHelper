@@ -30,14 +30,24 @@ class ScheduleViewModel @Inject constructor(
         filter,
         selectedDate
     ) { lessons, modeValue, filterValue, dateValue ->
-        val filteredLessons = lessons.filter {
+        val filteredByStatus = lessons.filter {
             when (filterValue) {
                 ScheduleFilter.ACTIVE -> !it.lesson.isHidden
                 ScheduleFilter.HIDDEN -> it.lesson.isHidden
             }
         }
+
+        val finalLessons = if (modeValue == ScheduleMode.CALENDAR) {
+            filteredByStatus.filter { it.lesson.startTime.toLocalDate() == dateValue }
+        } else {
+            filteredByStatus
+        }
+
+        val calendarLessonsByDate = filteredByStatus.groupBy { it.lesson.startTime.toLocalDate() }
+
         ScheduleUiState(
-            lessons = filteredLessons,
+            lessons = finalLessons,
+            calendarLessonsByDate = calendarLessonsByDate,
             mode = modeValue,
             filter = filterValue,
             selectedDate = dateValue

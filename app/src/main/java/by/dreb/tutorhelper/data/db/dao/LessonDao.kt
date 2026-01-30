@@ -19,8 +19,8 @@ interface LessonDao {
     fun observeLessonDetails(): Flow<List<LessonWithDetails>>
 
     @Transaction
-    @Query("SELECT * FROM lessons WHERE startTime LIKE :datePrefix || '%' ORDER BY startTime ASC")
-    fun observeLessonDetailsByDate(datePrefix: String): Flow<List<LessonWithDetails>>
+    @Query("SELECT * FROM lessons WHERE startTime >= :start AND startTime <= :end ORDER BY startTime ASC")
+    fun observeLessonDetailsByRange(start: java.time.LocalDateTime, end: java.time.LocalDateTime): Flow<List<LessonWithDetails>>
 
     @Transaction
     @Query("SELECT * FROM lessons WHERE id = :id")

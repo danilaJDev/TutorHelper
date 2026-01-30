@@ -6,6 +6,7 @@ import java.time.LocalDate
 data class ScheduleUiState(
     val selectedDate: LocalDate = LocalDate.now(),
     val lessons: List<LessonDetails> = emptyList(),
+    val calendarLessonsByDate: Map<LocalDate, List<LessonDetails>> = emptyMap(),
     val mode: ScheduleMode = ScheduleMode.LIST,
     val filter: ScheduleFilter = ScheduleFilter.ACTIVE
 )

@@ -171,6 +171,7 @@ fun AppRoot() {
                 ) { backStackEntry ->
                     val studentId = backStackEntry.arguments?.getLong("studentId") ?: return@composable
                     StudentEditScreen(
+                        studentId = studentId,
                         onBackClick = { navController.popBackStack() }
                     )
                 }

@@ -44,6 +44,7 @@ import by.dreb.tutorhelper.R
 
 @Composable
 fun StudentEditScreen(
+    studentId: Long,
     onBackClick: () -> Unit,
     viewModel: StudentEditViewModel = hiltViewModel()
 ) {

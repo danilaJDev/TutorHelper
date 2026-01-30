@@ -22,8 +22,13 @@ class LessonRepositoryImpl @Inject constructor(
     override fun observeLessonDetails(): Flow<List<LessonDetails>> =
         lessonDao.observeLessonDetails().map { entities -> entities.map { it.toDomain() } }
 
-    override fun observeLessonsByDate(date: LocalDate): Flow<List<LessonDetails>> =
-        lessonDao.observeLessonDetailsByDate(date.toString()).map { entities -> entities.map { it.toDomain() } }
+    override fun observeLessonsByDate(date: LocalDate): Flow<List<LessonDetails>> {
+        val start = date.atStartOfDay()
+        val end = date.atTime(23, 59, 59, 999999999)
+        return lessonDao.observeLessonDetailsByRange(start, end).map { entities ->
+            entities.map { it.toDomain() }
+        }
+    }
 
     override fun observeLessonDetailsById(id: Long): Flow<LessonDetails?> =
         lessonDao.observeLessonDetailsById(id).map { it?.toDomain() }

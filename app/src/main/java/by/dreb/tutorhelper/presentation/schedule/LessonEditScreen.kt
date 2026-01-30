@@ -51,58 +51,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import by.dreb.tutorhelper.R
 import by.dreb.tutorhelper.domain.model.Student
-import by.dreb.tutorhelper.domain.repository.LessonRepository
-import by.dreb.tutorhelper.domain.repository.StudentRepository
-import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import javax.inject.Inject
-
-@HiltViewModel
-class LessonEditViewModel @Inject constructor(
-    private val lessonRepository: LessonRepository,
-    private val studentRepository: StudentRepository,
-    savedStateHandle: SavedStateHandle
-) : ViewModel() {
-    val lessonId: Long = checkNotNull(savedStateHandle["lessonId"])
-
-    val students = studentRepository.observeStudents(false)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
-    val lessonDetails = lessonRepository.observeLessonDetailsById(lessonId)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
-
-    fun updateLesson(
-        studentId: Long,
-        startTime: LocalDateTime,
-        durationMinutes: Int,
-        price: Double,
-        note: String?
-    ) {
-        viewModelScope.launch {
-            val current = lessonDetails.value?.lesson ?: return@launch
-            lessonRepository.upsertLesson(current.copy(
-                studentId = studentId,
-                startTime = startTime,
-                durationMinutes = durationMinutes,
-                price = price,
-                note = note
-            ))
-        }
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -207,16 +163,14 @@ fun LessonEditScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     // Student Selector
-                    Box {
+                    Box(modifier = Modifier.fillMaxWidth()) {
                         OutlinedTextField(
                             value = selectedStudent?.name ?: stringResource(R.string.lesson_label_student),
                             onValueChange = {},
                             label = { Text(stringResource(R.string.lesson_label_student)) },
                             modifier = Modifier.fillMaxWidth(),
                             readOnly = true,
-                            trailingIcon = {
-                                Icon(Icons.Default.ArrowDropDown, null, Modifier.clickable { studentDropdownExpanded = true })
-                            }
+                            trailingIcon = { Icon(Icons.Default.ArrowDropDown, null) }
                         )
                         DropdownMenu(
                             expanded = studentDropdownExpanded,
@@ -237,33 +191,25 @@ fun LessonEditScreen(
                     }
 
                     // Date Selector
-                    OutlinedTextField(
+                    ClickableTextField(
                         value = selectedDate.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
-                        onValueChange = {},
-                        label = { Text(stringResource(R.string.lesson_label_date)) },
-                        modifier = Modifier.fillMaxWidth(),
-                        readOnly = true,
-                        trailingIcon = {
-                            Icon(Icons.Default.ArrowDropDown, null, Modifier.clickable { showDatePicker = true })
-                        }
+                        label = stringResource(R.string.lesson_label_date),
+                        onClick = { showDatePicker = true }
                     )
-                    Box(modifier = Modifier.fillMaxWidth().height(56.dp).clickable { showDatePicker = true })
 
                     // Time Selectors
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        OutlinedTextField(
+                        ClickableTextField(
                             value = startTime.format(DateTimeFormatter.ofPattern("HH:mm")),
-                            onValueChange = {},
-                            label = { Text(stringResource(R.string.lesson_label_start)) },
-                            modifier = Modifier.weight(1f).clickable { showStartTimePicker = true },
-                            readOnly = true
+                            label = stringResource(R.string.lesson_label_start),
+                            onClick = { showStartTimePicker = true },
+                            modifier = Modifier.weight(1f)
                         )
-                        OutlinedTextField(
+                        ClickableTextField(
                             value = endTime.format(DateTimeFormatter.ofPattern("HH:mm")),
-                            onValueChange = {},
-                            label = { Text(stringResource(R.string.lesson_label_end)) },
-                            modifier = Modifier.weight(1f).clickable { showEndTimePicker = true },
-                            readOnly = true
+                            label = stringResource(R.string.lesson_label_end),
+                            onClick = { showEndTimePicker = true },
+                            modifier = Modifier.weight(1f)
                         )
                     }
 
