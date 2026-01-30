@@ -24,7 +24,7 @@ class FinanceViewModel @Inject constructor(
     private val paymentRepository: PaymentRepository
 ) : ViewModel() {
 
-    private val _filter = MutableStateFlow(FinanceFilter.UNPAID)
+    private val _filter = MutableStateFlow(FinanceFilter.ACTIVE)
     private val _expandedStudentIds = MutableStateFlow(setOf<Long>())
 
     val state: StateFlow<FinanceUiState> = combine(
@@ -45,9 +45,12 @@ class FinanceViewModel @Inject constructor(
         val filteredLessons = processedLessons.filter { details ->
             if (details.lesson.isHidden) return@filter false
 
+            val isPaid = details.payment != null
+            val isArchived = details.lesson.isCompleted && details.lesson.isHomeworkSent && isPaid
+
             when (filter) {
-                FinanceFilter.UNPAID -> details.payment == null
-                FinanceFilter.PAID -> details.payment != null
+                FinanceFilter.ACTIVE -> !isArchived
+                FinanceFilter.ARCHIVED -> isArchived
             }
         }
 
@@ -86,16 +89,20 @@ class FinanceViewModel @Inject constructor(
         }
     }
 
-    fun markAsPaid(details: LessonDetails) {
+    fun togglePayment(details: LessonDetails) {
         viewModelScope.launch {
-            val payment = Payment(
-                id = 0,
-                lessonId = details.lesson.id,
-                amount = details.lesson.price,
-                paidOn = LocalDate.now(),
-                method = null
-            )
-            paymentRepository.upsertPayment(payment)
+            if (details.payment == null) {
+                val payment = Payment(
+                    id = 0,
+                    lessonId = details.lesson.id,
+                    amount = details.lesson.price,
+                    paidOn = LocalDate.now(),
+                    method = null
+                )
+                paymentRepository.upsertPayment(payment)
+            } else {
+                paymentRepository.deletePaymentByLessonId(details.lesson.id)
+            }
         }
     }
 

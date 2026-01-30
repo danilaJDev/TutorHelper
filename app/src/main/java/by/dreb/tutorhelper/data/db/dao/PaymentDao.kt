@@ -20,4 +20,7 @@ interface PaymentDao {
 
     @Query("SELECT COUNT(*) FROM payments")
     fun observePaymentsCount(): Flow<Int>
+
+    @Query("DELETE FROM payments WHERE lessonId = :lessonId")
+    suspend fun deleteByLessonId(lessonId: Long)
 }

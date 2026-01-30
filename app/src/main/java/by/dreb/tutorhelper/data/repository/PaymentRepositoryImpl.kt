@@ -26,4 +26,8 @@ class PaymentRepositoryImpl @Inject constructor(
     override suspend fun upsertPayment(payment: Payment) {
         paymentDao.upsert(payment.toEntity())
     }
+
+    override suspend fun deletePaymentByLessonId(lessonId: Long) {
+        paymentDao.deleteByLessonId(lessonId)
+    }
 }

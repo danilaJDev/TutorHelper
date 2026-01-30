@@ -11,55 +11,42 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import by.dreb.tutorhelper.R
 import by.dreb.tutorhelper.domain.model.LessonDetails
 import by.dreb.tutorhelper.domain.model.Student
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FinanceScreen(viewModel: FinanceViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsState()
-    var selectedLessonForMenu by remember { mutableStateOf<LessonDetails?>(null) }
-    var lessonToDelete by remember { mutableStateOf<LessonDetails?>(null) }
 
     Column(
         modifier = Modifier
@@ -109,8 +96,8 @@ fun FinanceScreen(viewModel: FinanceViewModel = hiltViewModel()) {
                             label = {
                                 Text(
                                     text = when (filter) {
-                                        FinanceFilter.UNPAID -> stringResource(R.string.finance_filter_unpaid)
-                                        FinanceFilter.PAID -> stringResource(R.string.finance_filter_paid)
+                                        FinanceFilter.ACTIVE -> stringResource(R.string.finance_filter_unpaid)
+                                        FinanceFilter.ARCHIVED -> stringResource(R.string.finance_filter_paid)
                                     }
                                 )
                             }
@@ -145,7 +132,7 @@ fun FinanceScreen(viewModel: FinanceViewModel = hiltViewModel()) {
                                 )
                                 is FinanceListItem.LessonItem -> LessonPaymentCard(
                                     details = item.details,
-                                    onMenuClick = { selectedLessonForMenu = item.details }
+                                    onTap = { viewModel.togglePayment(item.details) }
                                 )
                             }
                         }
@@ -153,59 +140,6 @@ fun FinanceScreen(viewModel: FinanceViewModel = hiltViewModel()) {
                 }
             }
         }
-    }
-
-    selectedLessonForMenu?.let { lesson ->
-        FinanceActionsDialog(
-            lesson = lesson,
-            onDismiss = { selectedLessonForMenu = null },
-            onMarkAsPaid = {
-                viewModel.markAsPaid(lesson)
-                selectedLessonForMenu = null
-            },
-            onToggleHidden = {
-                viewModel.toggleHidden(lesson)
-                selectedLessonForMenu = null
-            },
-            onDeleteClick = {
-                lessonToDelete = lesson
-                selectedLessonForMenu = null
-            }
-        )
-    }
-
-    lessonToDelete?.let { lesson ->
-        AlertDialog(
-            onDismissRequest = { lessonToDelete = null },
-            title = {
-                Text(
-                    text = stringResource(R.string.action_delete_confirm_title),
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
-                )
-            },
-            text = {
-                Text(
-                    text = stringResource(R.string.action_delete_confirm_message),
-                    style = MaterialTheme.typography.bodyLarge
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        viewModel.deleteLesson(lesson)
-                        lessonToDelete = null
-                    },
-                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
-                ) {
-                    Text(text = stringResource(R.string.action_delete), fontWeight = FontWeight.Bold)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { lessonToDelete = null }) {
-                    Text(text = stringResource(R.string.action_cancel))
-                }
-            }
-        )
     }
 }
 
@@ -241,142 +175,108 @@ private fun StudentHeaderRow(
 @Composable
 private fun LessonPaymentCard(
     details: LessonDetails,
-    onMenuClick: () -> Unit
+    onTap: () -> Unit
 ) {
-    val dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+    val russianLocale = Locale("ru")
+    val dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy, EEEE", russianLocale)
     val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
     val endTime = details.lesson.startTime.plusMinutes(details.lesson.durationMinutes.toLong())
 
-    val statusText = if (details.payment != null) {
-        stringResource(R.string.finance_payment_status_paid)
-    } else if (details.lesson.isCompleted) {
-        stringResource(R.string.finance_payment_status_unpaid)
-    } else {
-        stringResource(R.string.finance_payment_status_future_unpaid)
+    val isCompleted = details.lesson.isCompleted
+    val isPaid = details.payment != null
+    val isHomeworkSent = details.lesson.isHomeworkSent
+    val isArchive = isCompleted && isHomeworkSent && isPaid
+
+    // Case selection
+    val backgroundColor: Color
+    val priceColor: Color
+    val status1Color: Color
+    val status2Color: Color
+    val textColor: Color
+
+    when {
+        isArchive -> {
+            backgroundColor = Color(0xFFE8F5E9) // Case 3: Greenish
+            priceColor = Color(0xFF1B5E20)
+            status1Color = Color(0xFF1B5E20)
+            status2Color = Color(0xFF1B5E20)
+            textColor = Color(0xFF1B5E20)
+        }
+        !isCompleted && isPaid -> {
+            backgroundColor = Color(0xFFEEEEEE) // Case 1: Gray
+            priceColor = Color(0xFF4CAF50)
+            status1Color = Color(0xFF4CAF50)
+            status2Color = Color(0xFF4CAF50)
+            textColor = Color.DarkGray
+        }
+        isCompleted && !isPaid -> {
+            backgroundColor = Color(0xFFFFF3E0) // Case 2: Light Orange
+            priceColor = Color(0xFFE65100) // Dark Orange
+            status1Color = Color(0xFF4CAF50) // "Состоялось" green
+            status2Color = Color(0xFFE65100)
+            textColor = Color.Black
+        }
+        else -> {
+            backgroundColor = MaterialTheme.colorScheme.surfaceVariant
+            priceColor = MaterialTheme.colorScheme.primary
+            status1Color = Color.Gray
+            status2Color = Color.Gray
+            textColor = Color.Black
+        }
     }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 6.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+            .padding(horizontal = 16.dp, vertical = 6.dp)
+            .clickable { onTap() },
+        colors = CardDefaults.cardColors(containerColor = backgroundColor),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         shape = RoundedCornerShape(12.dp)
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "${details.lesson.startTime.format(dateFormatter)}, ${details.lesson.startTime.format(timeFormatter)} - ${endTime.format(timeFormatter)}",
+                    text = details.lesson.startTime.format(dateFormatter),
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = textColor
+                )
+                Text(
+                    text = "${details.lesson.startTime.format(timeFormatter)} - ${endTime.format(timeFormatter)}",
                     style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium
+                    color = textColor
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    StatusLabel(text = statusText)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
-                        text = "${details.lesson.price} ${stringResource(R.string.currency_rub)}",
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
+                        text = if (isCompleted) stringResource(R.string.schedule_status_done) else stringResource(R.string.schedule_status_planned),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = status1Color,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = when {
+                            isPaid -> stringResource(R.string.finance_payment_status_paid)
+                            isCompleted -> stringResource(R.string.finance_payment_status_unpaid)
+                            else -> stringResource(R.string.finance_payment_status_future_unpaid)
+                        },
+                        style = MaterialTheme.typography.labelMedium,
+                        color = status2Color,
+                        fontWeight = FontWeight.Medium
                     )
                 }
             }
-            IconButton(onClick = onMenuClick) {
-                Icon(
-                    imageVector = Icons.Default.MoreVert,
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun StatusLabel(text: String) {
-    val statusColors = when (text) {
-        stringResource(R.string.finance_payment_status_future_unpaid) -> Pair(colorResource(R.color.status_blue), Color.DarkGray)
-        stringResource(R.string.finance_payment_status_unpaid) -> Pair(colorResource(R.color.status_yellow), Color(0xFF827717))
-        stringResource(R.string.finance_payment_status_paid) -> Pair(colorResource(R.color.status_green), Color(0xFF1B5E20))
-        else -> Pair(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer)
-    }
-
-    Surface(
-        color = statusColors.first,
-        shape = RoundedCornerShape(4.dp)
-    ) {
-        Text(
-            text = text,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-            style = MaterialTheme.typography.labelSmall,
-            color = statusColors.second
-        )
-    }
-}
-
-@Composable
-private fun FinanceActionsDialog(
-    lesson: LessonDetails,
-    onDismiss: () -> Unit,
-    onMarkAsPaid: () -> Unit,
-    onToggleHidden: () -> Unit,
-    onDeleteClick: () -> Unit
-) {
-    val actionTextStyle = MaterialTheme.typography.bodyLarge.copy(
-        fontSize = 18.sp,
-        color = Color.Black,
-        fontWeight = FontWeight.Medium
-    )
-
-    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
-        Card(
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f)),
-            shape = RoundedCornerShape(16.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                if (lesson.payment == null) {
-                    TextButton(
-                        onClick = onMarkAsPaid,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(text = stringResource(R.string.action_mark_as_paid), style = actionTextStyle)
-                    }
-                    HorizontalDivider()
-                }
-
-                TextButton(
-                    onClick = onToggleHidden,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(text = stringResource(R.string.action_hide), style = actionTextStyle)
-                }
-                HorizontalDivider()
-
-                TextButton(
-                    onClick = onDeleteClick,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
-                ) {
-                    Text(
-                        text = stringResource(R.string.action_delete),
-                        style = actionTextStyle.copy(color = MaterialTheme.colorScheme.error)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-                TextButton(onClick = onDismiss) {
-                    Text(text = stringResource(R.string.action_close), color = Color.Gray)
-                }
-            }
+            Text(
+                text = "${details.lesson.price} ${stringResource(R.string.currency_rub)}",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = priceColor
+            )
         }
     }
 }
