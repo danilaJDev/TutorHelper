@@ -106,9 +106,6 @@ fun AppRoot() {
                         onLessonClick = { lessonId ->
                             navController.navigate("lesson_details/$lessonId")
                         },
-                        onEditClick = { lessonId ->
-                            navController.navigate("lesson_edit/$lessonId")
-                        },
                         onAddLessonClick = {
                             navController.navigate("lesson_create")
                         }

@@ -1,6 +1,5 @@
 package by.dreb.tutorhelper.presentation.schedule
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -25,18 +24,17 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -61,12 +59,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import by.dreb.tutorhelper.R
 import by.dreb.tutorhelper.domain.model.LessonDetails
 import by.dreb.tutorhelper.ui.components.MainContentCard
-import by.dreb.tutorhelper.ui.components.TutorHelperActionDialog
 import by.dreb.tutorhelper.ui.components.TutorHelperHeader
 import by.dreb.tutorhelper.ui.theme.StatusGreen
 import by.dreb.tutorhelper.ui.theme.StatusOnGreen
-import by.dreb.tutorhelper.ui.theme.StatusOnYellow
-import by.dreb.tutorhelper.ui.theme.StatusYellow
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -75,12 +70,10 @@ import java.util.Locale
 @Composable
 fun ScheduleScreen(
     onLessonClick: (Long) -> Unit,
-    onEditClick: (Long) -> Unit,
     onAddLessonClick: () -> Unit,
     viewModel: ScheduleViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
-    var selectedLessonForMenu by remember { mutableStateOf<LessonDetails?>(null) }
     var lessonToDelete by remember { mutableStateOf<LessonDetails?>(null) }
 
     Column(
@@ -147,7 +140,9 @@ fun ScheduleScreen(
                 ScheduleMode.LIST -> ScheduleList(
                     lessons = state.lessons,
                     onLessonClick = onLessonClick,
-                    onMenuClick = { selectedLessonForMenu = it }
+                    onToggleHomework = viewModel::toggleHomework,
+                    onToggleHidden = viewModel::toggleHidden,
+                    onDeleteClick = { lessonToDelete = it }
                 )
 
                 ScheduleMode.CALENDAR -> ScheduleCalendar(
@@ -155,37 +150,12 @@ fun ScheduleScreen(
                     lessons = state.lessons,
                     onDateSelected = { viewModel.updateSelectedDate(it) },
                     onLessonClick = onLessonClick,
-                    onMenuClick = { selectedLessonForMenu = it }
+                    onToggleHomework = viewModel::toggleHomework,
+                    onToggleHidden = viewModel::toggleHidden,
+                    onDeleteClick = { lessonToDelete = it }
                 )
             }
         }
-    }
-
-    selectedLessonForMenu?.let { lesson ->
-        LessonActionsDialog(
-            lesson = lesson,
-            onDismiss = { selectedLessonForMenu = null },
-            onToggleHidden = {
-                viewModel.toggleHidden(lesson)
-                selectedLessonForMenu = null
-            },
-            onToggleHomework = {
-                viewModel.toggleHomework(lesson)
-                selectedLessonForMenu = null
-            },
-            onToggleCompleted = {
-                viewModel.toggleCompleted(lesson)
-                selectedLessonForMenu = null
-            },
-            onEditClick = {
-                onEditClick(lesson.lesson.id)
-                selectedLessonForMenu = null
-            },
-            onDeleteClick = {
-                lessonToDelete = lesson
-                selectedLessonForMenu = null
-            }
-        )
     }
 
     lessonToDelete?.let { lesson ->
@@ -230,7 +200,9 @@ fun ScheduleScreen(
 private fun ScheduleList(
     lessons: List<LessonDetails>,
     onLessonClick: (Long) -> Unit,
-    onMenuClick: (LessonDetails) -> Unit
+    onToggleHomework: (LessonDetails) -> Unit,
+    onToggleHidden: (LessonDetails) -> Unit,
+    onDeleteClick: (LessonDetails) -> Unit
 ) {
     if (lessons.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -272,7 +244,9 @@ private fun ScheduleList(
                     LessonCard(
                         lesson = lesson,
                         onLessonClick = { onLessonClick(lesson.lesson.id) },
-                        onMenuClick = { onMenuClick(lesson) }
+                        onToggleHomework = { onToggleHomework(lesson) },
+                        onToggleHidden = { onToggleHidden(lesson) },
+                        onDeleteClick = { onDeleteClick(lesson) }
                     )
                 }
             }
@@ -286,7 +260,9 @@ private fun ScheduleCalendar(
     lessons: List<LessonDetails>,
     onDateSelected: (LocalDate) -> Unit,
     onLessonClick: (Long) -> Unit,
-    onMenuClick: (LessonDetails) -> Unit
+    onToggleHomework: (LessonDetails) -> Unit,
+    onToggleHidden: (LessonDetails) -> Unit,
+    onDeleteClick: (LessonDetails) -> Unit
 ) {
     var currentMonth by remember { mutableStateOf(selectedDate.withDayOfMonth(1)) }
     val daysInMonth = currentMonth.lengthOfMonth()
@@ -417,7 +393,9 @@ private fun ScheduleCalendar(
                     LessonCard(
                         lesson = lesson,
                         onLessonClick = { onLessonClick(lesson.lesson.id) },
-                        onMenuClick = { onMenuClick(lesson) }
+                        onToggleHomework = { onToggleHomework(lesson) },
+                        onToggleHidden = { onToggleHidden(lesson) },
+                        onDeleteClick = { onDeleteClick(lesson) }
                     )
                 }
             }
@@ -429,10 +407,13 @@ private fun ScheduleCalendar(
 private fun LessonCard(
     lesson: LessonDetails,
     onLessonClick: () -> Unit,
-    onMenuClick: () -> Unit
+    onToggleHomework: () -> Unit,
+    onToggleHidden: () -> Unit,
+    onDeleteClick: () -> Unit
 ) {
     val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
     val endTime = lesson.lesson.startTime.plusMinutes(lesson.lesson.durationMinutes.toLong())
+    val showHide = lesson.lesson.isHomeworkSent && lesson.lesson.isCompleted
 
     Card(
         colors = CardDefaults.cardColors(
@@ -454,14 +435,12 @@ private fun LessonCard(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(
+            Box(
                 modifier = Modifier
                     .width(32.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                contentAlignment = Alignment.Center
             ) {
                 LessonStatusIcon(isCompleted = lesson.lesson.isCompleted)
-                HomeworkChip(isSent = lesson.lesson.isHomeworkSent)
             }
             Column(modifier = Modifier.weight(1f)) {
                 Text(
@@ -480,30 +459,75 @@ private fun LessonCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            IconButton(onClick = onMenuClick) {
-                Icon(
-                    imageVector = Icons.Default.MoreVert,
-                    contentDescription = null,
-                    modifier = Modifier.size(28.dp)
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                HomeworkStatusButton(
+                    isSent = lesson.lesson.isHomeworkSent,
+                    onClick = onToggleHomework
                 )
+                if (showHide) {
+                    HideLessonButton(onClick = onToggleHidden)
+                } else {
+                    DeleteLessonButton(onClick = onDeleteClick)
+                }
             }
         }
     }
 }
 
 @Composable
-private fun HomeworkChip(isSent: Boolean) {
-    val containerColor = if (isSent) StatusGreen else StatusYellow
-    val contentColor = if (isSent) StatusOnGreen else StatusOnYellow
-    Box(
+private fun HomeworkStatusButton(
+    isSent: Boolean,
+    onClick: () -> Unit
+) {
+    val containerColor = if (isSent) StatusGreen else MaterialTheme.colorScheme.surfaceVariant
+    val contentColor = if (isSent) StatusOnGreen else MaterialTheme.colorScheme.onSurfaceVariant
+    IconButton(
+        onClick = onClick,
         modifier = Modifier
+            .size(36.dp)
             .background(containerColor, CircleShape)
-            .padding(6.dp)
     ) {
         Icon(
             imageVector = Icons.Default.Home,
             contentDescription = null,
             tint = contentColor,
+            modifier = Modifier.size(16.dp)
+        )
+    }
+}
+
+@Composable
+private fun DeleteLessonButton(onClick: () -> Unit) {
+    IconButton(
+        onClick = onClick,
+        modifier = Modifier
+            .size(36.dp)
+            .background(MaterialTheme.colorScheme.surface, CircleShape)
+    ) {
+        Icon(
+            imageVector = Icons.Default.Close,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.error,
+            modifier = Modifier.size(16.dp)
+        )
+    }
+}
+
+@Composable
+private fun HideLessonButton(onClick: () -> Unit) {
+    IconButton(
+        onClick = onClick,
+        modifier = Modifier
+            .size(36.dp)
+            .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
+    ) {
+        Icon(
+            imageVector = Icons.Default.VisibilityOff,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(16.dp)
         )
     }
@@ -528,97 +552,6 @@ private fun LessonStatusIcon(isCompleted: Boolean) {
             contentDescription = null,
             tint = contentColor,
             modifier = Modifier.size(16.dp)
-        )
-    }
-}
-
-@Composable
-private fun LessonActionsDialog(
-    lesson: LessonDetails,
-    onDismiss: () -> Unit,
-    onToggleHidden: () -> Unit,
-    onToggleHomework: () -> Unit,
-    onToggleCompleted: () -> Unit,
-    onEditClick: () -> Unit,
-    onDeleteClick: () -> Unit
-) {
-    TutorHelperActionDialog(
-        onDismiss = onDismiss
-    ) {
-        ActionItem(
-            text = if (lesson.lesson.isCompleted) stringResource(R.string.action_unmark_completed) else stringResource(
-                R.string.action_mark_completed
-            ),
-            onClick = onToggleCompleted
-        )
-        HorizontalDivider(
-            modifier = Modifier.padding(horizontal = 8.dp),
-            color = MaterialTheme.colorScheme.outlineVariant
-        )
-        ActionItem(
-            text = if (lesson.lesson.isHomeworkSent) "Отменить отметку о дз" else stringResource(R.string.action_mark_hw),
-            onClick = onToggleHomework
-        )
-        HorizontalDivider(
-            modifier = Modifier.padding(horizontal = 8.dp),
-            color = MaterialTheme.colorScheme.outlineVariant
-        )
-        ActionItem(
-            text = stringResource(R.string.action_edit),
-            onClick = onEditClick
-        )
-        HorizontalDivider(
-            modifier = Modifier.padding(horizontal = 8.dp),
-            color = MaterialTheme.colorScheme.outlineVariant
-        )
-        ActionItem(
-            text = if (lesson.lesson.isHidden) stringResource(R.string.action_show) else stringResource(
-                R.string.action_hide
-            ),
-            onClick = onToggleHidden
-        )
-        HorizontalDivider(
-            modifier = Modifier.padding(horizontal = 8.dp),
-            color = MaterialTheme.colorScheme.outlineVariant
-        )
-        ActionItem(
-            text = stringResource(R.string.action_delete),
-            onClick = onDeleteClick,
-            isError = true
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-        OutlinedButton(
-            onClick = onDismiss,
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(8.dp),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
-        ) {
-            Text(text = stringResource(R.string.action_close))
-        }
-    }
-}
-
-@Composable
-private fun ActionItem(
-    text: String,
-    onClick: () -> Unit,
-    isError: Boolean = false
-) {
-    TextButton(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        colors = ButtonDefaults.textButtonColors(
-            contentColor = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
-        )
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Medium,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
         )
     }
 }
