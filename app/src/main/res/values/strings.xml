@@ -17,6 +17,7 @@
     <string name="schedule_status_planned">Запланировано</string>
     <string name="schedule_filter_active">Действующие</string>
     <string name="schedule_filter_hidden">Скрытые</string>
+    <string name="schedule_empty_day">Нет занятий на этот день.</string>
     <string name="lesson_status_hw_sent">ДЗ отправлено</string>
     <string name="lesson_status_hw_not_sent">ДЗ не отправлено</string>
     <string name="lesson_actions_title">Функции</string>
@@ -32,6 +33,7 @@
     <string name="action_close">Закрыть</string>
     <string name="action_back">Назад</string>
     <string name="lesson_create_title">Создание занятия</string>
+    <string name="lesson_edit_title">Редактирование занятия</string>
     <string name="lesson_label_student">Ученик</string>
     <string name="lesson_label_date">Дата занятия</string>
     <string name="lesson_label_start">С</string>

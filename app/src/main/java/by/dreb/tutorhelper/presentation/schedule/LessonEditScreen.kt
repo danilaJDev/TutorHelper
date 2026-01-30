@@ -45,7 +45,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -153,7 +152,7 @@ fun LessonEditScreen(
                     )
                 }
                 Text(
-                    text = "Редактирование занятия",
+                    text = stringResource(R.string.lesson_edit_title),
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp
@@ -182,7 +181,11 @@ fun LessonEditScreen(
                         imageVector = Icons.Default.Check,
                         contentDescription = null,
                         modifier = Modifier.size(32.dp),
-                        tint = if (selectedStudent != null) MaterialTheme.colorScheme.primary else Color.Gray
+                        tint = if (selectedStudent != null) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        }
                     )
                 }
             }

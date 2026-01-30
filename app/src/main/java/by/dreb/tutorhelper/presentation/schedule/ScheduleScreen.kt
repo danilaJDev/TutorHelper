@@ -30,6 +30,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -47,7 +48,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -86,21 +86,21 @@ fun ScheduleScreen(
         ) {
             Text(
                 text = stringResource(R.string.schedule_title),
-                style = MaterialTheme.typography.headlineMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black
-                )
+                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             IconButton(
                 onClick = onAddLessonClick,
-                modifier = Modifier
-                    .background(MaterialTheme.colorScheme.primary, CircleShape)
+                modifier = Modifier.size(40.dp),
+                colors = IconButtonDefaults.filledIconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                )
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = null,
-                    tint = Color.White
+                    contentDescription = null
                 )
             }
         }
@@ -119,8 +119,8 @@ fun ScheduleScreen(
             Column {
                 TabRow(
                     selectedTabIndex = state.mode.ordinal,
-                    containerColor = Color.Transparent,
-                    contentColor = Color.Black,
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    contentColor = MaterialTheme.colorScheme.onSurface,
                     divider = {}
                 ) {
                     ScheduleMode.entries.forEachIndexed { index, mode ->
@@ -134,7 +134,7 @@ fun ScheduleScreen(
                                         ScheduleMode.CALENDAR -> stringResource(R.string.schedule_mode_calendar)
                                     },
                                     fontWeight = FontWeight.Bold,
-                                    color = Color.Black
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                         )
@@ -278,10 +278,7 @@ private fun ScheduleList(
                             .fillMaxWidth()
                             .padding(vertical = 8.dp),
                         textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp
-                        )
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                     )
                 }
                 items(groupedLessons[date] ?: emptyList()) { lesson ->
@@ -304,7 +301,7 @@ private fun ScheduleCalendar(
     onLessonClick: (Long) -> Unit,
     onMenuClick: (LessonDetails) -> Unit
 ) {
-    var currentMonth by remember { mutableStateOf(selectedDate.withDayOfMonth(1)) }
+    var currentMonth by remember(selectedDate) { mutableStateOf(selectedDate.withDayOfMonth(1)) }
     val daysInMonth = currentMonth.lengthOfMonth()
     val firstDayOfWeek = currentMonth.dayOfWeek.value // 1 (Mon) to 7 (Sun)
     val days = (1..daysInMonth).toList()
@@ -344,7 +341,7 @@ private fun ScheduleCalendar(
                     modifier = Modifier.weight(1f),
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -369,7 +366,7 @@ private fun ScheduleCalendar(
                                     .weight(1f)
                                     .height(48.dp)
                                     .background(
-                                        if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f) else Color.Transparent,
+                                        if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else MaterialTheme.colorScheme.surface,
                                         RoundedCornerShape(8.dp)
                                     )
                                     .clickable { onDateSelected(date) },
@@ -380,11 +377,11 @@ private fun ScheduleCalendar(
                                     text = dayOfMonth.toString(),
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                    color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Black
+                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                                 )
                                 if (dayLessons.isNotEmpty()) {
                                     val hasIncomplete = dayLessons.any { !it.lesson.isCompleted }
-                                    val dotColor = if (hasIncomplete) Color.Red else Color.Black
+                                    val dotColor = if (hasIncomplete) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
                                     Box(
                                         modifier = Modifier
                                             .size(4.dp)
@@ -409,9 +406,9 @@ private fun ScheduleCalendar(
         if (selectedDayLessons.isEmpty()) {
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 Text(
-                    text = "Нет занятий на этот день",
+                    text = stringResource(R.string.schedule_empty_day),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(16.dp)
                 )
             }
@@ -532,7 +529,7 @@ private fun LessonActionsDialog(
 ) {
     val actionTextStyle = MaterialTheme.typography.bodyLarge.copy(
         fontSize = 18.sp,
-        color = Color.Black,
+        color = MaterialTheme.colorScheme.onSurface,
         fontWeight = FontWeight.Medium
     )
 
@@ -595,7 +592,10 @@ private fun LessonActionsDialog(
 
                 Spacer(modifier = Modifier.height(8.dp))
                 TextButton(onClick = onDismiss) {
-                    Text(text = stringResource(R.string.action_close), color = Color.Gray)
+                    Text(
+                        text = stringResource(R.string.action_close),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
         }

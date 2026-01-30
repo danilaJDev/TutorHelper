@@ -1,7 +1,5 @@
 package by.dreb.tutorhelper.presentation.summary
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -25,7 +22,6 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.School
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePickerDialog
@@ -33,7 +29,6 @@ import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -47,15 +42,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import by.dreb.tutorhelper.R
 import by.dreb.tutorhelper.domain.model.MonthlyStat
 import by.dreb.tutorhelper.domain.model.Summary
+import by.dreb.tutorhelper.ui.theme.SuccessContainer
+import by.dreb.tutorhelper.ui.theme.WarningContainer
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -83,10 +78,8 @@ fun SummaryScreen(
         ) {
             Text(
                 text = stringResource(R.string.summary_title),
-                style = MaterialTheme.typography.headlineMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black
-                )
+                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
 
@@ -258,14 +251,14 @@ private fun SummaryStatsGrid(summary: Summary) {
                 value = summary.paidLessonsCount.toString(),
                 icon = Icons.Default.Payments,
                 modifier = Modifier.weight(1f),
-                color = Color(0xFFE8F5E9)
+                color = SuccessContainer
             )
             SummaryStatCard(
                 label = stringResource(R.string.summary_unpaid),
                 value = summary.unpaidLessonsCount.toString(),
                 icon = Icons.Default.Payments,
                 modifier = Modifier.weight(1f),
-                color = Color(0xFFFFF3E0)
+                color = WarningContainer
             )
         }
     }
@@ -277,7 +270,7 @@ private fun SummaryStatCard(
     value: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     modifier: Modifier = Modifier,
-    color: Color = MaterialTheme.colorScheme.surfaceVariant
+    color: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.surfaceVariant
 ) {
     Surface(
         modifier = modifier,
@@ -285,9 +278,18 @@ private fun SummaryStatCard(
         color = color
     ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp), tint = Color.Gray)
+            Icon(
+                icon,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
             Text(text = value, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
-            Text(text = label, style = MaterialTheme.typography.labelMedium, color = Color.Gray)
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
@@ -322,7 +324,10 @@ private fun YearlyIncomeCard(year: Int, stats: List<MonthlyStat>) {
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         shape = RoundedCornerShape(16.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.5f))
+        border = androidx.compose.foundation.BorderStroke(
+            1.dp,
+            MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+        )
     ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -342,6 +347,12 @@ private fun YearlyIncomeCard(year: Int, stats: List<MonthlyStat>) {
 
 @Composable
 private fun MonthIncomeRow(month: String, income: Double, maxIncome: Double) {
+    val fillFraction = if (maxIncome > 0) {
+        (income / maxIncome).toFloat().coerceIn(0f, 1f)
+    } else {
+        0f
+    }
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -354,16 +365,19 @@ private fun MonthIncomeRow(month: String, income: Double, maxIncome: Double) {
         )
 
         Box(modifier = Modifier.weight(1f).height(24.dp), contentAlignment = Alignment.CenterStart) {
-            Surface(
-                modifier = Modifier.fillMaxWidth(fraction = (income / maxIncome).toFloat().coerceIn(0.01f, 1f)),
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.primary
-            ) {
-                Box(modifier = Modifier.padding(horizontal = 12.dp), contentAlignment = Alignment.CenterEnd) {
-                    if (income > 0) {
+            if (fillFraction > 0f) {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(fraction = fillFraction),
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.primary
+                ) {
+                    Box(modifier = Modifier.padding(horizontal = 12.dp), contentAlignment = Alignment.CenterEnd) {
                         Text(
                             text = String.format("%.0f %s", income, stringResource(R.string.currency_rub)),
-                            style = MaterialTheme.typography.labelSmall.copy(color = Color.White, fontWeight = FontWeight.Bold)
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                fontWeight = FontWeight.Bold
+                            )
                         )
                     }
                 }

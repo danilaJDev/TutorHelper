@@ -25,7 +25,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -40,6 +39,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import by.dreb.tutorhelper.R
 import by.dreb.tutorhelper.domain.model.LessonDetails
 import by.dreb.tutorhelper.domain.model.Student
+import by.dreb.tutorhelper.ui.theme.InfoContainer
+import by.dreb.tutorhelper.ui.theme.InfoText
+import by.dreb.tutorhelper.ui.theme.NeutralContainer
+import by.dreb.tutorhelper.ui.theme.NeutralText
+import by.dreb.tutorhelper.ui.theme.SuccessContainer
+import by.dreb.tutorhelper.ui.theme.SuccessText
+import by.dreb.tutorhelper.ui.theme.WarningContainer
+import by.dreb.tutorhelper.ui.theme.WarningText
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -61,10 +68,8 @@ fun FinanceScreen(viewModel: FinanceViewModel = hiltViewModel()) {
         ) {
             Text(
                 text = stringResource(R.string.finance_title),
-                style = MaterialTheme.typography.headlineMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black
-                )
+                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
 
@@ -110,7 +115,7 @@ fun FinanceScreen(viewModel: FinanceViewModel = hiltViewModel()) {
                         Text(
                             text = stringResource(R.string.finance_empty),
                             style = MaterialTheme.typography.bodyMedium,
-                            color = Color.Gray
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 } else {
@@ -167,7 +172,7 @@ private fun StudentHeaderRow(
         Icon(
             imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
             contentDescription = null,
-            tint = Color.Gray
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -196,39 +201,39 @@ private fun LessonPaymentCard(
 
     when {
         isArchive -> {
-            backgroundColor = Color(0xFFE8F5E9)
-            priceColor = Color(0xFF1B5E20)
-            status1Color = Color(0xFF1B5E20)
-            status2Color = Color(0xFF1B5E20)
-            textColor = Color(0xFF1B5E20)
+            backgroundColor = SuccessContainer
+            priceColor = SuccessText
+            status1Color = SuccessText
+            status2Color = SuccessText
+            textColor = SuccessText
         }
         !isCompleted -> {
-            backgroundColor = Color(0xFFEEEEEE)
+            backgroundColor = NeutralContainer
             if (isPaid) {
-                priceColor = Color(0xFF4CAF50)
-                status1Color = Color.Gray
-                status2Color = Color(0xFF4CAF50)
-                textColor = Color.DarkGray
+                priceColor = SuccessText
+                status1Color = MaterialTheme.colorScheme.onSurfaceVariant
+                status2Color = SuccessText
+                textColor = MaterialTheme.colorScheme.onSurface
             } else {
-                priceColor = Color.Black
-                status1Color = Color.Gray
-                status2Color = Color.Gray
-                textColor = Color.Black
+                priceColor = NeutralText
+                status1Color = MaterialTheme.colorScheme.onSurfaceVariant
+                status2Color = MaterialTheme.colorScheme.onSurfaceVariant
+                textColor = MaterialTheme.colorScheme.onSurface
             }
         }
         isCompleted && !isPaid -> {
-            backgroundColor = Color(0xFFFFF3E0)
-            priceColor = Color(0xFFE65100)
-            status1Color = Color(0xFF4CAF50)
-            status2Color = Color(0xFFE65100)
-            textColor = Color.Black
+            backgroundColor = WarningContainer
+            priceColor = WarningText
+            status1Color = SuccessText
+            status2Color = WarningText
+            textColor = MaterialTheme.colorScheme.onSurface
         }
         else -> {
-            backgroundColor = MaterialTheme.colorScheme.surfaceVariant
-            priceColor = Color(0xFF4CAF50)
-            status1Color = Color(0xFF4CAF50)
-            status2Color = Color(0xFF4CAF50)
-            textColor = Color.Black
+            backgroundColor = InfoContainer
+            priceColor = InfoText
+            status1Color = InfoText
+            status2Color = InfoText
+            textColor = MaterialTheme.colorScheme.onSurface
         }
     }
 

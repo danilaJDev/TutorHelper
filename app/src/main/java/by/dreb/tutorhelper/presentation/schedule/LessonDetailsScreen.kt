@@ -30,7 +30,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -145,7 +144,7 @@ fun LessonDetailsScreen(
                         HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
                         DetailItem(
                             icon = Icons.Default.Payments,
-                            label = stringResource(R.string.finance_payment_amount).replace(": %1$.2f", ""),
+                            label = stringResource(R.string.lesson_label_price),
                             value = "${lesson.price} ${stringResource(R.string.currency_rub)}"
                         )
                         HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
@@ -179,7 +178,7 @@ private fun DetailItem(
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelMedium,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
                 text = value,
