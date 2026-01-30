@@ -466,7 +466,7 @@ private fun LessonCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = lesson.student.name,
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(4.dp))
@@ -476,7 +476,7 @@ private fun LessonCard(
                             timeFormatter
                         )
                     }",
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
