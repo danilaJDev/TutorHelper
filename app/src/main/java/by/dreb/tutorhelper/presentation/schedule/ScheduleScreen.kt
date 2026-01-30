@@ -469,7 +469,7 @@ private fun LessonCard(
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     text = "${lesson.lesson.startTime.format(timeFormatter)} - ${
                         endTime.format(
