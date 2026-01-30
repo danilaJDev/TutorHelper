@@ -59,7 +59,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import by.dreb.tutorhelper.R
 import by.dreb.tutorhelper.domain.model.LessonDetails
-import by.dreb.tutorhelper.ui.components.MainContentCard
 import by.dreb.tutorhelper.ui.components.TutorHelperHeader
 import by.dreb.tutorhelper.ui.theme.StatusGreen
 import by.dreb.tutorhelper.ui.theme.StatusOnGreen
@@ -88,51 +87,64 @@ fun ScheduleScreen(
             onActionClick = onAddLessonClick
         )
 
-        MainContentCard(modifier = Modifier.weight(1f)) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                val modeTabs = ScheduleMode.entries
-                TabRow(
-                    selectedTabIndex = modeTabs.indexOf(state.mode),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    modeTabs.forEach { mode ->
-                        Tab(
-                            selected = state.mode == mode,
-                            onClick = { viewModel.updateMode(mode) },
-                            text = {
-                                Text(
-                                    text = when (mode) {
-                                        ScheduleMode.LIST -> stringResource(R.string.schedule_mode_list)
-                                        ScheduleMode.CALENDAR -> stringResource(R.string.schedule_mode_calendar)
-                                    }
-                                )
-                            }
-                        )
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    val modeTabs = ScheduleMode.entries
+                    TabRow(
+                        selectedTabIndex = modeTabs.indexOf(state.mode),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        modeTabs.forEach { mode ->
+                            Tab(
+                                selected = state.mode == mode,
+                                onClick = { viewModel.updateMode(mode) },
+                                text = {
+                                    Text(
+                                        text = when (mode) {
+                                            ScheduleMode.LIST -> stringResource(R.string.schedule_mode_list)
+                                            ScheduleMode.CALENDAR -> stringResource(R.string.schedule_mode_calendar)
+                                        }
+                                    )
+                                }
+                            )
+                        }
                     }
                 }
+            }
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                SingleChoiceSegmentedButtonRow(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    ScheduleFilter.entries.forEachIndexed { index, filter ->
-                        SegmentedButton(
-                            selected = state.filter == filter,
-                            onClick = { viewModel.updateFilter(filter) },
-                            shape = SegmentedButtonDefaults.itemShape(
-                                index = index,
-                                count = ScheduleFilter.entries.size
-                            ),
-                            label = {
-                                Text(
-                                    text = when (filter) {
-                                        ScheduleFilter.ACTIVE -> stringResource(R.string.schedule_filter_active)
-                                        ScheduleFilter.HIDDEN -> stringResource(R.string.schedule_filter_hidden)
-                                    }
-                                )
-                            }
-                        )
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    SingleChoiceSegmentedButtonRow(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        ScheduleFilter.entries.forEachIndexed { index, filter ->
+                            SegmentedButton(
+                                selected = state.filter == filter,
+                                onClick = { viewModel.updateFilter(filter) },
+                                shape = SegmentedButtonDefaults.itemShape(
+                                    index = index,
+                                    count = ScheduleFilter.entries.size
+                                ),
+                                label = {
+                                    Text(
+                                        text = when (filter) {
+                                            ScheduleFilter.ACTIVE -> stringResource(R.string.schedule_filter_active)
+                                            ScheduleFilter.HIDDEN -> stringResource(R.string.schedule_filter_hidden)
+                                        }
+                                    )
+                                }
+                            )
+                        }
                     }
                 }
             }
