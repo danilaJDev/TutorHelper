@@ -22,7 +22,11 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import by.dreb.tutorhelper.R
 import by.dreb.tutorhelper.domain.model.ThemeMode
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import by.dreb.tutorhelper.presentation.finance.FinanceScreen
+import by.dreb.tutorhelper.presentation.schedule.LessonCreateScreen
+import by.dreb.tutorhelper.presentation.schedule.LessonDetailsScreen
 import by.dreb.tutorhelper.presentation.schedule.ScheduleScreen
 import by.dreb.tutorhelper.presentation.settings.SettingsUiState
 import by.dreb.tutorhelper.presentation.students.StudentsScreen
@@ -98,7 +102,32 @@ fun AppRoot(
                 startDestination = "schedule",
                 modifier = Modifier.padding(padding)
             ) {
-                composable("schedule") { ScheduleScreen() }
+                composable("schedule") {
+                    ScheduleScreen(
+                        onLessonClick = { lessonId ->
+                            navController.navigate("lesson_details/$lessonId")
+                        },
+                        onAddLessonClick = {
+                            navController.navigate("lesson_create")
+                        }
+                    )
+                }
+                composable(
+                    route = "lesson_details/{lessonId}",
+                    arguments = listOf(navArgument("lessonId") { type = NavType.LongType })
+                ) { backStackEntry ->
+                    val lessonId = backStackEntry.arguments?.getLong("lessonId") ?: return@composable
+                    LessonDetailsScreen(
+                        lessonId = lessonId,
+                        onBackClick = { navController.popBackStack() },
+                        onEditClick = { /* TODO: Navigate to Edit */ }
+                    )
+                }
+                composable("lesson_create") {
+                    LessonCreateScreen(
+                        onBackClick = { navController.popBackStack() }
+                    )
+                }
                 composable("students") { StudentsScreen() }
                 composable("finance") { FinanceScreen() }
                 composable("summary") {

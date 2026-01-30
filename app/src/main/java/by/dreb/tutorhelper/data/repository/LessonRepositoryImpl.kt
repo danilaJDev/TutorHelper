@@ -25,6 +25,9 @@ class LessonRepositoryImpl @Inject constructor(
     override fun observeLessonsByDate(date: LocalDate): Flow<List<LessonDetails>> =
         lessonDao.observeLessonDetailsByDate(date.toString()).map { entities -> entities.map { it.toDomain() } }
 
+    override fun observeLessonDetailsById(id: Long): Flow<LessonDetails?> =
+        lessonDao.observeLessonDetailsById(id).map { it?.toDomain() }
+
     override suspend fun upsertLesson(lesson: Lesson) {
         lessonDao.upsert(lesson.toEntity())
     }

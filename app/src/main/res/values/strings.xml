@@ -30,6 +30,20 @@
     <string name="action_mark_hw">Отметить ДЗ</string>
     <string name="action_mark_completed">Отметить как выполненное</string>
     <string name="action_close">Закрыть</string>
+    <string name="action_back">Назад</string>
+    <string name="lesson_create_title">Создание занятия</string>
+    <string name="lesson_label_student">Ученик</string>
+    <string name="lesson_label_date">Дата занятия</string>
+    <string name="lesson_label_start">С</string>
+    <string name="lesson_label_end">До</string>
+    <string name="lesson_label_price">Стоимость (руб.)</string>
+    <string name="lesson_label_note">Заметка</string>
+    <string name="lesson_label_duplicate">Дублировать занятие</string>
+    <string name="lesson_label_duplicate_until">Дублировать до</string>
+    <string name="action_ok">ОК</string>
+    <string name="action_cancel_alt">Отмена</string>
+    <string name="lesson_label_time">Время</string>
+    <string name="currency_rub">руб.</string>
 
     <string name="students_title">Ученики</string>
     <string name="students_active">Активные</string>

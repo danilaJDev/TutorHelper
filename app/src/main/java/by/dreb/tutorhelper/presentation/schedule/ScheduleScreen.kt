@@ -63,7 +63,11 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ScheduleScreen(viewModel: ScheduleViewModel = hiltViewModel()) {
+fun ScheduleScreen(
+    onLessonClick: (Long) -> Unit,
+    onAddLessonClick: () -> Unit,
+    viewModel: ScheduleViewModel = hiltViewModel()
+) {
     val state by viewModel.state.collectAsState()
     var selectedLessonForMenu by remember { mutableStateOf<LessonDetails?>(null) }
     var lessonToDelete by remember { mutableStateOf<LessonDetails?>(null) }
@@ -88,7 +92,7 @@ fun ScheduleScreen(viewModel: ScheduleViewModel = hiltViewModel()) {
             )
 
             IconButton(
-                onClick = { /* TODO: Navigate to Add Lesson */ },
+                onClick = onAddLessonClick,
                 modifier = Modifier
                     .background(MaterialTheme.colorScheme.primary, CircleShape)
             ) {
@@ -164,12 +168,14 @@ fun ScheduleScreen(viewModel: ScheduleViewModel = hiltViewModel()) {
                 when (state.mode) {
                     ScheduleMode.LIST -> ScheduleList(
                         lessons = state.lessons,
+                        onLessonClick = onLessonClick,
                         onMenuClick = { selectedLessonForMenu = it }
                     )
                     ScheduleMode.CALENDAR -> ScheduleCalendar(
                         selectedDate = state.selectedDate,
                         lessons = state.lessons,
                         onDateSelected = { viewModel.updateSelectedDate(it) },
+                        onLessonClick = onLessonClick,
                         onMenuClick = { selectedLessonForMenu = it }
                     )
                 }
@@ -238,6 +244,7 @@ fun ScheduleScreen(viewModel: ScheduleViewModel = hiltViewModel()) {
 @Composable
 private fun ScheduleList(
     lessons: List<LessonDetails>,
+    onLessonClick: (Long) -> Unit,
     onMenuClick: (LessonDetails) -> Unit
 ) {
     if (lessons.isEmpty()) {
@@ -275,6 +282,7 @@ private fun ScheduleList(
                 items(groupedLessons[date] ?: emptyList()) { lesson ->
                     LessonCard(
                         lesson = lesson,
+                        onLessonClick = { onLessonClick(lesson.lesson.id) },
                         onMenuClick = { onMenuClick(lesson) }
                     )
                 }
@@ -288,6 +296,7 @@ private fun ScheduleCalendar(
     selectedDate: LocalDate,
     lessons: List<LessonDetails>,
     onDateSelected: (LocalDate) -> Unit,
+    onLessonClick: (Long) -> Unit,
     onMenuClick: (LessonDetails) -> Unit
 ) {
     var currentMonth by remember { mutableStateOf(selectedDate.withDayOfMonth(1)) }
@@ -407,7 +416,12 @@ private fun ScheduleCalendar(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(selectedDayLessons) { lesson ->
-                    LessonCard(lesson, onMenuClick = { onMenuClick(lesson) }, compact = false)
+                    LessonCard(
+                        lesson = lesson,
+                        onLessonClick = { onLessonClick(lesson.lesson.id) },
+                        onMenuClick = { onMenuClick(lesson) },
+                        compact = false
+                    )
                 }
             }
         }
@@ -417,6 +431,7 @@ private fun ScheduleCalendar(
 @Composable
 private fun LessonCard(
     lesson: LessonDetails,
+    onLessonClick: () -> Unit,
     onMenuClick: () -> Unit,
     compact: Boolean = false
 ) {
@@ -425,7 +440,9 @@ private fun LessonCard(
 
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onLessonClick() },
         shape = RoundedCornerShape(12.dp)
     ) {
         Row(

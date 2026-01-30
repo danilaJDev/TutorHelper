@@ -16,7 +16,8 @@ fun StudentEntity.toDomain() = Student(
     name = name,
     phone = phone,
     note = note,
-    isArchived = isArchived
+    isArchived = isArchived,
+    defaultPrice = defaultPrice
 )
 
 fun Student.toEntity() = StudentEntity(
@@ -24,7 +25,8 @@ fun Student.toEntity() = StudentEntity(
     name = name,
     phone = phone,
     note = note,
-    isArchived = isArchived
+    isArchived = isArchived,
+    defaultPrice = defaultPrice
 )
 
 fun LessonEntity.toDomain() = Lesson(

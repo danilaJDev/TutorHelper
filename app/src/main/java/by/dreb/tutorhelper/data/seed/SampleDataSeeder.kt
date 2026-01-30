@@ -25,10 +25,10 @@ class SampleDataSeeder @Inject constructor(
             if (studentDao.countStudents() > 0) return@launch
 
             val aliceId = studentDao.upsert(
-                StudentEntity(name = "Alice Petrova", phone = "+7 900 100 20 30", note = "ЕГЭ", isArchived = false)
+                StudentEntity(name = "Alice Petrova", phone = "+7 900 100 20 30", note = "ЕГЭ", isArchived = false, defaultPrice = 25.0)
             )
             val bobId = studentDao.upsert(
-                StudentEntity(name = "Bob Smirnov", phone = "+7 900 555 66 77", note = "Math", isArchived = false)
+                StudentEntity(name = "Bob Smirnov", phone = "+7 900 555 66 77", note = "Math", isArchived = false, defaultPrice = 30.0)
             )
             val archivedId = studentDao.upsert(
                 StudentEntity(name = "Irina Archive", phone = null, note = "Past student", isArchived = true)
