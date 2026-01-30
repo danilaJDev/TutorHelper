@@ -95,6 +95,7 @@ class FinanceViewModel @Inject constructor(
                 val payment = Payment(
                     id = 0,
                     lessonId = details.lesson.id,
+                    studentId = details.student.id,
                     amount = details.lesson.price,
                     paidOn = LocalDate.now(),
                     method = null

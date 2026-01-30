@@ -46,11 +46,18 @@ object AppModule {
         }
     }
 
+    private val MIGRATION_3_4 = object : Migration(3, 4) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE payments ADD COLUMN studentId INTEGER NOT NULL DEFAULT 0")
+            db.execSQL("UPDATE payments SET studentId = (SELECT studentId FROM lessons WHERE lessons.id = payments.lessonId) WHERE EXISTS (SELECT 1 FROM lessons WHERE lessons.id = payments.lessonId)")
+        }
+    }
+
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): TutorHelperDatabase =
         Room.databaseBuilder(context, TutorHelperDatabase::class.java, "tutor_helper.db")
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
             .fallbackToDestructiveMigration()
             .build()
 

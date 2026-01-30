@@ -15,6 +15,7 @@ data class PaymentEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val lessonId: Long,
+    val studentId: Long = 0,
     val amount: Double,
     val paidOn: String?,
     val method: String?
