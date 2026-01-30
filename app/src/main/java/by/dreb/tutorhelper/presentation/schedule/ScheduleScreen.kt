@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -22,8 +23,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -60,10 +63,7 @@ import by.dreb.tutorhelper.domain.model.LessonDetails
 import by.dreb.tutorhelper.ui.components.MainContentCard
 import by.dreb.tutorhelper.ui.components.TutorHelperActionDialog
 import by.dreb.tutorhelper.ui.components.TutorHelperHeader
-import by.dreb.tutorhelper.ui.components.TutorHelperStatusChip
-import by.dreb.tutorhelper.ui.theme.StatusBlue
 import by.dreb.tutorhelper.ui.theme.StatusGreen
-import by.dreb.tutorhelper.ui.theme.StatusOnBlue
 import by.dreb.tutorhelper.ui.theme.StatusOnGreen
 import by.dreb.tutorhelper.ui.theme.StatusOnYellow
 import by.dreb.tutorhelper.ui.theme.StatusYellow
@@ -417,8 +417,7 @@ private fun ScheduleCalendar(
                     LessonCard(
                         lesson = lesson,
                         onLessonClick = { onLessonClick(lesson.lesson.id) },
-                        onMenuClick = { onMenuClick(lesson) },
-                        compact = false
+                        onMenuClick = { onMenuClick(lesson) }
                     )
                 }
             }
@@ -430,8 +429,7 @@ private fun ScheduleCalendar(
 private fun LessonCard(
     lesson: LessonDetails,
     onLessonClick: () -> Unit,
-    onMenuClick: () -> Unit,
-    compact: Boolean = false
+    onMenuClick: () -> Unit
 ) {
     val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
     val endTime = lesson.lesson.startTime.plusMinutes(lesson.lesson.durationMinutes.toLong())
@@ -450,39 +448,37 @@ private fun LessonCard(
         shape = RoundedCornerShape(12.dp)
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Column(
+                modifier = Modifier
+                    .width(32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                LessonStatusIcon(isCompleted = lesson.lesson.isCompleted)
+                HomeworkChip(isSent = lesson.lesson.isHomeworkSent)
+            }
             Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = lesson.student.name,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "${lesson.lesson.startTime.format(timeFormatter)} - ${
                         endTime.format(
                             timeFormatter
                         )
                     }",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = lesson.student.name,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold
-                )
-                if (!compact) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        StatusChip(
-                            text = if (lesson.lesson.isCompleted)
-                                stringResource(R.string.schedule_status_done)
-                            else
-                                stringResource(R.string.schedule_status_planned),
-                            isCompleted = lesson.lesson.isCompleted
-                        )
-                        HomeworkChip(isSent = lesson.lesson.isHomeworkSent)
-                    }
-                }
             }
             IconButton(onClick = onMenuClick) {
                 Icon(
@@ -496,15 +492,6 @@ private fun LessonCard(
 }
 
 @Composable
-private fun StatusChip(text: String, isCompleted: Boolean) {
-    TutorHelperStatusChip(
-        text = text,
-        containerColor = if (isCompleted) StatusGreen else StatusBlue,
-        contentColor = if (isCompleted) StatusOnGreen else StatusOnBlue
-    )
-}
-
-@Composable
 private fun HomeworkChip(isSent: Boolean) {
     val containerColor = if (isSent) StatusGreen else StatusYellow
     val contentColor = if (isSent) StatusOnGreen else StatusOnYellow
@@ -515,6 +502,29 @@ private fun HomeworkChip(isSent: Boolean) {
     ) {
         Icon(
             imageVector = Icons.Default.Home,
+            contentDescription = null,
+            tint = contentColor,
+            modifier = Modifier.size(16.dp)
+        )
+    }
+}
+
+@Composable
+private fun LessonStatusIcon(isCompleted: Boolean) {
+    val containerColor =
+        if (isCompleted) StatusGreen else MaterialTheme.colorScheme.surfaceVariant
+    val contentColor =
+        if (isCompleted) StatusOnGreen else MaterialTheme.colorScheme.onSurfaceVariant
+    val icon = if (isCompleted) Icons.Default.Check else Icons.Default.Schedule
+
+    Box(
+        modifier = Modifier
+            .size(28.dp)
+            .background(containerColor, CircleShape),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = icon,
             contentDescription = null,
             tint = contentColor,
             modifier = Modifier.size(16.dp)
