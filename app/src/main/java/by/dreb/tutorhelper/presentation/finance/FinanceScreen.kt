@@ -43,8 +43,6 @@ import by.dreb.tutorhelper.ui.components.TutorHelperHeader
 import by.dreb.tutorhelper.ui.theme.StatusGreen
 import by.dreb.tutorhelper.ui.theme.StatusOnGreen
 import by.dreb.tutorhelper.ui.theme.StatusOnRed
-import by.dreb.tutorhelper.ui.theme.StatusOnYellow
-import by.dreb.tutorhelper.ui.theme.StatusRed
 import by.dreb.tutorhelper.ui.theme.StatusYellow
 import java.time.format.DateTimeFormatter
 import java.util.Locale

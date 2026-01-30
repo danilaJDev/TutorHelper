@@ -3,7 +3,6 @@ package by.dreb.tutorhelper.ui.theme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 
 private val LightColorScheme = lightColorScheme(
     primary = md_theme_light_primary,
@@ -31,11 +30,8 @@ private val LightColorScheme = lightColorScheme(
 
 @Composable
 fun TutorHelperTheme(
-    darkTheme: Boolean = false, // Always light as per requirements
-    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    // We ignore darkTheme and dynamicColor to maintain the "calm and neat" light style requested
     val colorScheme = LightColorScheme
 
     MaterialTheme(

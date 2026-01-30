@@ -1,14 +1,19 @@
 package by.dreb.tutorhelper.presentation.schedule
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,26 +28,32 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.FormatListBulleted
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -51,7 +62,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -59,12 +73,28 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import by.dreb.tutorhelper.R
 import by.dreb.tutorhelper.domain.model.LessonDetails
-import by.dreb.tutorhelper.ui.components.TutorHelperHeader
-import by.dreb.tutorhelper.ui.theme.StatusGreen
-import by.dreb.tutorhelper.ui.theme.StatusOnGreen
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+
+/**
+ * Локальная палитра цветов для экрана расписания.
+ * Используем мягкие, профессиональные цвета.
+ */
+private object SchedulePalette {
+    val Background = Color(0xFFF8FAFC)
+    val Surface = Color(0xFFFFFFFF)
+    val Primary = Color(0xFF6366F1)
+    val TextPrimary = Color(0xFF1E293B)
+    val TextSecondary = Color(0xFF64748B)
+
+    val Success = Color(0xFF22C55E)
+    val Action = Color(0xFFF59E0B)
+    val Error = Color(0xFFEF4444)
+
+    val CardElevation = 2.dp
+    val CardShape = RoundedCornerShape(16.dp)
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -76,135 +106,223 @@ fun ScheduleScreen(
     val state by viewModel.state.collectAsState()
     var lessonToDelete by remember { mutableStateOf<LessonDetails?>(null) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        TutorHelperHeader(
-            title = stringResource(R.string.schedule_title),
-            actionIcon = Icons.Default.Add,
-            onActionClick = onAddLessonClick
-        )
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = stringResource(R.string.schedule_title),
+                        style = MaterialTheme.typography.titleLarge, // Использование стиля вместо просто FontWeight
+                        fontWeight = FontWeight.ExtraBold,
+                        color = SchedulePalette.TextPrimary
+                    )
+                },
+                // Убираем лишние отступы сверху (например, от статус-бара, если нужно)
+                windowInsets = WindowInsets(top = 0.dp),
+                actions = {
+                    ScheduleModeSwitch(
+                        currentMode = state.mode,
+                        onModeChange = { viewModel.updateMode(it) }
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = SchedulePalette.Background,
+                    scrolledContainerColor = SchedulePalette.Surface.copy(alpha = 0.95f)
+                )
+            )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onAddLessonClick,
+                containerColor = SchedulePalette.Primary,
+                contentColor = Color.White,
+                shape = RoundedCornerShape(16.dp),
+                elevation = FloatingActionButtonDefaults.elevation(8.dp)
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Add Lesson")
+            }
+        },
+        containerColor = SchedulePalette.Background
+    ) { paddingValues ->
 
         Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
         ) {
-            Card(
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            // Центрированные фильтры
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 12.dp),
+                horizontalArrangement = Arrangement.Center, // Центрирование кнопок
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    val modeTabs = ScheduleMode.entries
-                    TabRow(
-                        selectedTabIndex = modeTabs.indexOf(state.mode),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        modeTabs.forEach { mode ->
-                            Tab(
-                                selected = state.mode == mode,
-                                onClick = { viewModel.updateMode(mode) },
-                                text = {
-                                    Text(
-                                        text = when (mode) {
-                                            ScheduleMode.LIST -> stringResource(R.string.schedule_mode_list)
-                                            ScheduleMode.CALENDAR -> stringResource(R.string.schedule_mode_calendar)
-                                        }
-                                    )
-                                }
-                            )
-                        }
-                    }
-                }
+                CustomFilterChip(
+                    selected = state.filter == ScheduleFilter.ACTIVE,
+                    onClick = { viewModel.updateFilter(ScheduleFilter.ACTIVE) },
+                    label = stringResource(R.string.schedule_filter_active),
+                    icon = Icons.Default.CheckCircle
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                CustomFilterChip(
+                    selected = state.filter == ScheduleFilter.HIDDEN,
+                    onClick = { viewModel.updateFilter(ScheduleFilter.HIDDEN) },
+                    label = stringResource(R.string.schedule_filter_hidden),
+                    icon = Icons.Default.VisibilityOff
+                )
             }
 
-            Card(
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    SingleChoiceSegmentedButtonRow(
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        ScheduleFilter.entries.forEachIndexed { index, filter ->
-                            SegmentedButton(
-                                selected = state.filter == filter,
-                                onClick = { viewModel.updateFilter(filter) },
-                                shape = SegmentedButtonDefaults.itemShape(
-                                    index = index,
-                                    count = ScheduleFilter.entries.size
-                                ),
-                                label = {
-                                    Text(
-                                        text = when (filter) {
-                                            ScheduleFilter.ACTIVE -> stringResource(R.string.schedule_filter_active)
-                                            ScheduleFilter.HIDDEN -> stringResource(R.string.schedule_filter_hidden)
-                                        }
-                                    )
-                                }
-                            )
-                        }
+            // Контентная область с мягким градиентом или просто чистым фоном
+            Box(modifier = Modifier.fillMaxSize()) {
+                AnimatedContent(
+                    targetState = state.mode,
+                    label = "ModeAnimation"
+                ) { mode ->
+                    when (mode) {
+                        ScheduleMode.LIST -> ScheduleList(
+                            lessons = state.lessons,
+                            onLessonClick = onLessonClick,
+                            onToggleHomework = viewModel::toggleHomework,
+                            onToggleHidden = viewModel::toggleHidden,
+                            onDeleteClick = { lessonToDelete = it }
+                        )
+
+                        ScheduleMode.CALENDAR -> ScheduleCalendar(
+                            selectedDate = state.selectedDate,
+                            lessons = state.lessons,
+                            onDateSelected = { viewModel.updateSelectedDate(it) },
+                            onLessonClick = onLessonClick,
+                            onToggleHomework = viewModel::toggleHomework,
+                            onToggleHidden = viewModel::toggleHidden,
+                            onDeleteClick = { lessonToDelete = it }
+                        )
                     }
                 }
-            }
-
-            when (state.mode) {
-                ScheduleMode.LIST -> ScheduleList(
-                    lessons = state.lessons,
-                    onLessonClick = onLessonClick,
-                    onToggleHomework = viewModel::toggleHomework,
-                    onToggleHidden = viewModel::toggleHidden,
-                    onDeleteClick = { lessonToDelete = it }
-                )
-
-                ScheduleMode.CALENDAR -> ScheduleCalendar(
-                    selectedDate = state.selectedDate,
-                    lessons = state.lessons,
-                    onDateSelected = { viewModel.updateSelectedDate(it) },
-                    onLessonClick = onLessonClick,
-                    onToggleHomework = viewModel::toggleHomework,
-                    onToggleHidden = viewModel::toggleHidden,
-                    onDeleteClick = { lessonToDelete = it }
-                )
             }
         }
     }
 
-    lessonToDelete?.let { lesson ->
-        AlertDialog(
-            onDismissRequest = { lessonToDelete = null },
-            title = {
-                Text(
-                    text = stringResource(R.string.action_delete_confirm_title),
-                    style = MaterialTheme.typography.titleLarge
-                )
-            },
-            text = {
-                Text(
-                    text = stringResource(R.string.action_delete_confirm_message),
-                    style = MaterialTheme.typography.bodyLarge
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        viewModel.deleteLesson(lesson)
-                        lessonToDelete = null
-                    },
-                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
-                ) {
-                    Text(
-                        text = stringResource(R.string.action_delete),
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { lessonToDelete = null }) {
-                    Text(text = stringResource(R.string.action_cancel))
-                }
+    if (lessonToDelete != null) {
+        DeleteConfirmationDialog(
+            onDismiss = { lessonToDelete = null },
+            onConfirm = {
+                lessonToDelete?.let { viewModel.deleteLesson(it) }
+                lessonToDelete = null
             }
+        )
+    }
+}
+
+@Composable
+private fun ScheduleModeSwitch(
+    currentMode: ScheduleMode,
+    onModeChange: (ScheduleMode) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .width(100.dp) // Фиксированная ширина для симметрии
+            .height(40.dp)
+            .background(
+                color = Color(0xFFE2E8F0), // Светло-серый фон (Slate 200)
+                shape = CircleShape
+            )
+            .padding(4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        val modes = listOf(
+            ScheduleMode.LIST to Icons.Default.FormatListBulleted,
+            ScheduleMode.CALENDAR to Icons.Default.CalendarMonth
+        )
+
+        modes.forEach { (mode, icon) ->
+            val isSelected = currentMode == mode
+            val background by animateColorAsState(
+                if (isSelected) SchedulePalette.Surface else Color.Transparent,
+                label = "switchBg"
+            )
+            val iconColor by animateColorAsState(
+                if (isSelected) SchedulePalette.Primary else SchedulePalette.TextSecondary,
+                label = "switchIcon"
+            )
+
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .clip(CircleShape)
+                    .background(background)
+                    .clickable { onModeChange(mode) },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = iconColor,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CustomFilterChip(
+    selected: Boolean,
+    onClick: () -> Unit,
+    label: String,
+    icon: ImageVector
+) {
+    FilterChip(
+        selected = selected,
+        onClick = onClick,
+        label = { Text(label) },
+        leadingIcon = if (selected) {
+            { Icon(icon, null, modifier = Modifier.size(18.dp)) }
+        } else null,
+        colors = FilterChipDefaults.filterChipColors(
+            selectedContainerColor = SchedulePalette.Primary.copy(alpha = 0.15f),
+            selectedLabelColor = SchedulePalette.Primary,
+            selectedLeadingIconColor = SchedulePalette.Primary,
+            containerColor = SchedulePalette.Surface,
+            labelColor = SchedulePalette.TextSecondary
+        ),
+        border = FilterChipDefaults.filterChipBorder(
+            enabled = true,
+            selected = selected,
+            borderColor = if (selected) SchedulePalette.Primary else Color.Transparent,
+            selectedBorderColor = SchedulePalette.Primary
+        )
+    )
+}
+
+@Composable
+private fun ModeIconButton(
+    icon: ImageVector,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    val backgroundColor by animateColorAsState(
+        targetValue = if (isSelected) SchedulePalette.Primary else Color.Transparent,
+        label = "BgColor"
+    )
+    val iconColor by animateColorAsState(
+        targetValue = if (isSelected) Color.White else SchedulePalette.TextSecondary,
+        label = "IconColor"
+    )
+
+    IconButton(
+        onClick = onClick,
+        modifier = Modifier
+            .size(36.dp)
+            .background(backgroundColor, CircleShape)
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = iconColor,
+            modifier = Modifier.size(20.dp)
         )
     }
 }
@@ -218,15 +336,7 @@ private fun ScheduleList(
     onDeleteClick: (LessonDetails) -> Unit
 ) {
     if (lessons.isEmpty()) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(
-                text = stringResource(R.string.schedule_empty),
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(32.dp),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
+        EmptyStateMessage()
     } else {
         val groupedLessons = lessons.groupBy { it.lesson.startTime.toLocalDate() }
         val sortedDates = groupedLessons.keys.sorted()
@@ -234,27 +344,15 @@ private fun ScheduleList(
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(bottom = 80.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             sortedDates.forEach { date ->
                 item {
-                    Text(
-                        text = date.format(
-                            DateTimeFormatter.ofPattern(
-                                "dd.MM.yyyy, EEEE",
-                                russianLocale
-                            )
-                        ),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp, bottom = 8.dp),
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                    DateHeader(date, russianLocale)
                 }
                 items(groupedLessons[date] ?: emptyList()) { lesson ->
-                    LessonCard(
+                    ModernLessonCard(
                         lesson = lesson,
                         onLessonClick = { onLessonClick(lesson.lesson.id) },
                         onToggleHomework = { onToggleHomework(lesson) },
@@ -264,6 +362,41 @@ private fun ScheduleList(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun DateHeader(date: LocalDate, locale: Locale) {
+    val isToday = date == LocalDate.now()
+    val dateText = date.format(DateTimeFormatter.ofPattern("d MMMM", locale))
+    val weekDayText = date.format(DateTimeFormatter.ofPattern("EEEE", locale))
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (isToday) {
+            Box(
+                modifier = Modifier
+                    .size(8.dp)
+                    .background(SchedulePalette.Primary, CircleShape)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+        }
+
+        Text(
+            text = dateText,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = if (isToday) SchedulePalette.Primary else SchedulePalette.TextPrimary
+        )
+        Text(
+            text = " • ${weekDayText.replaceFirstChar { it.uppercase() }}",
+            style = MaterialTheme.typography.titleMedium,
+            color = SchedulePalette.TextSecondary
+        )
     }
 }
 
@@ -279,105 +412,101 @@ private fun ScheduleCalendar(
 ) {
     var currentMonth by remember { mutableStateOf(selectedDate.withDayOfMonth(1)) }
     val daysInMonth = currentMonth.lengthOfMonth()
-    val firstDayOfWeek = currentMonth.dayOfWeek.value // 1 (Mon) to 7 (Sun)
+    val firstDayOfWeek = currentMonth.dayOfWeek.value
+    val russianLocale = Locale("ru")
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        // Month Navigation
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+    Column(modifier = Modifier.fillMaxSize()) {
+        Surface(
+            color = SchedulePalette.Surface,
+            shadowElevation = 2.dp, // Легкая тень под календарем
+            modifier = Modifier.fillMaxWidth()
         ) {
-            IconButton(onClick = { currentMonth = currentMonth.minusMonths(1) }) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                    contentDescription = null
-                )
-            }
-            Text(
-                text = currentMonth.format(DateTimeFormatter.ofPattern("LLLL yyyy", Locale("ru")))
-                    .replaceFirstChar { it.uppercase() },
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-            IconButton(onClick = { currentMonth = currentMonth.plusMonths(1) }) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = null
-                )
-            }
-        }
+            Column {
+                // Month Header
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = { currentMonth = currentMonth.minusMonths(1) }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                            null,
+                            tint = SchedulePalette.TextSecondary
+                        )
+                    }
+                    Text(
+                        text = currentMonth.format(
+                            DateTimeFormatter.ofPattern(
+                                "LLLL yyyy",
+                                russianLocale
+                            )
+                        )
+                            .replaceFirstChar { it.uppercase() },
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = SchedulePalette.TextPrimary
+                    )
+                    IconButton(onClick = { currentMonth = currentMonth.plusMonths(1) }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                            null,
+                            tint = SchedulePalette.TextSecondary
+                        )
+                    }
+                }
 
-        Spacer(modifier = Modifier.height(8.dp))
+                // Days Row
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp)
+                ) {
+                    val weekDays = listOf("Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс")
+                    weekDays.forEach { day ->
+                        Text(
+                            text = day,
+                            modifier = Modifier.weight(1f),
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = SchedulePalette.TextSecondary
+                        )
+                    }
+                }
 
-        // Days of week headers
-        Row(modifier = Modifier.fillMaxWidth()) {
-            val weekDays = listOf("Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс")
-            weekDays.forEach { day ->
-                Text(
-                    text = day,
-                    modifier = Modifier.weight(1f),
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
+                // Grid
+                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                    val totalCells = ((daysInMonth + firstDayOfWeek - 2) / 7 + 1) * 7
+                    for (row in 0 until totalCells / 7) {
+                        Row(modifier = Modifier.fillMaxWidth()) {
+                            for (col in 0 until 7) {
+                                val dayIndex = row * 7 + col
+                                val dayOfMonth = dayIndex - firstDayOfWeek + 2
+                                if (dayOfMonth in 1..daysInMonth) {
+                                    val date = currentMonth.withDayOfMonth(dayOfMonth)
+                                    val isSelected = date == selectedDate
+                                    val isToday = date == LocalDate.now()
+                                    val dayLessons =
+                                        lessons.filter { it.lesson.startTime.toLocalDate() == date }
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Calendar Grid
-        val totalCells = ((daysInMonth + firstDayOfWeek - 2) / 7 + 1) * 7
-        Column {
-            for (row in 0 until totalCells / 7) {
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    for (col in 0 until 7) {
-                        val dayIndex = row * 7 + col
-                        val dayOfMonth = dayIndex - firstDayOfWeek + 2
-                        if (dayOfMonth in 1..daysInMonth) {
-                            val date = currentMonth.withDayOfMonth(dayOfMonth)
-                            val isSelected = date == selectedDate
-                            val dayLessons =
-                                lessons.filter { it.lesson.startTime.toLocalDate() == date }
-
-                            Column(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(48.dp)
-                                    .background(
-                                        if (isSelected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
-                                        RoundedCornerShape(8.dp)
-                                    )
-                                    .clickable { onDateSelected(date) },
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                Text(
-                                    text = dayOfMonth.toString(),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                    color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
-                                )
-                                if (dayLessons.isNotEmpty()) {
-                                    val hasIncomplete = dayLessons.any { !it.lesson.isCompleted }
-                                    val dotColor =
-                                        if (hasIncomplete) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
-                                    Box(
-                                        modifier = Modifier
-                                            .size(4.dp)
-                                            .background(dotColor, CircleShape)
+                                    DayCell(
+                                        day = dayOfMonth,
+                                        isSelected = isSelected,
+                                        isToday = isToday,
+                                        hasEvents = dayLessons.isNotEmpty(),
+                                        hasIncomplete = dayLessons.any { !it.lesson.isCompleted },
+                                        onClick = { onDateSelected(date) },
+                                        modifier = Modifier.weight(1f)
                                     )
                                 } else {
-                                    Spacer(modifier = Modifier.size(4.dp))
+                                    Spacer(modifier = Modifier.weight(1f))
                                 }
                             }
-                        } else {
-                            Spacer(modifier = Modifier.weight(1f))
                         }
+                        Spacer(modifier = Modifier.height(4.dp))
                     }
                 }
             }
@@ -385,25 +514,28 @@ private fun ScheduleCalendar(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Lessons for selected date
+        Text(
+            text = selectedDate.format(DateTimeFormatter.ofPattern("d MMMM, EEEE", russianLocale)),
+            style = MaterialTheme.typography.titleMedium,
+            color = SchedulePalette.TextPrimary,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+        )
+
         val selectedDayLessons =
             lessons.filter { it.lesson.startTime.toLocalDate() == selectedDate }
-        if (selectedDayLessons.isEmpty()) {
-            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                Text(
-                    text = "Нет занятий на этот день",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(16.dp)
-                )
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
+
+        LazyColumn(
+            contentPadding = PaddingValues(bottom = 80.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            if (selectedDayLessons.isEmpty()) {
+                item {
+                    EmptyStateMessage()
+                }
+            } else {
                 items(selectedDayLessons) { lesson ->
-                    LessonCard(
+                    ModernLessonCard(
                         lesson = lesson,
                         onLessonClick = { onLessonClick(lesson.lesson.id) },
                         onToggleHomework = { onToggleHomework(lesson) },
@@ -417,7 +549,65 @@ private fun ScheduleCalendar(
 }
 
 @Composable
-private fun LessonCard(
+private fun DayCell(
+    day: Int,
+    isSelected: Boolean,
+    isToday: Boolean,
+    hasEvents: Boolean,
+    hasIncomplete: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val backgroundColor = when {
+        isSelected -> SchedulePalette.Primary
+        else -> Color.Transparent
+    }
+
+    val contentColor = when {
+        isSelected -> Color.White
+        isToday -> SchedulePalette.Primary
+        else -> SchedulePalette.TextPrimary
+    }
+
+    val borderModifier = if (isToday && !isSelected) {
+        Modifier.border(1.dp, SchedulePalette.Primary, CircleShape)
+    } else Modifier
+
+    Column(
+        modifier = modifier
+            .height(44.dp)
+            .clip(CircleShape)
+            .then(borderModifier)
+            .background(backgroundColor, CircleShape)
+            .clickable(onClick = onClick),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = day.toString(),
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = if (isSelected || isToday) FontWeight.Bold else FontWeight.Normal,
+            color = contentColor
+        )
+
+        if (hasEvents) {
+            Spacer(modifier = Modifier.height(4.dp))
+            val dotColor = if (isSelected) Color.White.copy(alpha = 0.8f)
+            else if (hasIncomplete) SchedulePalette.Primary
+            else SchedulePalette.Success
+            Box(
+                modifier = Modifier
+                    .size(4.dp)
+                    .background(dotColor, CircleShape)
+            )
+        } else {
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+    }
+}
+
+@Composable
+private fun ModernLessonCard(
     lesson: LessonDetails,
     onLessonClick: () -> Unit,
     onToggleHomework: () -> Unit,
@@ -425,69 +615,149 @@ private fun LessonCard(
     onDeleteClick: () -> Unit
 ) {
     val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
-    val endTime = lesson.lesson.startTime.plusMinutes(lesson.lesson.durationMinutes.toLong())
-    val showHide = lesson.lesson.isHomeworkSent && lesson.lesson.isCompleted
+    val startTime = lesson.lesson.startTime.format(timeFormatter)
+    val endTime = lesson.lesson.startTime
+        .plusMinutes(lesson.lesson.durationMinutes.toLong())
+        .format(timeFormatter)
+
+    val isCompleted = lesson.lesson.isCompleted
+    val isHomeworkSent = lesson.lesson.isHomeworkSent
+    val isHidden = isCompleted && isHomeworkSent
+
+    val statusColor = when {
+        isHomeworkSent -> SchedulePalette.Success
+        isCompleted -> SchedulePalette.Success
+        else -> SchedulePalette.Primary
+    }
 
     Card(
-        colors = CardDefaults.cardColors(
-            containerColor = if (lesson.lesson.isCompleted && lesson.lesson.isHomeworkSent) {
-                StatusGreen.copy(alpha = 0.16f)
-            } else {
-                MaterialTheme.colorScheme.surfaceVariant.copy(
-                    alpha = 0.5f
-                )
-            }
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .clickable { onLessonClick() },
-        shape = RoundedCornerShape(12.dp)
+            .padding(horizontal = 16.dp, vertical = 6.dp)
+            .border(1.dp, Color(0xFFE2E8F0), SchedulePalette.CardShape)
+            .shadow(2.dp, SchedulePalette.CardShape)
+            .clip(SchedulePalette.CardShape)
+            .clickable(onClick = onLessonClick),
+        elevation = CardDefaults.cardElevation(defaultElevation = SchedulePalette.CardElevation),
+        colors = CardDefaults.cardColors(containerColor = SchedulePalette.Surface),
+        shape = SchedulePalette.CardShape
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Row(modifier = Modifier.height(IntrinsicSize.Min)) {
             Box(
                 modifier = Modifier
-                    .width(32.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                LessonStatusIcon(isCompleted = lesson.lesson.isCompleted)
-            }
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = lesson.student.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "${lesson.lesson.startTime.format(timeFormatter)} - ${
-                        endTime.format(
-                            timeFormatter
-                        )
-                    }",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+                    .width(6.dp)
+                    .fillMaxHeight()
+                    .background(statusColor)
+            )
+
             Row(
-                horizontalArrangement = Arrangement.spacedBy(20.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(14.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                HomeworkStatusButton(
-                    isSent = lesson.lesson.isHomeworkSent,
-                    onClick = onToggleHomework
-                )
-                if (showHide) {
-                    HideLessonButton(onClick = onToggleHidden)
-                } else {
-                    DeleteLessonButton(onClick = onDeleteClick)
+                Column(
+                    modifier = Modifier.width(60.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = startTime,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = SchedulePalette.TextPrimary
+                    )
+                    Text(
+                        text = endTime,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = SchedulePalette.TextSecondary
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = lesson.student.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = SchedulePalette.TextPrimary,
+                        maxLines = 1
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (isCompleted) {
+                            Icon(
+                                Icons.Default.CheckCircle,
+                                null,
+                                modifier = Modifier.size(14.dp),
+                                tint = SchedulePalette.Success
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "Проведено",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = SchedulePalette.Success,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        } else {
+                            Text(
+                                text = "${lesson.lesson.durationMinutes} мин",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = SchedulePalette.TextSecondary
+                            )
+                        }
+                    }
+                }
+
+                Row {
+                    val hwTint =
+                        if (isHomeworkSent) SchedulePalette.Success else SchedulePalette.TextSecondary.copy(
+                            alpha = 0.5f
+                        )
+                    val hwBg =
+                        if (isHomeworkSent) SchedulePalette.Success.copy(alpha = 0.1f) else Color.Transparent
+
+                    IconButton(
+                        onClick = onToggleHomework,
+                        colors = IconButtonDefaults.iconButtonColors(
+                            containerColor = hwBg,
+                            contentColor = hwTint
+                        ),
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (isHomeworkSent) Icons.Filled.Home else Icons.Outlined.Home,
+                            contentDescription = "Homework",
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+
+                    if (isHidden) {
+                        IconButton(
+                            onClick = onToggleHidden,
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.VisibilityOff,
+                                contentDescription = "Hide",
+                                tint = SchedulePalette.TextSecondary.copy(alpha = 0.5f),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    } else {
+                        IconButton(
+                            onClick = onDeleteClick,
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Delete",
+                                tint = SchedulePalette.Error.copy(alpha = 0.7f),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -495,83 +765,65 @@ private fun LessonCard(
 }
 
 @Composable
-private fun HomeworkStatusButton(
-    isSent: Boolean,
-    onClick: () -> Unit
-) {
-    val containerColor = if (isSent) StatusGreen else MaterialTheme.colorScheme.surfaceVariant
-    val contentColor = if (isSent) StatusOnGreen else MaterialTheme.colorScheme.onSurfaceVariant
-    IconButton(
-        onClick = onClick,
-        modifier = Modifier
-            .size(36.dp)
-            .background(containerColor, CircleShape)
-            .border(1.dp, Color.Black, CircleShape)
-    ) {
-        Icon(
-            imageVector = Icons.Default.Home,
-            contentDescription = null,
-            tint = contentColor,
-            modifier = Modifier.size(18.dp)
-        )
-    }
-}
-
-@Composable
-private fun DeleteLessonButton(onClick: () -> Unit) {
-    IconButton(
-        onClick = onClick,
-        modifier = Modifier
-            .size(36.dp)
-            .background(Color.Transparent, CircleShape)
-            .border(1.dp, MaterialTheme.colorScheme.error, CircleShape)
-    ) {
-        Icon(
-            imageVector = Icons.Default.Close,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.error,
-            modifier = Modifier.size(18.dp)
-        )
-    }
-}
-
-@Composable
-private fun HideLessonButton(onClick: () -> Unit) {
-    IconButton(
-        onClick = onClick,
-        modifier = Modifier
-            .size(36.dp)
-            .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
-            .border(1.dp, Color.Black, CircleShape)
-    ) {
-        Icon(
-            imageVector = Icons.Default.VisibilityOff,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(18.dp)
-        )
-    }
-}
-
-@Composable
-private fun LessonStatusIcon(isCompleted: Boolean) {
-    val containerColor =
-        if (isCompleted) StatusGreen else MaterialTheme.colorScheme.surfaceVariant
-    val contentColor =
-        if (isCompleted) StatusOnGreen else MaterialTheme.colorScheme.onSurfaceVariant
-    val icon = if (isCompleted) Icons.Default.Check else Icons.Default.Schedule
-
+private fun EmptyStateMessage() {
     Box(
         modifier = Modifier
-            .size(28.dp)
-            .background(containerColor, CircleShape),
+            .fillMaxWidth()
+            .padding(top = 48.dp),
         contentAlignment = Alignment.Center
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = contentColor,
-            modifier = Modifier.size(16.dp)
-        )
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(
+                imageVector = Icons.Default.CalendarMonth,
+                contentDescription = null,
+                modifier = Modifier.size(64.dp),
+                tint = SchedulePalette.TextSecondary.copy(alpha = 0.3f)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = stringResource(R.string.schedule_empty),
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.titleMedium,
+                color = SchedulePalette.TextSecondary
+            )
+        }
     }
+}
+
+@Composable
+private fun DeleteConfirmationDialog(
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(stringResource(R.string.action_delete_confirm_title))
+        },
+        text = {
+            Text(
+                stringResource(R.string.action_delete_confirm_message),
+                color = SchedulePalette.TextSecondary
+            )
+        },
+        confirmButton = {
+            TextButton(
+                onClick = onConfirm,
+                colors = ButtonDefaults.textButtonColors(contentColor = SchedulePalette.Error)
+            ) {
+                Text(stringResource(R.string.action_delete))
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = onDismiss,
+                colors = ButtonDefaults.textButtonColors(contentColor = SchedulePalette.TextPrimary)
+            ) {
+                Text(stringResource(R.string.action_cancel))
+            }
+        },
+        containerColor = SchedulePalette.Surface,
+        titleContentColor = SchedulePalette.TextPrimary,
+        tonalElevation = 6.dp
+    )
 }
