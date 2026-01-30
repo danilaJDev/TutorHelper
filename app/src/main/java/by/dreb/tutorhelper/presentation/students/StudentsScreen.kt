@@ -1,12 +1,15 @@
 package by.dreb.tutorhelper.presentation.students
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -35,6 +38,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import by.dreb.tutorhelper.R
@@ -46,44 +50,64 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 fun StudentsScreen(viewModel: StudentsViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsState()
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        Surface(
-            color = MaterialTheme.colorScheme.primary,
-            shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        // 1. Header Row
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(
+            Text(
+                text = stringResource(R.string.students_title),
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = androidx.compose.ui.graphics.Color.Black
+                )
+            )
+
+            IconButton(
+                onClick = { /* TODO: Navigate to Add Student */ },
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                    .size(48.dp)
+                    .background(MaterialTheme.colorScheme.primary, androidx.compose.foundation.shape.CircleShape)
             ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = null,
+                    tint = androidx.compose.ui.graphics.Color.White
+                )
+            }
+        }
+
+        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(16.dp))
+
+        // 2. Combined Block
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            Column {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(
-                        text = stringResource(R.string.students_title),
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
-                    IconButton(onClick = {}) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimary
-                        )
-                    }
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     AssistChip(
                         onClick = { viewModel.toggleArchive(false) },
                         label = { Text(text = stringResource(R.string.students_active_count, state.activeCount)) },
                         leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
                         colors = AssistChipDefaults.assistChipColors(
-                            containerColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.18f),
-                            labelColor = MaterialTheme.colorScheme.onPrimary,
-                            leadingIconContentColor = MaterialTheme.colorScheme.onPrimary
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            labelColor = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     )
                     AssistChip(
@@ -91,66 +115,63 @@ fun StudentsScreen(viewModel: StudentsViewModel = hiltViewModel()) {
                         label = { Text(text = stringResource(R.string.students_archived_count, state.archivedCount)) },
                         leadingIcon = { Icon(Icons.Default.Archive, contentDescription = null) },
                         colors = AssistChipDefaults.assistChipColors(
-                            containerColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.18f),
-                            labelColor = MaterialTheme.colorScheme.onPrimary,
-                            leadingIconContentColor = MaterialTheme.colorScheme.onPrimary
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            labelColor = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     )
                 }
-            }
-        }
 
-        Column(modifier = Modifier.padding(16.dp)) {
-            SingleChoiceSegmentedButtonRow(modifier = Modifier.padding(top = 4.dp)) {
-                SegmentedButton(
-                    selected = !state.isArchived,
-                    onClick = { viewModel.toggleArchive(false) },
-                    shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)
-                ) {
-                    Text(text = stringResource(R.string.students_active))
-                }
-                SegmentedButton(
-                    selected = state.isArchived,
-                    onClick = { viewModel.toggleArchive(true) },
-                    shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)
-                ) {
-                    Text(text = stringResource(R.string.students_archived))
-                }
-            }
+                Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                        SegmentedButton(
+                            selected = !state.isArchived,
+                            onClick = { viewModel.toggleArchive(false) },
+                            shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
+                            label = { Text(text = stringResource(R.string.students_active)) }
+                        )
+                        SegmentedButton(
+                            selected = state.isArchived,
+                            onClick = { viewModel.toggleArchive(true) },
+                            shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
+                            label = { Text(text = stringResource(R.string.students_archived)) }
+                        )
+                    }
 
-            OutlinedTextField(
-                modifier = Modifier
-                    .padding(top = 12.dp)
-                    .fillMaxWidth(),
-                value = state.query,
-                onValueChange = viewModel::updateQuery,
-                label = { Text(stringResource(R.string.students_search)) }
-            )
-        }
-
-        LazyColumn(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            contentPadding = PaddingValues(bottom = 24.dp, top = 4.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            if (state.students.isEmpty()) {
-                item {
-                    Text(
-                        text = stringResource(
-                            if (state.isArchived) R.string.students_empty_archived else R.string.students_empty_active
-                        ),
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(vertical = 12.dp)
+                    OutlinedTextField(
+                        modifier = Modifier
+                            .padding(top = 12.dp)
+                            .fillMaxWidth(),
+                        value = state.query,
+                        onValueChange = viewModel::updateQuery,
+                        label = { Text(stringResource(R.string.students_search)) }
                     )
                 }
-            }
-            items(state.students) { student ->
-                StudentCard(
-                    student = student,
-                    onArchiveToggle = { archived ->
-                        viewModel.setStudentArchived(student.id, archived)
+
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    if (state.students.isEmpty()) {
+                        item {
+                            Text(
+                                text = stringResource(
+                                    if (state.isArchived) R.string.students_empty_archived else R.string.students_empty_active
+                                ),
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(vertical = 12.dp)
+                            )
+                        }
                     }
-                )
+                    items(state.students) { student ->
+                        StudentCard(
+                            student = student,
+                            onArchiveToggle = { archived ->
+                                viewModel.setStudentArchived(student.id, archived)
+                            }
+                        )
+                    }
+                }
             }
         }
     }
@@ -160,7 +181,8 @@ fun StudentsScreen(viewModel: StudentsViewModel = hiltViewModel()) {
 private fun StudentCard(student: Student, onArchiveToggle: (Boolean) -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {

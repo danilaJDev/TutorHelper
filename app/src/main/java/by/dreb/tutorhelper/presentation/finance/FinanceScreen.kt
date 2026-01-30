@@ -1,12 +1,15 @@
 package by.dreb.tutorhelper.presentation.finance
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -53,59 +56,77 @@ fun FinanceScreen(viewModel: FinanceViewModel = hiltViewModel()) {
         0.0
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        Surface(
-            color = MaterialTheme.colorScheme.primary,
-            shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        // 1. Header Row
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 24.dp),
-                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = stringResource(R.string.finance_title),
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.onPrimary
+            Text(
+                text = stringResource(R.string.finance_title),
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                    color = androidx.compose.ui.graphics.Color.Black
                 )
-                IconButton(onClick = {}) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimary
-                    )
-                }
+            )
+
+            IconButton(
+                onClick = { /* TODO: Navigate to Add Payment */ },
+                modifier = Modifier
+                    .size(48.dp)
+                    .background(MaterialTheme.colorScheme.primary, androidx.compose.foundation.shape.CircleShape)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = null,
+                    tint = androidx.compose.ui.graphics.Color.White
+                )
             }
         }
 
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(16.dp))
+
+        // 2. Combined Block
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
-            item {
-                FinanceSummary(
-                    totalIncome = state.totalIncome,
-                    paidCount = state.paidCount,
-                    unpaidCount = unpaidCount,
-                    averageIncome = averageIncome
-                )
-            }
-            item {
-                FinanceChart(state.lessons)
-            }
-            if (state.lessons.isEmpty()) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
                 item {
-                    Text(
-                        text = stringResource(R.string.finance_empty),
-                        style = MaterialTheme.typography.bodyMedium
+                    FinanceSummary(
+                        totalIncome = state.totalIncome,
+                        paidCount = state.paidCount,
+                        unpaidCount = unpaidCount,
+                        averageIncome = averageIncome
                     )
                 }
-            }
-            items(state.lessons) { lesson ->
-                FinanceLessonCard(lesson)
+                item {
+                    FinanceChart(state.lessons)
+                }
+                if (state.lessons.isEmpty()) {
+                    item {
+                        Text(
+                            text = stringResource(R.string.finance_empty),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+                items(state.lessons) { lesson ->
+                    FinanceLessonCard(lesson)
+                }
             }
         }
     }

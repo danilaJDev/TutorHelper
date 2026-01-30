@@ -27,6 +27,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -62,9 +63,15 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ScheduleScreen(viewModel: ScheduleViewModel = hiltViewModel()) {
+fun ScheduleScreen(
+    onLessonClick: (Long) -> Unit,
+    onEditClick: (Long) -> Unit,
+    onAddLessonClick: () -> Unit,
+    viewModel: ScheduleViewModel = hiltViewModel()
+) {
     val state by viewModel.state.collectAsState()
     var selectedLessonForMenu by remember { mutableStateOf<LessonDetails?>(null) }
+    var lessonToDelete by remember { mutableStateOf<LessonDetails?>(null) }
 
     Column(
         modifier = Modifier
@@ -86,7 +93,7 @@ fun ScheduleScreen(viewModel: ScheduleViewModel = hiltViewModel()) {
             )
 
             IconButton(
-                onClick = { /* TODO: Navigate to Add Lesson */ },
+                onClick = onAddLessonClick,
                 modifier = Modifier
                     .background(MaterialTheme.colorScheme.primary, CircleShape)
             ) {
@@ -162,12 +169,14 @@ fun ScheduleScreen(viewModel: ScheduleViewModel = hiltViewModel()) {
                 when (state.mode) {
                     ScheduleMode.LIST -> ScheduleList(
                         lessons = state.lessons,
+                        onLessonClick = onLessonClick,
                         onMenuClick = { selectedLessonForMenu = it }
                     )
                     ScheduleMode.CALENDAR -> ScheduleCalendar(
                         selectedDate = state.selectedDate,
                         lessons = state.lessons,
                         onDateSelected = { viewModel.updateSelectedDate(it) },
+                        onLessonClick = onLessonClick,
                         onMenuClick = { selectedLessonForMenu = it }
                     )
                 }
@@ -190,6 +199,48 @@ fun ScheduleScreen(viewModel: ScheduleViewModel = hiltViewModel()) {
             onToggleCompleted = {
                 viewModel.toggleCompleted(lesson)
                 selectedLessonForMenu = null
+            },
+            onEditClick = {
+                onEditClick(lesson.lesson.id)
+                selectedLessonForMenu = null
+            },
+            onDeleteClick = {
+                lessonToDelete = lesson
+                selectedLessonForMenu = null
+            }
+        )
+    }
+
+    lessonToDelete?.let { lesson ->
+        AlertDialog(
+            onDismissRequest = { lessonToDelete = null },
+            title = {
+                Text(
+                    text = stringResource(R.string.action_delete_confirm_title),
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                )
+            },
+            text = {
+                Text(
+                    text = stringResource(R.string.action_delete_confirm_message),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.deleteLesson(lesson)
+                        lessonToDelete = null
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text(text = stringResource(R.string.action_delete), fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { lessonToDelete = null }) {
+                    Text(text = stringResource(R.string.action_cancel))
+                }
             }
         )
     }
@@ -198,6 +249,7 @@ fun ScheduleScreen(viewModel: ScheduleViewModel = hiltViewModel()) {
 @Composable
 private fun ScheduleList(
     lessons: List<LessonDetails>,
+    onLessonClick: (Long) -> Unit,
     onMenuClick: (LessonDetails) -> Unit
 ) {
     if (lessons.isEmpty()) {
@@ -235,6 +287,7 @@ private fun ScheduleList(
                 items(groupedLessons[date] ?: emptyList()) { lesson ->
                     LessonCard(
                         lesson = lesson,
+                        onLessonClick = { onLessonClick(lesson.lesson.id) },
                         onMenuClick = { onMenuClick(lesson) }
                     )
                 }
@@ -248,6 +301,7 @@ private fun ScheduleCalendar(
     selectedDate: LocalDate,
     lessons: List<LessonDetails>,
     onDateSelected: (LocalDate) -> Unit,
+    onLessonClick: (Long) -> Unit,
     onMenuClick: (LessonDetails) -> Unit
 ) {
     var currentMonth by remember { mutableStateOf(selectedDate.withDayOfMonth(1)) }
@@ -367,7 +421,12 @@ private fun ScheduleCalendar(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(selectedDayLessons) { lesson ->
-                    LessonCard(lesson, onMenuClick = { onMenuClick(lesson) }, compact = true)
+                    LessonCard(
+                        lesson = lesson,
+                        onLessonClick = { onLessonClick(lesson.lesson.id) },
+                        onMenuClick = { onMenuClick(lesson) },
+                        compact = false
+                    )
                 }
             }
         }
@@ -377,6 +436,7 @@ private fun ScheduleCalendar(
 @Composable
 private fun LessonCard(
     lesson: LessonDetails,
+    onLessonClick: () -> Unit,
     onMenuClick: () -> Unit,
     compact: Boolean = false
 ) {
@@ -384,8 +444,11 @@ private fun LessonCard(
     val endTime = lesson.lesson.startTime.plusMinutes(lesson.lesson.durationMinutes.toLong())
 
     Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
-        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onLessonClick() },
         shape = RoundedCornerShape(12.dp)
     ) {
         Row(
@@ -463,31 +526,49 @@ private fun LessonActionsDialog(
     onDismiss: () -> Unit,
     onToggleHidden: () -> Unit,
     onToggleHomework: () -> Unit,
-    onToggleCompleted: () -> Unit
+    onToggleCompleted: () -> Unit,
+    onEditClick: () -> Unit,
+    onDeleteClick: () -> Unit
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = stringResource(R.string.lesson_actions_title),
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
-            )
-        },
-        text = {
-            Column(modifier = Modifier.fillMaxWidth()) {
+    val actionTextStyle = MaterialTheme.typography.bodyLarge.copy(
+        fontSize = 18.sp,
+        color = Color.Black,
+        fontWeight = FontWeight.Medium
+    )
+
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f)),
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 TextButton(
                     onClick = onToggleCompleted,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(text = stringResource(R.string.action_mark_completed))
+                    Text(text = stringResource(R.string.action_mark_completed), style = actionTextStyle)
                 }
+                HorizontalDivider()
                 TextButton(
                     onClick = onToggleHomework,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(text = stringResource(R.string.action_mark_hw))
+                    Text(text = stringResource(R.string.action_mark_hw), style = actionTextStyle)
                 }
+                HorizontalDivider()
+                TextButton(
+                    onClick = onEditClick,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(text = stringResource(R.string.action_edit), style = actionTextStyle)
+                }
+                HorizontalDivider()
                 TextButton(
                     onClick = onToggleHidden,
                     modifier = Modifier.fillMaxWidth()
@@ -496,30 +577,27 @@ private fun LessonActionsDialog(
                         text = if (lesson.lesson.isHidden)
                             stringResource(R.string.action_show)
                         else
-                            stringResource(R.string.action_hide)
+                            stringResource(R.string.action_hide),
+                        style = actionTextStyle
                     )
                 }
+                HorizontalDivider()
                 TextButton(
-                    onClick = { /* TODO: Edit */ },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(text = stringResource(R.string.action_edit))
-                }
-                TextButton(
-                    onClick = { /* TODO: Delete */ },
+                    onClick = onDeleteClick,
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
                 ) {
-                    Text(text = stringResource(R.string.action_delete))
+                    Text(
+                        text = stringResource(R.string.action_delete),
+                        style = actionTextStyle.copy(color = MaterialTheme.colorScheme.error)
+                    )
                 }
-            }
-        },
-        confirmButton = {
-            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+
+                Spacer(modifier = Modifier.height(8.dp))
                 TextButton(onClick = onDismiss) {
-                    Text(text = stringResource(R.string.action_close))
+                    Text(text = stringResource(R.string.action_close), color = Color.Gray)
                 }
             }
         }
-    )
+    }
 }

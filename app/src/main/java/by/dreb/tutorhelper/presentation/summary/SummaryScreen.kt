@@ -1,12 +1,15 @@
 package by.dreb.tutorhelper.presentation.summary
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -44,55 +47,72 @@ fun SummaryScreen(
 ) {
     val state by viewModel.state.collectAsState()
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        Surface(
-            color = MaterialTheme.colorScheme.primary,
-            shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        // 1. Header Row
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
         ) {
-            Column(
+            Text(
+                text = stringResource(R.string.summary_title),
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                    color = androidx.compose.ui.graphics.Color.Black
+                )
+            )
+
+            // No action button for summary usually, but following the pattern
+            IconButton(
+                onClick = { /* TODO */ },
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                    .size(48.dp)
+                    .background(MaterialTheme.colorScheme.primary, androidx.compose.foundation.shape.CircleShape)
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = stringResource(R.string.summary_title),
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
-                    IconButton(onClick = {}) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimary
-                        )
-                    }
-                }
-                Text(
-                    text = stringResource(R.string.summary_subtitle),
-                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f)
+                Icon(
+                    imageVector = Icons.Default.Insights,
+                    contentDescription = null,
+                    tint = androidx.compose.ui.graphics.Color.White
                 )
             }
         }
 
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(16.dp))
+
+        // 2. Combined Block
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
-            item { SummaryHeroCard(state.summary) }
-            item { SummaryStatsGrid(state.summary) }
-            item { InsightsCard(state.summary) }
-            item {
-                SettingsCard(
-                    settingsState = settingsState,
-                    onThemeSelected = onThemeSelected
-                )
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                item {
+                    Text(
+                        text = stringResource(R.string.summary_subtitle),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = androidx.compose.ui.graphics.Color.Gray
+                    )
+                }
+                item { SummaryHeroCard(state.summary) }
+                item { SummaryStatsGrid(state.summary) }
+                item { InsightsCard(state.summary) }
+                item {
+                    SettingsCard(
+                        settingsState = settingsState,
+                        onThemeSelected = onThemeSelected
+                    )
+                }
             }
         }
     }
