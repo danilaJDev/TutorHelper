@@ -80,7 +80,11 @@
     <string name="finance_payment_amount">Платеж: %1$.2f</string>
     <string name="finance_payment_status_paid">Оплачено</string>
     <string name="finance_payment_status_unpaid">Ожидает оплаты</string>
+    <string name="finance_payment_status_future_unpaid">Не оплачено</string>
     <string name="finance_empty">Платежей пока нет.</string>
+    <string name="finance_filter_unpaid">Активные</string>
+    <string name="finance_filter_paid">В архиве</string>
+    <string name="action_mark_as_paid">Отметить как оплаченное</string>
 
     <string name="summary_title">Итоги</string>
     <string name="summary_subtitle">Обзор вашей преподавательской активности</string>
@@ -90,11 +94,12 @@
     <string name="summary_lessons_short">Занятия</string>
     <string name="summary_students_short">Ученики</string>
     <string name="summary_paid_short">Оплачено</string>
-    <string name="summary_archived_short">В архиве</string>
-    <string name="summary_insights_title">Инсайты</string>
-    <string name="summary_insight_lessons">Запланировано занятий: %1$d</string>
-    <string name="summary_insight_students">Всего учеников: %1$d</string>
-    <string name="summary_insight_income">Общий доход: %1$.2f</string>
+    <string name="summary_unpaid">Не оплачено</string>
+    <string name="summary_total_lessons">Все занятия</string>
+    <string name="summary_total_students">Все ученики</string>
+    <string name="summary_select_period">Выбрать период</string>
+    <string name="summary_period_all_time">За всё время</string>
+    <string name="summary_monthly_income">Доход по месяцам</string>
 
     <string name="settings_title">Настройки</string>
     <string name="settings_theme">Тема</string>

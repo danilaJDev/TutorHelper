@@ -1,9 +1,18 @@
 package by.dreb.tutorhelper.presentation.finance
 
 import by.dreb.tutorhelper.domain.model.LessonDetails
+import by.dreb.tutorhelper.domain.model.Student
 
 data class FinanceUiState(
-    val lessons: List<LessonDetails> = emptyList(),
-    val totalIncome: Double = 0.0,
-    val paidCount: Int = 0
+    val filter: FinanceFilter = FinanceFilter.ACTIVE,
+    val listItems: List<FinanceListItem> = emptyList()
 )
+
+enum class FinanceFilter {
+    ACTIVE, ARCHIVED
+}
+
+sealed class FinanceListItem {
+    data class StudentHeader(val student: Student, val isExpanded: Boolean) : FinanceListItem()
+    data class LessonItem(val details: LessonDetails) : FinanceListItem()
+}

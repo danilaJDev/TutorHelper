@@ -8,4 +8,5 @@ interface PaymentRepository {
     fun observeTotalIncome(): Flow<Double>
     fun observePaymentsCount(): Flow<Int>
     suspend fun upsertPayment(payment: Payment)
+    suspend fun deletePaymentByLessonId(lessonId: Long)
 }
