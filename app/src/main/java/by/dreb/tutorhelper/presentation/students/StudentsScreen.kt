@@ -1,5 +1,6 @@
 package by.dreb.tutorhelper.presentation.students
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -7,31 +8,39 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Unarchive
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -40,17 +49,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import by.dreb.tutorhelper.R
 import by.dreb.tutorhelper.domain.model.Student
-import by.dreb.tutorhelper.ui.components.MainContentCard
-import by.dreb.tutorhelper.ui.components.TutorHelperHeader
-import by.dreb.tutorhelper.ui.theme.StatusGreen
-import by.dreb.tutorhelper.ui.theme.StatusOnGreen
+import by.dreb.tutorhelper.presentation.common.AppPalette
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,59 +70,91 @@ fun StudentsScreen(
 ) {
     val state by viewModel.state.collectAsState()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        TutorHelperHeader(
-            title = stringResource(R.string.students_title),
-            actionIcon = Icons.Default.Add,
-            onActionClick = onAddStudentClick
-        )
-
-        MainContentCard(modifier = Modifier.weight(1f)) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                    SegmentedButton(
-                        selected = !state.isArchived,
-                        onClick = { viewModel.toggleArchive(false) },
-                        shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
-                        label = { Text(text = stringResource(R.string.students_active) + " (${state.activeCount})") }
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = stringResource(R.string.students_title),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = AppPalette.TextPrimary
                     )
-                    SegmentedButton(
-                        selected = state.isArchived,
-                        onClick = { viewModel.toggleArchive(true) },
-                        shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
-                        label = { Text(text = stringResource(R.string.students_archived) + " (${state.archivedCount})") }
-                    )
-                }
+                },
+                windowInsets = WindowInsets(top = 0.dp),
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = AppPalette.Background,
+                    scrolledContainerColor = AppPalette.Surface.copy(alpha = 0.95f)
+                )
+            )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onAddStudentClick,
+                containerColor = AppPalette.Primary,
+                contentColor = Color.White,
+                shape = AppPalette.CardShape,
+                elevation = FloatingActionButtonDefaults.elevation(8.dp)
+            ) {
+                Icon(Icons.Default.Add, contentDescription = null)
+            }
+        },
+        containerColor = AppPalette.Background
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 12.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                StudentsFilterChip(
+                    selected = !state.isArchived,
+                    onClick = { viewModel.toggleArchive(false) },
+                    label = stringResource(R.string.students_active) + " (${state.activeCount})"
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                StudentsFilterChip(
+                    selected = state.isArchived,
+                    onClick = { viewModel.toggleArchive(true) },
+                    label = stringResource(R.string.students_archived) + " (${state.archivedCount})"
+                )
+            }
 
+            Card(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .fillMaxWidth()
+                    .shadow(2.dp, AppPalette.CardShape)
+                    .border(1.dp, Color(0xFFE2E8F0), AppPalette.CardShape),
+                colors = CardDefaults.cardColors(containerColor = AppPalette.Surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = AppPalette.CardElevation),
+                shape = AppPalette.CardShape
+            ) {
                 OutlinedTextField(
                     modifier = Modifier
-                        .padding(top = 12.dp)
+                        .padding(12.dp)
                         .fillMaxWidth(),
                     value = state.query,
                     onValueChange = viewModel::updateQuery,
                     label = { Text(stringResource(R.string.students_search)) },
-                    shape = MaterialTheme.shapes.medium
+                    shape = AppPalette.CardShape,
+                    singleLine = true
                 )
             }
 
             Box(modifier = Modifier.fillMaxSize()) {
                 if (state.students.isEmpty()) {
-                    Text(
-                        text = stringResource(
-                            if (state.isArchived) R.string.students_empty_archived else R.string.students_empty_active
-                        ),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.align(Alignment.Center)
-                    )
+                    EmptyStudentsState(isArchived = state.isArchived)
                 } else {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
+                        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 80.dp, top = 16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         items(state.students) { student ->
@@ -136,6 +177,59 @@ fun StudentsScreen(
 }
 
 @Composable
+private fun StudentsFilterChip(
+    selected: Boolean,
+    onClick: () -> Unit,
+    label: String
+) {
+    FilterChip(
+        selected = selected,
+        onClick = onClick,
+        label = { Text(label) },
+        colors = FilterChipDefaults.filterChipColors(
+            selectedContainerColor = AppPalette.Primary.copy(alpha = 0.15f),
+            selectedLabelColor = AppPalette.Primary,
+            containerColor = AppPalette.Surface,
+            labelColor = AppPalette.TextSecondary
+        ),
+        border = FilterChipDefaults.filterChipBorder(
+            enabled = true,
+            selected = selected,
+            borderColor = if (selected) AppPalette.Primary else Color.Transparent,
+            selectedBorderColor = AppPalette.Primary
+        )
+    )
+}
+
+@Composable
+private fun EmptyStudentsState(isArchived: Boolean) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 48.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(
+                imageVector = Icons.Default.Groups,
+                contentDescription = null,
+                modifier = Modifier.size(64.dp),
+                tint = AppPalette.TextSecondary.copy(alpha = 0.3f)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = stringResource(
+                    if (isArchived) R.string.students_empty_archived else R.string.students_empty_active
+                ),
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.titleMedium,
+                color = AppPalette.TextSecondary
+            )
+        }
+    }
+}
+
+@Composable
 private fun StudentCard(
     student: Student,
     onStudentClick: (Long) -> Unit,
@@ -149,76 +243,115 @@ private fun StudentCard(
     if (showArchiveDialog) {
         AlertDialog(
             onDismissRequest = { showArchiveDialog = false },
-            title = { Text(stringResource(R.string.student_archive_confirm_title)) },
-            text = { Text(stringResource(R.string.student_archive_confirm_message)) },
+            title = {
+                Text(
+                    stringResource(R.string.student_archive_confirm_title),
+                    color = AppPalette.TextPrimary
+                )
+            },
+            text = {
+                Text(
+                    stringResource(R.string.student_archive_confirm_message),
+                    color = AppPalette.TextSecondary
+                )
+            },
             confirmButton = {
                 TextButton(onClick = {
                     onArchiveToggle(true)
                     showArchiveDialog = false
                 }) {
-                    Text(stringResource(R.string.action_ok))
+                    Text(stringResource(R.string.action_ok), color = AppPalette.Primary)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showArchiveDialog = false }) {
-                    Text(stringResource(R.string.action_cancel))
+                    Text(stringResource(R.string.action_cancel), color = AppPalette.TextPrimary)
                 }
-            }
+            },
+            containerColor = AppPalette.Surface,
+            titleContentColor = AppPalette.TextPrimary
         )
     }
 
     if (showRestoreDialog) {
         AlertDialog(
             onDismissRequest = { showRestoreDialog = false },
-            title = { Text(stringResource(R.string.student_restore_confirm_title)) },
-            text = { Text(stringResource(R.string.student_restore_confirm_message)) },
+            title = {
+                Text(
+                    stringResource(R.string.student_restore_confirm_title),
+                    color = AppPalette.TextPrimary
+                )
+            },
+            text = {
+                Text(
+                    stringResource(R.string.student_restore_confirm_message),
+                    color = AppPalette.TextSecondary
+                )
+            },
             confirmButton = {
                 TextButton(onClick = {
                     onArchiveToggle(false)
                     showRestoreDialog = false
                 }) {
-                    Text(stringResource(R.string.action_ok))
+                    Text(stringResource(R.string.action_ok), color = AppPalette.Primary)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showRestoreDialog = false }) {
-                    Text(stringResource(R.string.action_cancel))
+                    Text(stringResource(R.string.action_cancel), color = AppPalette.TextPrimary)
                 }
-            }
+            },
+            containerColor = AppPalette.Surface,
+            titleContentColor = AppPalette.TextPrimary
         )
     }
 
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text(stringResource(R.string.student_delete_confirm_title)) },
-            text = { Text(stringResource(R.string.student_delete_confirm_message)) },
+            title = {
+                Text(
+                    stringResource(R.string.student_delete_confirm_title),
+                    color = AppPalette.TextPrimary
+                )
+            },
+            text = {
+                Text(
+                    stringResource(R.string.student_delete_confirm_message),
+                    color = AppPalette.TextSecondary
+                )
+            },
             confirmButton = {
                 TextButton(
                     onClick = {
                         onDeleteClick()
                         showDeleteDialog = false
                     },
-                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                    colors = ButtonDefaults.textButtonColors(contentColor = AppPalette.Error)
                 ) {
                     Text(stringResource(R.string.action_ok))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
-                    Text(stringResource(R.string.action_cancel))
+                    Text(stringResource(R.string.action_cancel), color = AppPalette.TextPrimary)
                 }
-            }
+            },
+            containerColor = AppPalette.Surface,
+            titleContentColor = AppPalette.TextPrimary
         )
     }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .border(1.dp, Color(0xFFE2E8F0), AppPalette.CardShape)
+            .shadow(2.dp, AppPalette.CardShape)
+            .clip(AppPalette.CardShape)
             .clickable { onStudentClick(student.id) },
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        shape = MaterialTheme.shapes.medium
+        colors = CardDefaults.cardColors(containerColor = AppPalette.Surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = AppPalette.CardElevation),
+        shape = AppPalette.CardShape
     ) {
         Row(
             modifier = Modifier
@@ -231,20 +364,20 @@ private fun StudentCard(
                 Text(
                     text = student.name,
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary
+                    color = AppPalette.TextPrimary
                 )
                 student.phone?.let {
                     Text(
                         text = it,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = AppPalette.TextSecondary
                     )
                 }
                 student.note?.let {
                     Text(
                         text = it,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = AppPalette.TextSecondary,
                         maxLines = 1
                     )
                 }
@@ -262,7 +395,7 @@ private fun StudentCard(
                     Icon(
                         imageVector = if (student.isArchived) Icons.Default.Unarchive else Icons.Default.Archive,
                         contentDescription = null,
-                        tint = if (student.isArchived) StatusOnGreen else MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = if (student.isArchived) AppPalette.Success else AppPalette.TextSecondary
                     )
                 }
                 if (student.isArchived) {
@@ -270,7 +403,7 @@ private fun StudentCard(
                         Icon(
                             imageVector = Icons.Default.Delete,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.error
+                            tint = AppPalette.Error
                         )
                     }
                 }
