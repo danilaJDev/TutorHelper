@@ -24,9 +24,10 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -206,41 +207,47 @@ fun LessonCreateScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     // Student Selector
-                    Box {
+                    ExposedDropdownMenuBox(
+                        expanded = studentDropdownExpanded,
+                        onExpandedChange = { studentDropdownExpanded = it },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
                         OutlinedTextField(
-                            value = selectedStudent?.name
-                                ?: stringResource(R.string.lesson_label_student),
+                            value = selectedStudent?.name ?: "",
                             onValueChange = {},
                             label = { Text(stringResource(R.string.lesson_label_student)) },
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor(),
                             readOnly = true,
                             trailingIcon = {
-                                Icon(
-                                    Icons.Default.ArrowDropDown,
-                                    null,
-                                    Modifier.clickable { studentDropdownExpanded = true })
-                            }
+                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = studentDropdownExpanded)
+                            },
+                            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
                         )
-                        DropdownMenu(
+                        ExposedDropdownMenu(
                             expanded = studentDropdownExpanded,
-                            onDismissRequest = { studentDropdownExpanded = false },
-                            modifier = Modifier.fillMaxWidth()
+                            onDismissRequest = { studentDropdownExpanded = false }
                         ) {
-                            students.forEach { student ->
+                            if (students.isEmpty()) {
                                 DropdownMenuItem(
-                                    text = { Text(student.name) },
-                                    onClick = {
-                                        selectedStudent = student
-                                        price = student.defaultPrice.toString()
-                                        studentDropdownExpanded = false
-                                    }
+                                    text = { Text(stringResource(R.string.students_empty_active)) },
+                                    onClick = { studentDropdownExpanded = false }
                                 )
+                            } else {
+                                students.forEach { student ->
+                                    DropdownMenuItem(
+                                        text = { Text(student.name) },
+                                        onClick = {
+                                            selectedStudent = student
+                                            price = student.defaultPrice.toString()
+                                            studentDropdownExpanded = false
+                                        },
+                                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                                    )
+                                }
                             }
                         }
-                        Box(
-                            modifier = Modifier
-                                .matchParentSize()
-                                .clickable { studentDropdownExpanded = true })
                     }
 
                     // Date Selector
