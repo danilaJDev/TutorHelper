@@ -12,7 +12,7 @@
     <string name="schedule_today_count">Сегодня: %1$d</string>
     <string name="schedule_upcoming_count">Предстоящие: %1$d</string>
     <string name="lesson_duration_price">%1$d мин · %2$.2f</string>
-    <string name="schedule_empty">Пока нет занятий. Добавьте первое, чтобы начать.</string>
+    <string name="schedule_empty">Занятий нет</string>
     <string name="schedule_status_done">Состоялось</string>
     <string name="schedule_status_planned">Запланировано</string>
     <string name="schedule_filter_active">Действующие</string>

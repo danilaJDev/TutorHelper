@@ -13,12 +13,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
@@ -35,7 +35,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
@@ -92,7 +91,7 @@ class LessonCreateViewModel @Inject constructor(
             val baseLesson = Lesson(
                 id = 0,
                 studentId = studentId,
-                subject = "Занятие", // Default subject
+                subject = "Занятие",
                 startTime = startTime,
                 durationMinutes = durationMinutes,
                 price = price,
@@ -162,7 +161,8 @@ fun LessonCreateScreen(
                     onClick = {
                         selectedStudent?.let { student ->
                             val startDateTime = LocalDateTime.of(selectedDate, startTime)
-                            val duration = java.time.Duration.between(startTime, endTime).toMinutes().toInt()
+                            val duration =
+                                java.time.Duration.between(startTime, endTime).toMinutes().toInt()
                             viewModel.createLesson(
                                 studentId = student.id,
                                 startTime = startDateTime,
@@ -208,13 +208,17 @@ fun LessonCreateScreen(
                     // Student Selector
                     Box {
                         OutlinedTextField(
-                            value = selectedStudent?.name ?: stringResource(R.string.lesson_label_student),
+                            value = selectedStudent?.name
+                                ?: stringResource(R.string.lesson_label_student),
                             onValueChange = {},
                             label = { Text(stringResource(R.string.lesson_label_student)) },
                             modifier = Modifier.fillMaxWidth(),
                             readOnly = true,
                             trailingIcon = {
-                                Icon(Icons.Default.ArrowDropDown, null, Modifier.clickable { studentDropdownExpanded = true })
+                                Icon(
+                                    Icons.Default.ArrowDropDown,
+                                    null,
+                                    Modifier.clickable { studentDropdownExpanded = true })
                             }
                         )
                         DropdownMenu(
@@ -233,7 +237,10 @@ fun LessonCreateScreen(
                                 )
                             }
                         }
-                        Box(modifier = Modifier.matchParentSize().clickable { studentDropdownExpanded = true })
+                        Box(
+                            modifier = Modifier
+                                .matchParentSize()
+                                .clickable { studentDropdownExpanded = true })
                     }
 
                     // Date Selector
@@ -244,25 +251,39 @@ fun LessonCreateScreen(
                         modifier = Modifier.fillMaxWidth(),
                         readOnly = true,
                         trailingIcon = {
-                            Icon(Icons.Default.ArrowDropDown, null, Modifier.clickable { showDatePicker = true })
+                            Icon(
+                                Icons.Default.ArrowDropDown,
+                                null,
+                                Modifier.clickable { showDatePicker = true })
                         }
                     )
-                    Box(modifier = Modifier.fillMaxWidth().height(56.dp).clickable { showDatePicker = true })
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp)
+                            .clickable { showDatePicker = true })
 
                     // Time Selectors
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
                         OutlinedTextField(
                             value = startTime.format(DateTimeFormatter.ofPattern("HH:mm")),
                             onValueChange = {},
                             label = { Text(stringResource(R.string.lesson_label_start)) },
-                            modifier = Modifier.weight(1f).clickable { showStartTimePicker = true },
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { showStartTimePicker = true },
                             readOnly = true
                         )
                         OutlinedTextField(
                             value = endTime.format(DateTimeFormatter.ofPattern("HH:mm")),
                             onValueChange = {},
                             label = { Text(stringResource(R.string.lesson_label_end)) },
-                            modifier = Modifier.weight(1f).clickable { showEndTimePicker = true },
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { showEndTimePicker = true },
                             readOnly = true
                         )
                     }
@@ -286,7 +307,9 @@ fun LessonCreateScreen(
                     // Duplicate Checkbox
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Checkbox(checked = isDuplicate, onCheckedChange = { isDuplicate = it })
-                        Text(stringResource(R.string.lesson_label_duplicate), modifier = Modifier.clickable { isDuplicate = !isDuplicate })
+                        Text(
+                            stringResource(R.string.lesson_label_duplicate),
+                            modifier = Modifier.clickable { isDuplicate = !isDuplicate })
                     }
 
                     if (isDuplicate) {
@@ -297,10 +320,17 @@ fun LessonCreateScreen(
                             modifier = Modifier.fillMaxWidth(),
                             readOnly = true,
                             trailingIcon = {
-                                Icon(Icons.Default.ArrowDropDown, null, Modifier.clickable { showDuplicateUntilPicker = true })
+                                Icon(
+                                    Icons.Default.ArrowDropDown,
+                                    null,
+                                    Modifier.clickable { showDuplicateUntilPicker = true })
                             }
                         )
-                        Box(modifier = Modifier.fillMaxWidth().height(56.dp).clickable { showDuplicateUntilPicker = true })
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(56.dp)
+                                .clickable { showDuplicateUntilPicker = true })
                     }
                 }
             }
@@ -312,10 +342,12 @@ fun LessonCreateScreen(
     // Dialogs
     if (showDatePicker) {
         val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = selectedDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli(),
+            initialSelectedDateMillis = selectedDate.atStartOfDay(ZoneId.systemDefault())
+                .toInstant().toEpochMilli(),
             selectableDates = object : androidx.compose.material3.SelectableDates {
                 override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                    val today = LocalDate.now().atStartOfDay(ZoneId.of("UTC")).toInstant().toEpochMilli()
+                    val today =
+                        LocalDate.now().atStartOfDay(ZoneId.of("UTC")).toInstant().toEpochMilli()
                     return utcTimeMillis >= today
                 }
             }
@@ -325,13 +357,16 @@ fun LessonCreateScreen(
             confirmButton = {
                 TextButton(onClick = {
                     datePickerState.selectedDateMillis?.let {
-                        selectedDate = Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
+                        selectedDate =
+                            Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
                     }
                     showDatePicker = false
                 }) { Text(stringResource(R.string.action_ok)) }
             },
             dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) { Text(stringResource(R.string.action_cancel_alt)) }
+                TextButton(onClick = {
+                    showDatePicker = false
+                }) { Text(stringResource(R.string.action_cancel_alt)) }
             }
         ) {
             DatePicker(state = datePickerState)
@@ -339,7 +374,8 @@ fun LessonCreateScreen(
     }
 
     if (showStartTimePicker) {
-        val timePickerState = rememberTimePickerState(initialHour = startTime.hour, initialMinute = startTime.minute)
+        val timePickerState =
+            rememberTimePickerState(initialHour = startTime.hour, initialMinute = startTime.minute)
         TimePickerDialog(
             onDismissRequest = { showStartTimePicker = false },
             confirmButton = {
@@ -354,7 +390,8 @@ fun LessonCreateScreen(
     }
 
     if (showEndTimePicker) {
-        val timePickerState = rememberTimePickerState(initialHour = endTime.hour, initialMinute = endTime.minute)
+        val timePickerState =
+            rememberTimePickerState(initialHour = endTime.hour, initialMinute = endTime.minute)
         TimePickerDialog(
             onDismissRequest = { showEndTimePicker = false },
             confirmButton = {
@@ -370,10 +407,12 @@ fun LessonCreateScreen(
 
     if (showDuplicateUntilPicker) {
         val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = duplicateUntil.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli(),
+            initialSelectedDateMillis = duplicateUntil.atStartOfDay(ZoneId.systemDefault())
+                .toInstant().toEpochMilli(),
             selectableDates = object : androidx.compose.material3.SelectableDates {
                 override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                    val today = LocalDate.now().atStartOfDay(ZoneId.of("UTC")).toInstant().toEpochMilli()
+                    val today =
+                        LocalDate.now().atStartOfDay(ZoneId.of("UTC")).toInstant().toEpochMilli()
                     return utcTimeMillis >= today
                 }
             }
@@ -383,7 +422,8 @@ fun LessonCreateScreen(
             confirmButton = {
                 TextButton(onClick = {
                     datePickerState.selectedDateMillis?.let {
-                        duplicateUntil = Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
+                        duplicateUntil =
+                            Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
                     }
                     showDuplicateUntilPicker = false
                 }) { Text(stringResource(R.string.action_ok)) }
