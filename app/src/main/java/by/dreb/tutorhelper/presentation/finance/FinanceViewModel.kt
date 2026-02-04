@@ -32,8 +32,6 @@ class FinanceViewModel @Inject constructor(
         _expandedStudentIds
     ) { lessons, filter, expandedIds ->
         val filteredLessons = lessons.filter { details ->
-            if (details.lesson.isHidden) return@filter false
-
             val isPaid = details.payment != null
             val isArchived = details.lesson.isCompleted && details.lesson.isHomeworkSent && isPaid
 
