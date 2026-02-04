@@ -1,35 +1,42 @@
 package by.dreb.tutorhelper.presentation.finance
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -38,12 +45,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import by.dreb.tutorhelper.R
 import by.dreb.tutorhelper.domain.model.LessonDetails
 import by.dreb.tutorhelper.domain.model.Student
-import by.dreb.tutorhelper.ui.components.MainContentCard
-import by.dreb.tutorhelper.ui.components.TutorHelperHeader
-import by.dreb.tutorhelper.ui.theme.StatusGreen
-import by.dreb.tutorhelper.ui.theme.StatusOnGreen
-import by.dreb.tutorhelper.ui.theme.StatusOnRed
-import by.dreb.tutorhelper.ui.theme.StatusYellow
+import by.dreb.tutorhelper.ui.components.TutorHelperEmptyState
+import by.dreb.tutorhelper.ui.components.TutorHelperFilterChip
+import by.dreb.tutorhelper.ui.components.TutorHelperTopAppBar
+import by.dreb.tutorhelper.ui.theme.AppPalette
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -52,47 +57,45 @@ import java.util.Locale
 fun FinanceScreen(viewModel: FinanceViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsState()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        TutorHelperHeader(title = stringResource(R.string.finance_title))
-
-        MainContentCard(modifier = Modifier.weight(1f)) {
-            SingleChoiceSegmentedButtonRow(
+    Scaffold(
+        topBar = {
+            TutorHelperTopAppBar(title = stringResource(R.string.finance_title))
+        },
+        containerColor = AppPalette.Background
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            // Фильтры
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 FinanceFilter.entries.forEachIndexed { index, filter ->
-                    SegmentedButton(
+                    TutorHelperFilterChip(
                         selected = state.filter == filter,
                         onClick = { viewModel.updateFilter(filter) },
-                        shape = SegmentedButtonDefaults.itemShape(
-                            index = index,
-                            count = FinanceFilter.entries.size
-                        ),
-                        label = {
-                            Text(
-                                text = when (filter) {
-                                    FinanceFilter.ACTIVE -> stringResource(R.string.finance_filter_unpaid)
-                                    FinanceFilter.ARCHIVED -> stringResource(R.string.finance_filter_paid)
-                                }
-                            )
+                        label = when (filter) {
+                            FinanceFilter.ACTIVE -> stringResource(R.string.finance_filter_unpaid)
+                            FinanceFilter.ARCHIVED -> stringResource(R.string.finance_filter_paid)
                         }
                     )
+                    if (index < FinanceFilter.entries.size - 1) {
+                        Spacer(modifier = Modifier.width(12.dp))
+                    }
                 }
             }
 
             if (state.listItems.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(
-                        text = stringResource(R.string.finance_empty),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                TutorHelperEmptyState(
+                    message = stringResource(R.string.finance_empty),
+                    icon = Icons.Default.Payments
+                )
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
@@ -110,7 +113,7 @@ fun FinanceScreen(viewModel: FinanceViewModel = hiltViewModel()) {
                                 isExpanded = item.isExpanded,
                                 onToggle = { viewModel.toggleStudentExpanded(item.student.id) }
                             )
-                            is FinanceListItem.LessonItem -> LessonPaymentCard(
+                            is FinanceListItem.LessonItem -> ModernFinanceCard(
                                 details = item.details,
                                 onTap = { viewModel.togglePayment(item.details) }
                             )
@@ -139,18 +142,19 @@ private fun StudentHeaderRow(
         Text(
             text = student.name,
             style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.primary
+            fontWeight = FontWeight.Bold,
+            color = AppPalette.TextPrimary
         )
         Icon(
             imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
+            tint = AppPalette.TextSecondary
         )
     }
 }
 
 @Composable
-private fun LessonPaymentCard(
+private fun ModernFinanceCard(
     details: LessonDetails,
     onTap: () -> Unit
 ) {
@@ -164,122 +168,77 @@ private fun LessonPaymentCard(
     val isHomeworkSent = details.lesson.isHomeworkSent
     val isArchive = isCompleted && isHomeworkSent && isPaid
 
-    val cardTheme = getPaymentCardTheme(isCompleted, isPaid, isArchive)
+    val statusColor = when {
+        isArchive -> AppPalette.Success
+        isCompleted && !isPaid -> AppPalette.Action
+        isPaid -> AppPalette.Success
+        else -> AppPalette.TextSecondary.copy(alpha = 0.3f)
+    }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 6.dp)
+            .border(1.dp, AppPalette.Outline, AppPalette.CardShape)
+            .shadow(1.dp, AppPalette.CardShape)
+            .clip(AppPalette.CardShape)
             .clickable { onTap() },
-        colors = CardDefaults.cardColors(containerColor = cardTheme.backgroundColor),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        shape = MaterialTheme.shapes.medium
+        colors = CardDefaults.cardColors(containerColor = AppPalette.Surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = AppPalette.CardElevation),
+        shape = AppPalette.CardShape
     ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = details.lesson.startTime.format(dateFormatter),
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = cardTheme.textColor
-                )
-                Text(
-                    text = "${details.lesson.startTime.format(timeFormatter)} - ${endTime.format(timeFormatter)}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = cardTheme.textColor.copy(alpha = 0.7f)
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        text = if (isCompleted) stringResource(R.string.schedule_status_done) else stringResource(R.string.schedule_status_planned),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = cardTheme.status1Color,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Text(
-                        text = when {
-                            isPaid -> stringResource(R.string.finance_payment_status_paid)
-                            isCompleted -> stringResource(R.string.finance_payment_status_unpaid)
-                            else -> stringResource(R.string.finance_payment_status_future_unpaid)
-                        },
-                        style = MaterialTheme.typography.labelMedium,
-                        color = cardTheme.status2Color,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-            }
-            Text(
-                text = "${details.lesson.price} ${stringResource(R.string.currency_rub)}",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = cardTheme.priceColor
+        Row(modifier = Modifier.height(IntrinsicSize.Min)) {
+            Box(
+                modifier = Modifier
+                    .width(6.dp)
+                    .fillMaxHeight()
+                    .background(statusColor)
             )
-        }
-    }
-}
 
-private data class PaymentCardTheme(
-    val backgroundColor: Color,
-    val textColor: Color,
-    val priceColor: Color,
-    val status1Color: Color,
-    val status2Color: Color
-)
-
-@Composable
-private fun getPaymentCardTheme(
-    isCompleted: Boolean,
-    isPaid: Boolean,
-    isArchive: Boolean
-): PaymentCardTheme {
-    val surfaceVariant = MaterialTheme.colorScheme.surfaceVariant
-    val onSurface = MaterialTheme.colorScheme.onSurface
-    val primary = MaterialTheme.colorScheme.primary
-
-    return when {
-        isArchive -> PaymentCardTheme(
-            backgroundColor = StatusGreen.copy(alpha = 0.3f),
-            textColor = StatusOnGreen,
-            priceColor = StatusOnGreen,
-            status1Color = StatusOnGreen,
-            status2Color = StatusOnGreen
-        )
-        !isCompleted -> {
-            if (isPaid) {
-                PaymentCardTheme(
-                    backgroundColor = surfaceVariant.copy(alpha = 0.3f),
-                    textColor = onSurface,
-                    priceColor = StatusOnGreen,
-                    status1Color = onSurface.copy(alpha = 0.6f),
-                    status2Color = StatusOnGreen
-                )
-            } else {
-                PaymentCardTheme(
-                    backgroundColor = surfaceVariant.copy(alpha = 0.3f),
-                    textColor = onSurface,
-                    priceColor = primary,
-                    status1Color = onSurface.copy(alpha = 0.6f),
-                    status2Color = onSurface.copy(alpha = 0.6f)
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = details.lesson.startTime.format(dateFormatter),
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = AppPalette.TextPrimary
+                    )
+                    Text(
+                        text = "${details.lesson.startTime.format(timeFormatter)} - ${endTime.format(timeFormatter)}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = AppPalette.TextSecondary
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = if (isCompleted) stringResource(R.string.schedule_status_done) else stringResource(R.string.schedule_status_planned),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = if (isCompleted) AppPalette.Success else AppPalette.TextSecondary,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = when {
+                                isPaid -> stringResource(R.string.finance_payment_status_paid)
+                                isCompleted -> stringResource(R.string.finance_payment_status_unpaid)
+                                else -> stringResource(R.string.finance_payment_status_future_unpaid)
+                            },
+                            style = MaterialTheme.typography.labelMedium,
+                            color = if (isPaid) AppPalette.Success else if (isCompleted) AppPalette.Error else AppPalette.TextSecondary,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+                Text(
+                    text = "${details.lesson.price} ${stringResource(R.string.currency_rub)}",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = if (isPaid) AppPalette.Success else AppPalette.TextPrimary
                 )
             }
         }
-        isCompleted && !isPaid -> PaymentCardTheme(
-            backgroundColor = StatusYellow.copy(alpha = 0.3f),
-            textColor = onSurface,
-            priceColor = StatusOnRed,
-            status1Color = StatusOnGreen,
-            status2Color = StatusOnRed
-        )
-        else -> PaymentCardTheme( // Completed and Paid but not Homework sent (so not Archive yet)
-            backgroundColor = surfaceVariant.copy(alpha = 0.5f),
-            textColor = onSurface,
-            priceColor = StatusOnGreen,
-            status1Color = StatusOnGreen,
-            status2Color = StatusOnGreen
-        )
     }
 }

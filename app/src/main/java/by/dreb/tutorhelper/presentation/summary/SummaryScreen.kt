@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material3.Card
@@ -31,6 +32,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -52,10 +54,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import by.dreb.tutorhelper.R
 import by.dreb.tutorhelper.domain.model.MonthlyStat
 import by.dreb.tutorhelper.domain.model.Summary
-import by.dreb.tutorhelper.ui.components.MainContentCard
-import by.dreb.tutorhelper.ui.components.TutorHelperHeader
-import by.dreb.tutorhelper.ui.theme.StatusGreen
-import by.dreb.tutorhelper.ui.theme.StatusYellow
+import by.dreb.tutorhelper.ui.components.TutorHelperTopAppBar
+import by.dreb.tutorhelper.ui.theme.AppPalette
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -70,23 +70,24 @@ fun SummaryScreen(
     val state by viewModel.state.collectAsState()
     var showDatePicker by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        TutorHelperHeader(title = stringResource(R.string.summary_title))
+    Scaffold(
+        topBar = {
+            TutorHelperTopAppBar(title = stringResource(R.string.summary_title))
+        },
+        containerColor = AppPalette.Background
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            PeriodFilterBar(
+                startDate = state.startDate,
+                endDate = state.endDate,
+                onClick = { showDatePicker = true },
+                onClear = { viewModel.updatePeriod(null, null) }
+            )
 
-        PeriodFilterBar(
-            startDate = state.startDate,
-            endDate = state.endDate,
-            onClick = { showDatePicker = true },
-            onClear = { viewModel.updatePeriod(null, null) }
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        MainContentCard(modifier = Modifier.weight(1f)) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(16.dp),
@@ -120,8 +121,11 @@ private fun PeriodFilterBar(
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-        modifier = Modifier.fillMaxWidth()
+        color = AppPalette.Surface,
+        shadowElevation = 1.dp,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
@@ -130,7 +134,7 @@ private fun PeriodFilterBar(
             Icon(
                 imageVector = Icons.Default.CalendarMonth,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
+                tint = AppPalette.Primary
             )
             Spacer(modifier = Modifier.size(12.dp))
             Text(
@@ -142,18 +146,23 @@ private fun PeriodFilterBar(
                 },
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.weight(1f),
-                color = MaterialTheme.colorScheme.onSurface
+                color = AppPalette.TextPrimary,
+                fontWeight = FontWeight.Medium
             )
             if (startDate != null) {
                 IconButton(onClick = onClear, modifier = Modifier.size(24.dp)) {
-                    Icon(imageVector = Icons.Default.Close, contentDescription = null)
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = null,
+                        tint = AppPalette.TextSecondary
+                    )
                 }
             } else {
                 Icon(
                     imageVector = Icons.Default.DateRange,
                     contentDescription = null,
                     modifier = Modifier.size(24.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = AppPalette.TextSecondary.copy(alpha = 0.5f)
                 )
             }
         }
@@ -183,12 +192,12 @@ private fun PeriodRangePickerDialog(
                 },
                 enabled = dateRangePickerState.selectedEndDateMillis != null
             ) {
-                Text(stringResource(R.string.action_ok))
+                Text(stringResource(R.string.action_ok), color = AppPalette.Primary)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.action_cancel))
+                Text(stringResource(R.string.action_cancel), color = AppPalette.TextSecondary)
             }
         }
     ) {
@@ -203,20 +212,20 @@ private fun PeriodRangePickerDialog(
 private fun SummaryHeroCard(summary: Summary) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        colors = CardDefaults.cardColors(containerColor = AppPalette.Primary),
+        shape = RoundedCornerShape(20.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Column(modifier = Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(
                 text = stringResource(R.string.summary_income),
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
+                color = Color.White.copy(alpha = 0.8f)
             )
             Text(
                 text = String.format("%.2f %s", summary.incomeTotal, stringResource(R.string.currency_rub)),
                 style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.ExtraBold),
-                color = MaterialTheme.colorScheme.onPrimaryContainer
+                color = Color.White
             )
         }
     }
@@ -245,14 +254,14 @@ private fun SummaryStatsGrid(summary: Summary) {
                 value = summary.paidLessonsCount.toString(),
                 icon = Icons.Default.Payments,
                 modifier = Modifier.weight(1f),
-                color = StatusGreen.copy(alpha = 0.3f)
+                indicatorColor = AppPalette.Success
             )
             SummaryStatCard(
                 label = stringResource(R.string.summary_unpaid),
                 value = summary.unpaidLessonsCount.toString(),
                 icon = Icons.Default.Payments,
                 modifier = Modifier.weight(1f),
-                color = StatusYellow.copy(alpha = 0.3f)
+                indicatorColor = AppPalette.Action
             )
         }
     }
@@ -264,30 +273,46 @@ private fun SummaryStatCard(
     value: String,
     icon: ImageVector,
     modifier: Modifier = Modifier,
-    color: Color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+    indicatorColor: Color? = null
 ) {
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(12.dp),
-        color = color
+        shape = RoundedCornerShape(16.dp),
+        color = AppPalette.Surface,
+        shadowElevation = 1.dp
     ) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                modifier = Modifier.size(20.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                text = value,
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = indicatorColor ?: AppPalette.Primary
+                )
+                if (indicatorColor != null) {
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .background(indicatorColor, CircleShape)
+                    )
+                }
+            }
+            Column {
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    color = AppPalette.TextPrimary
+                )
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = AppPalette.TextSecondary
+                )
+            }
         }
     }
 }
@@ -300,7 +325,8 @@ private fun MonthlyIncomeSection(monthlyStats: List<MonthlyStat>) {
         Text(
             text = stringResource(R.string.summary_monthly_income),
             style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colorScheme.onSurface
+            color = AppPalette.TextPrimary,
+            modifier = Modifier.padding(horizontal = 4.dp)
         )
 
         val statsByYear = monthlyStats.groupBy { it.year }.toSortedMap(reverseOrder())
@@ -320,21 +346,21 @@ private fun YearlyIncomeCard(year: Int, stats: List<MonthlyStat>) {
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        colors = CardDefaults.cardColors(containerColor = AppPalette.Surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         shape = RoundedCornerShape(16.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+        border = androidx.compose.foundation.BorderStroke(1.dp, AppPalette.Outline)
     ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(
                     text = year.toString(),
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = AppPalette.TextPrimary
                 )
                 Text(
                     text = String.format("%.0f %s", totalYearIncome, stringResource(R.string.currency_rub)),
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = AppPalette.Primary)
                 )
             }
 
@@ -356,20 +382,20 @@ private fun MonthIncomeRow(month: String, income: Double, maxIncome: Double) {
             text = month,
             style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
             modifier = Modifier.width(60.dp),
-            color = MaterialTheme.colorScheme.onSurface
+            color = AppPalette.TextPrimary
         )
 
         Box(modifier = Modifier.weight(1f).height(24.dp), contentAlignment = Alignment.CenterStart) {
             Surface(
                 modifier = Modifier.fillMaxWidth(fraction = (income / maxIncome).toFloat().coerceIn(0.01f, 1f)),
                 shape = CircleShape,
-                color = MaterialTheme.colorScheme.primary
+                color = AppPalette.Primary.copy(alpha = 0.8f)
             ) {
                 Box(modifier = Modifier.padding(horizontal = 12.dp), contentAlignment = Alignment.CenterEnd) {
                     if (income > 0) {
                         Text(
                             text = String.format("%.0f %s", income, stringResource(R.string.currency_rub)),
-                            style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
+                            style = MaterialTheme.typography.labelSmall.copy(color = Color.White, fontWeight = FontWeight.Bold)
                         )
                     }
                 }
