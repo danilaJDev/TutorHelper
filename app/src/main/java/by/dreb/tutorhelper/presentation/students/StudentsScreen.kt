@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Archive
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
@@ -106,13 +107,15 @@ fun StudentsScreen(
                 TutorHelperFilterChip(
                     selected = !state.isArchived,
                     onClick = { viewModel.toggleArchive(false) },
-                    label = stringResource(R.string.students_active) + " (${state.activeCount})"
+                    label = stringResource(R.string.students_active) + " (${state.activeCount})",
+                    icon = Icons.Default.CheckCircle
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 TutorHelperFilterChip(
                     selected = state.isArchived,
                     onClick = { viewModel.toggleArchive(true) },
-                    label = stringResource(R.string.students_archived) + " (${state.archivedCount})"
+                    label = stringResource(R.string.students_archived) + " (${state.archivedCount})",
+                    icon = Icons.Default.Archive
                 )
             }
 
@@ -146,7 +149,8 @@ fun StudentsScreen(
                     message = stringResource(
                         if (state.isArchived) R.string.students_empty_archived else R.string.students_empty_active
                     ),
-                    icon = Icons.Default.Person
+                    icon = Icons.Default.Person,
+                    modifier = Modifier.weight(1f)
                 )
             } else {
                 LazyColumn(

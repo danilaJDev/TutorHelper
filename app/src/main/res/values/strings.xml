@@ -79,7 +79,7 @@
     <string name="finance_payment_status_paid">Оплачено</string>
     <string name="finance_payment_status_unpaid">Ожидает оплаты</string>
     <string name="finance_payment_status_future_unpaid">Не оплачено</string>
-    <string name="finance_empty">Платежей пока нет.</string>
+    <string name="finance_empty">Платежей нет</string>
     <string name="finance_filter_unpaid">Активные</string>
     <string name="finance_filter_paid">В архиве</string>
     <string name="action_mark_as_paid">Отметить как оплаченное</string>

@@ -280,7 +280,8 @@ private fun ScheduleList(
     if (lessons.isEmpty()) {
         TutorHelperEmptyState(
             message = stringResource(R.string.schedule_empty),
-            icon = Icons.Default.CalendarMonth
+            icon = Icons.Default.CalendarMonth,
+            modifier = Modifier.fillMaxSize()
         )
     } else {
         val groupedLessons = lessons.groupBy { it.lesson.startTime.toLocalDate() }
@@ -478,7 +479,8 @@ private fun ScheduleCalendar(
                 item {
                     TutorHelperEmptyState(
                         message = stringResource(R.string.schedule_empty),
-                        icon = Icons.Default.CalendarMonth
+                        icon = Icons.Default.CalendarMonth,
+                        modifier = Modifier.fillParentMaxSize()
                     )
                 }
             } else {

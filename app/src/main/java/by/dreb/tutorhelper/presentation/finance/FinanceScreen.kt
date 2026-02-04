@@ -20,6 +20,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Archive
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Payments
@@ -83,6 +85,10 @@ fun FinanceScreen(viewModel: FinanceViewModel = hiltViewModel()) {
                         label = when (filter) {
                             FinanceFilter.ACTIVE -> stringResource(R.string.finance_filter_unpaid)
                             FinanceFilter.ARCHIVED -> stringResource(R.string.finance_filter_paid)
+                        },
+                        icon = when (filter) {
+                            FinanceFilter.ACTIVE -> Icons.Default.CheckCircle
+                            FinanceFilter.ARCHIVED -> Icons.Default.Archive
                         }
                     )
                     if (index < FinanceFilter.entries.size - 1) {
@@ -94,7 +100,8 @@ fun FinanceScreen(viewModel: FinanceViewModel = hiltViewModel()) {
             if (state.listItems.isEmpty()) {
                 TutorHelperEmptyState(
                     message = stringResource(R.string.finance_empty),
-                    icon = Icons.Default.Payments
+                    icon = Icons.Default.Payments,
+                    modifier = Modifier.weight(1f)
                 )
             } else {
                 LazyColumn(

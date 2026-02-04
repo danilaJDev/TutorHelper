@@ -157,13 +157,6 @@ private fun PeriodFilterBar(
                         tint = AppPalette.TextSecondary
                     )
                 }
-            } else {
-                Icon(
-                    imageVector = Icons.Default.DateRange,
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp),
-                    tint = AppPalette.TextSecondary.copy(alpha = 0.5f)
-                )
             }
         }
     }
@@ -293,13 +286,6 @@ private fun SummaryStatCard(
                     modifier = Modifier.size(20.dp),
                     tint = indicatorColor ?: AppPalette.Primary
                 )
-                if (indicatorColor != null) {
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .background(indicatorColor, CircleShape)
-                    )
-                }
             }
             Column {
                 Text(
