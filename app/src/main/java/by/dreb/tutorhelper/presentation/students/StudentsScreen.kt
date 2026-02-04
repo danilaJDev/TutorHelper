@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Archive
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Unarchive
@@ -116,37 +117,28 @@ fun StudentsScreen(
                 StudentsFilterChip(
                     selected = !state.isArchived,
                     onClick = { viewModel.toggleArchive(false) },
-                    label = stringResource(R.string.students_active) + " (${state.activeCount})"
+                    label = stringResource(R.string.students_active) + " (${state.activeCount})",
+                    icon = Icons.Default.CheckCircle
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 StudentsFilterChip(
                     selected = state.isArchived,
                     onClick = { viewModel.toggleArchive(true) },
-                    label = stringResource(R.string.students_archived) + " (${state.archivedCount})"
+                    label = stringResource(R.string.students_archived) + " (${state.archivedCount})",
+                    icon = Icons.Default.Archive
                 )
             }
 
-            Card(
+            OutlinedTextField(
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
-                    .fillMaxWidth()
-                    .shadow(2.dp, AppPalette.CardShape)
-                    .border(1.dp, Color(0xFFE2E8F0), AppPalette.CardShape),
-                colors = CardDefaults.cardColors(containerColor = AppPalette.Surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = AppPalette.CardElevation),
-                shape = AppPalette.CardShape
-            ) {
-                OutlinedTextField(
-                    modifier = Modifier
-                        .padding(12.dp)
-                        .fillMaxWidth(),
-                    value = state.query,
-                    onValueChange = viewModel::updateQuery,
-                    label = { Text(stringResource(R.string.students_search)) },
-                    shape = AppPalette.CardShape,
-                    singleLine = true
-                )
-            }
+                    .fillMaxWidth(),
+                value = state.query,
+                onValueChange = viewModel::updateQuery,
+                label = { Text(stringResource(R.string.students_search)) },
+                shape = AppPalette.CardShape,
+                singleLine = true
+            )
 
             Box(modifier = Modifier.fillMaxSize()) {
                 if (state.students.isEmpty()) {
@@ -180,12 +172,16 @@ fun StudentsScreen(
 private fun StudentsFilterChip(
     selected: Boolean,
     onClick: () -> Unit,
-    label: String
+    label: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector
 ) {
     FilterChip(
         selected = selected,
         onClick = onClick,
         label = { Text(label) },
+        leadingIcon = if (selected) {
+            { Icon(icon, null, modifier = Modifier.size(18.dp)) }
+        } else null,
         colors = FilterChipDefaults.filterChipColors(
             selectedContainerColor = AppPalette.Primary.copy(alpha = 0.15f),
             selectedLabelColor = AppPalette.Primary,
@@ -205,8 +201,7 @@ private fun StudentsFilterChip(
 private fun EmptyStudentsState(isArchived: Boolean) {
     Box(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 48.dp),
+            .fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {

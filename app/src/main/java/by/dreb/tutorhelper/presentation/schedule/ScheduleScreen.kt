@@ -749,8 +749,7 @@ private fun ModernLessonCard(
 private fun EmptyStateMessage() {
     Box(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 48.dp),
+            .fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {

@@ -13,12 +13,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -91,13 +94,15 @@ fun FinanceScreen(viewModel: FinanceViewModel = hiltViewModel()) {
                 FinanceFilterChip(
                     selected = state.filter == FinanceFilter.ACTIVE,
                     onClick = { viewModel.updateFilter(FinanceFilter.ACTIVE) },
-                    label = stringResource(R.string.finance_filter_unpaid)
+                    label = stringResource(R.string.finance_filter_unpaid),
+                    icon = Icons.Default.CheckCircle
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 FinanceFilterChip(
                     selected = state.filter == FinanceFilter.ARCHIVED,
                     onClick = { viewModel.updateFilter(FinanceFilter.ARCHIVED) },
-                    label = stringResource(R.string.finance_filter_paid)
+                    label = stringResource(R.string.finance_filter_paid),
+                    icon = Icons.Default.Archive
                 )
             }
 
@@ -152,12 +157,16 @@ fun FinanceScreen(viewModel: FinanceViewModel = hiltViewModel()) {
 private fun FinanceFilterChip(
     selected: Boolean,
     onClick: () -> Unit,
-    label: String
+    label: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector
 ) {
     FilterChip(
         selected = selected,
         onClick = onClick,
         label = { Text(label) },
+        leadingIcon = if (selected) {
+            { Icon(icon, null, modifier = Modifier.size(18.dp)) }
+        } else null,
         colors = FilterChipDefaults.filterChipColors(
             selectedContainerColor = AppPalette.Primary.copy(alpha = 0.15f),
             selectedLabelColor = AppPalette.Primary,
