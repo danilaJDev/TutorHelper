@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -34,6 +33,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
@@ -49,7 +50,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -58,6 +58,7 @@ import by.dreb.tutorhelper.domain.model.Lesson
 import by.dreb.tutorhelper.domain.model.Student
 import by.dreb.tutorhelper.domain.repository.LessonRepository
 import by.dreb.tutorhelper.domain.repository.StudentRepository
+import by.dreb.tutorhelper.presentation.common.AppPalette
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
@@ -135,71 +136,78 @@ fun LessonCreateScreen(
 
     Scaffold(
         topBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = onBackClick) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = null,
-                        modifier = Modifier.size(32.dp)
+            TopAppBar(
+                title = {
+                    Text(
+                        text = stringResource(R.string.lesson_create_title),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = AppPalette.TextPrimary
                     )
-                }
-                Text(
-                    text = stringResource(R.string.lesson_create_title),
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
-                    ),
-                    modifier = Modifier.padding(start = 8.dp)
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = null,
+                            modifier = Modifier.size(28.dp),
+                            tint = AppPalette.TextPrimary
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(
+                        onClick = {
+                            selectedStudent?.let { student ->
+                                val startDateTime = LocalDateTime.of(selectedDate, startTime)
+                                val duration =
+                                    java.time.Duration.between(startTime, endTime).toMinutes().toInt()
+                                viewModel.createLesson(
+                                    studentId = student.id,
+                                    startTime = startDateTime,
+                                    durationMinutes = if (duration > 0) duration else 60,
+                                    price = price.toDoubleOrNull() ?: student.defaultPrice,
+                                    note = note.ifBlank { null },
+                                    isDuplicate = isDuplicate,
+                                    duplicateUntil = if (isDuplicate) duplicateUntil else null
+                                )
+                                onBackClick()
+                            }
+                        },
+                        enabled = selectedStudent != null
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = null,
+                            modifier = Modifier.size(28.dp),
+                            tint = if (selectedStudent != null) AppPalette.Primary else AppPalette.TextSecondary
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = AppPalette.Background,
+                    scrolledContainerColor = AppPalette.Surface.copy(alpha = 0.95f)
                 )
-                Spacer(modifier = Modifier.weight(1f))
-                IconButton(
-                    onClick = {
-                        selectedStudent?.let { student ->
-                            val startDateTime = LocalDateTime.of(selectedDate, startTime)
-                            val duration =
-                                java.time.Duration.between(startTime, endTime).toMinutes().toInt()
-                            viewModel.createLesson(
-                                studentId = student.id,
-                                startTime = startDateTime,
-                                durationMinutes = if (duration > 0) duration else 60,
-                                price = price.toDoubleOrNull() ?: student.defaultPrice,
-                                note = note.ifBlank { null },
-                                isDuplicate = isDuplicate,
-                                duplicateUntil = if (isDuplicate) duplicateUntil else null
-                            )
-                            onBackClick()
-                        }
-                    },
-                    enabled = selectedStudent != null
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = null,
-                        modifier = Modifier.size(32.dp),
-                        tint = if (selectedStudent != null) MaterialTheme.colorScheme.primary else Color.Gray
-                    )
-                }
-            }
-        }
+            )
+        },
+        containerColor = AppPalette.Background
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp)
+                .padding(horizontal = 16.dp, vertical = 12.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp),
+                shape = AppPalette.CardShape,
+                colors = CardDefaults.cardColors(containerColor = AppPalette.Surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = AppPalette.CardElevation),
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE2E8F0))
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp),
@@ -214,6 +222,7 @@ fun LessonCreateScreen(
                             label = { Text(stringResource(R.string.lesson_label_student)) },
                             modifier = Modifier.fillMaxWidth(),
                             readOnly = true,
+                            shape = AppPalette.CardShape,
                             trailingIcon = {
                                 Icon(
                                     Icons.Default.ArrowDropDown,
@@ -250,6 +259,7 @@ fun LessonCreateScreen(
                         label = { Text(stringResource(R.string.lesson_label_date)) },
                         modifier = Modifier.fillMaxWidth(),
                         readOnly = true,
+                        shape = AppPalette.CardShape,
                         trailingIcon = {
                             Icon(
                                 Icons.Default.ArrowDropDown,
@@ -275,7 +285,8 @@ fun LessonCreateScreen(
                             modifier = Modifier
                                 .weight(1f)
                                 .clickable { showStartTimePicker = true },
-                            readOnly = true
+                            readOnly = true,
+                            shape = AppPalette.CardShape
                         )
                         OutlinedTextField(
                             value = endTime.format(DateTimeFormatter.ofPattern("HH:mm")),
@@ -284,7 +295,8 @@ fun LessonCreateScreen(
                             modifier = Modifier
                                 .weight(1f)
                                 .clickable { showEndTimePicker = true },
-                            readOnly = true
+                            readOnly = true,
+                            shape = AppPalette.CardShape
                         )
                     }
 
@@ -293,7 +305,8 @@ fun LessonCreateScreen(
                         value = price,
                         onValueChange = { price = it },
                         label = { Text(stringResource(R.string.lesson_label_price)) },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = AppPalette.CardShape
                     )
 
                     // Note Field
@@ -301,7 +314,8 @@ fun LessonCreateScreen(
                         value = note,
                         onValueChange = { note = it },
                         label = { Text(stringResource(R.string.lesson_label_note)) },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = AppPalette.CardShape
                     )
 
                     // Duplicate Checkbox
@@ -319,6 +333,7 @@ fun LessonCreateScreen(
                             label = { Text(stringResource(R.string.lesson_label_duplicate_until)) },
                             modifier = Modifier.fillMaxWidth(),
                             readOnly = true,
+                            shape = AppPalette.CardShape,
                             trailingIcon = {
                                 Icon(
                                     Icons.Default.ArrowDropDown,

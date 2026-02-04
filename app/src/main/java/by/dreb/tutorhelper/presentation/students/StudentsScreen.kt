@@ -185,6 +185,7 @@ private fun StudentsFilterChip(
         colors = FilterChipDefaults.filterChipColors(
             selectedContainerColor = AppPalette.Primary.copy(alpha = 0.15f),
             selectedLabelColor = AppPalette.Primary,
+            selectedLeadingIconColor = AppPalette.Primary,
             containerColor = AppPalette.Surface,
             labelColor = AppPalette.TextSecondary
         ),
