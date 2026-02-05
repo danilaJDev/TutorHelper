@@ -330,7 +330,6 @@ fun LessonEditScreen(
         }
     }
 
-    // Dialogs
     if (showDatePicker) {
         val datePickerState = rememberDatePickerState(
             initialSelectedDateMillis = selectedDate.atStartOfDay(ZoneId.systemDefault())

@@ -120,12 +120,11 @@ fun ScheduleScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Центрированные фильтры
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 12.dp),
-                horizontalArrangement = Arrangement.Center, // Центрирование кнопок
+                horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 TutorHelperFilterChip(
@@ -143,7 +142,6 @@ fun ScheduleScreen(
                 )
             }
 
-            // Контентная область с мягким градиентом или просто чистым фоном
             Box(modifier = Modifier.fillMaxSize()) {
                 AnimatedContent(
                     targetState = state.mode,
@@ -205,10 +203,10 @@ private fun ScheduleModeSwitch(
 ) {
     Row(
         modifier = Modifier
-            .width(100.dp) // Фиксированная ширина для симметрии
+            .width(100.dp)
             .height(40.dp)
             .background(
-                color = AppPalette.Outline, // Светло-серый фон (Slate 200)
+                color = AppPalette.Outline,
                 shape = CircleShape
             )
             .padding(4.dp),
@@ -375,11 +373,10 @@ private fun ScheduleCalendar(
     Column(modifier = Modifier.fillMaxSize()) {
         Surface(
             color = AppPalette.Surface,
-            shadowElevation = 2.dp, // Легкая тень под календарем
+            shadowElevation = 2.dp,
             modifier = Modifier.fillMaxWidth()
         ) {
             Column {
-                // Month Header
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -415,7 +412,6 @@ private fun ScheduleCalendar(
                     }
                 }
 
-                // Days Row
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -434,7 +430,6 @@ private fun ScheduleCalendar(
                     }
                 }
 
-                // Grid
                 Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                     val totalCells = ((daysInMonth + firstDayOfWeek - 2) / 7 + 1) * 7
                     for (row in 0 until totalCells / 7) {

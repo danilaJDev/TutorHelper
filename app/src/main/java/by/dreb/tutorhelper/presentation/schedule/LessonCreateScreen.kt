@@ -97,8 +97,6 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import javax.inject.Inject
 
-// --- State Definition ---
-
 data class LessonCreateUiState(
     val selectedStudent: Student? = null,
     val date: LocalDate = LocalDate.now(),
@@ -118,8 +116,6 @@ data class LessonCreateUiState(
                 endTime.isAfter(startTime)
 }
 
-// --- ViewModel ---
-
 @HiltViewModel
 class LessonCreateViewModel @Inject constructor(
     private val lessonRepository: LessonRepository,
@@ -129,7 +125,6 @@ class LessonCreateViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(LessonCreateUiState())
     val uiState = _uiState.asStateFlow()
 
-    // Объединяем список учеников и UI state, чтобы удобно использовать в Composable
     val studentsState = studentRepository.observeStudents(false)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -137,7 +132,7 @@ class LessonCreateViewModel @Inject constructor(
         _uiState.update {
             it.copy(
                 selectedStudent = student,
-                price = student.defaultPrice.toString() // Автозаполнение цены
+                price = student.defaultPrice.toString()
             )
         }
     }
@@ -148,7 +143,6 @@ class LessonCreateViewModel @Inject constructor(
 
     fun onStartTimeChanged(time: LocalTime) {
         _uiState.update { currentState ->
-            // При изменении времени начала, сохраняем длительность урока (сдвигаем конец)
             val duration = Duration.between(currentState.startTime, currentState.endTime)
             val newEndTime = time.plus(duration)
             currentState.copy(startTime = time, endTime = newEndTime)
@@ -160,7 +154,6 @@ class LessonCreateViewModel @Inject constructor(
     }
 
     fun onPriceChanged(price: String) {
-        // Разрешаем только цифры и одну точку
         if (price.count { it == '.' } <= 1 && price.replace(".", "").all { it.isDigit() }) {
             _uiState.update { it.copy(price = price) }
         }
@@ -194,7 +187,7 @@ class LessonCreateViewModel @Inject constructor(
             val baseLesson = Lesson(
                 id = 0,
                 studentId = student.id,
-                subject = "Занятие", // Можно вынести в UI, если нужно менять тему
+                subject = "Занятие",
                 startTime = startDateTime,
                 durationMinutes = if (durationMinutes > 0) durationMinutes else 60,
                 price = currentState.price.toDoubleOrNull() ?: 0.0,
@@ -215,8 +208,6 @@ class LessonCreateViewModel @Inject constructor(
         }
     }
 }
-
-// --- Screen ---
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -243,14 +234,12 @@ fun LessonCreateScreen(
         unfocusedBorderColor = MaterialTheme.colorScheme.outline
     )
 
-    // Если сохранение прошло успешно, выходим
     if (uiState.isSaved) {
         androidx.compose.runtime.LaunchedEffect(Unit) {
             onBackClick()
         }
     }
 
-    // Состояния диалогов
     var showDatePicker by remember { mutableStateOf(false) }
     var showStartTimePicker by remember { mutableStateOf(false) }
     var showEndTimePicker by remember { mutableStateOf(false) }
@@ -299,7 +288,6 @@ fun LessonCreateScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // 1. Блок выбора ученика
             FormCardSection {
                 ExposedDropdownMenuBox(
                     expanded = studentDropdownExpanded,
@@ -351,9 +339,7 @@ fun LessonCreateScreen(
                 }
             }
 
-            // 2. Блок времени и даты
             FormCardSection(title = "Время проведения") {
-                // Дата
                 ClickableField(
                     value = uiState.date.format(dateFormatter),
                     label = "Дата",
@@ -364,7 +350,6 @@ fun LessonCreateScreen(
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // Время начала
                     ClickableField(
                         value = uiState.startTime.format(DateTimeFormatter.ofPattern("HH:mm")),
                         label = "Начало",
@@ -372,7 +357,6 @@ fun LessonCreateScreen(
                         modifier = Modifier.weight(1f),
                         onClick = { showStartTimePicker = true }
                     )
-                    // Время окончания
                     ClickableField(
                         value = uiState.endTime.format(DateTimeFormatter.ofPattern("HH:mm")),
                         label = "Конец",
@@ -393,7 +377,6 @@ fun LessonCreateScreen(
                 }
             }
 
-            // 3. Блок финансов и заметок
             FormCardSection {
                 OutlinedTextField(
                     value = uiState.price,
@@ -420,7 +403,6 @@ fun LessonCreateScreen(
                 )
             }
 
-            // 4. Блок повторения
             FormCardSection {
                 Row(
                     modifier = Modifier
@@ -477,8 +459,6 @@ fun LessonCreateScreen(
             Spacer(modifier = Modifier.height(50.dp))
         }
     }
-
-    // --- Dialogs ---
 
     if (showDatePicker) {
         val datePickerState = rememberDatePickerState(
@@ -588,8 +568,6 @@ fun LessonCreateScreen(
         }
     }
 }
-
-// --- Helper Composables ---
 
 @Composable
 fun ClickableField(
