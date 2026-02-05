@@ -45,20 +45,24 @@ class FinanceViewModel @Inject constructor(
             .groupBy { it.student }
             .toSortedMap(compareBy<by.dreb.tutorhelper.domain.model.Student> { it.name }.thenBy { it.id })
 
-        val listItems = mutableListOf<FinanceListItem>()
-        grouped.forEach { (student, studentLessons) ->
-            val isExpanded = expandedIds.contains(student.id)
-            listItems.add(FinanceListItem.StudentHeader(student, isExpanded))
-            if (isExpanded) {
-                studentLessons.forEach { lesson ->
-                    listItems.add(FinanceListItem.LessonItem(lesson))
-                }
-            }
+        val sections = grouped.map { (student, studentLessons) ->
+            val sortedLessons = studentLessons.sortedByDescending { it.lesson.startTime }
+            val totalAmount = sortedLessons.sumOf { it.lesson.price }
+            val paidAmount = sortedLessons.sumOf { it.payment?.amount ?: 0 }
+            val unpaidAmount = totalAmount - paidAmount
+            FinanceStudentSection(
+                student = student,
+                lessons = sortedLessons,
+                isExpanded = expandedIds.contains(student.id),
+                totalAmount = totalAmount,
+                paidAmount = paidAmount,
+                unpaidAmount = unpaidAmount
+            )
         }
 
         FinanceUiState(
             filter = filter,
-            listItems = listItems
+            sections = sections
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), FinanceUiState())
 

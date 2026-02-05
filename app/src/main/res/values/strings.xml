@@ -83,6 +83,9 @@
     <string name="finance_empty">Платежей нет</string>
     <string name="finance_filter_unpaid">Активные</string>
     <string name="finance_filter_paid">В архиве</string>
+    <string name="finance_student_total_label">Всего</string>
+    <string name="finance_student_paid_label">Оплачено</string>
+    <string name="finance_student_due_label">Долг</string>
     <string name="action_mark_as_paid">Отметить как оплаченное</string>
 
     <string name="summary_title">Итоги</string>
