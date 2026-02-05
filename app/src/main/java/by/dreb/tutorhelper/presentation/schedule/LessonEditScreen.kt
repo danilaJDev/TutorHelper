@@ -269,7 +269,7 @@ fun LessonEditScreen(
             }
 
             FormCardSection(title = "Время проведения") {
-                ClickableField(
+                EditClickableField(
                     value = selectedDate.format(dateFormatter),
                     label = "Дата",
                     icon = Icons.Default.CalendarMonth,
@@ -277,14 +277,14 @@ fun LessonEditScreen(
                 )
 
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    ClickableField(
+                    EditClickableField(
                         value = startTime.format(DateTimeFormatter.ofPattern("HH:mm")),
                         label = "Начало",
                         icon = Icons.Default.AccessTime,
                         modifier = Modifier.weight(1f),
                         onClick = { showStartTimePicker = true }
                     )
-                    ClickableField(
+                    EditClickableField(
                         value = endTime.format(DateTimeFormatter.ofPattern("HH:mm")),
                         label = "Конец",
                         icon = Icons.Default.AccessTime,
@@ -364,7 +364,7 @@ fun LessonEditScreen(
                 initialMinute = startTime.minute,
                 is24Hour = true
             )
-        TimePickerDialog(
+        EditTimePickerDialog(
             onDismissRequest = { showStartTimePicker = false },
             confirmButton = {
                 DialogActionButton(text = "ОК", onClick = {
@@ -390,7 +390,7 @@ fun LessonEditScreen(
                 initialMinute = endTime.minute,
                 is24Hour = true
             )
-        TimePickerDialog(
+        EditTimePickerDialog(
             onDismissRequest = { showEndTimePicker = false },
             confirmButton = {
                 DialogActionButton(text = "ОК", onClick = {
@@ -411,7 +411,7 @@ fun LessonEditScreen(
 }
 
 @Composable
-fun ClickableField(
+private fun EditClickableField(
     value: String,
     label: String,
     icon: ImageVector,
@@ -440,7 +440,7 @@ fun ClickableField(
 }
 
 @Composable
-fun TimePickerDialog(
+private fun EditTimePickerDialog(
     onDismissRequest: () -> Unit,
     confirmButton: @Composable () -> Unit,
     dismissButton: @Composable () -> Unit,
