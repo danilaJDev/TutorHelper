@@ -17,7 +17,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.LocalPhone
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.StickyNote2
+import androidx.compose.material.icons.automirrored.filled.StickyNote2
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -153,7 +153,12 @@ fun StudentCreateScreen(
                     onValueChange = { note = it },
                     label = { Text(stringResource(R.string.student_label_note)) },
                     modifier = Modifier.fillMaxWidth(),
-                    leadingIcon = { Icon(imageVector = Icons.Default.StickyNote2, contentDescription = null) },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.StickyNote2,
+                            contentDescription = null
+                        )
+                    },
                     colors = leadingIconColors,
                     shape = RoundedCornerShape(12.dp),
                     minLines = 3

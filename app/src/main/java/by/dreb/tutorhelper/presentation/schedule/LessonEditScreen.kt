@@ -362,6 +362,11 @@ fun LessonEditScreen(
                     startTime = LocalTime.of(timePickerState.hour, timePickerState.minute)
                     showStartTimePicker = false
                 }) { Text(stringResource(R.string.action_ok)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showStartTimePicker = false }) {
+                    Text(stringResource(R.string.action_cancel_alt))
+                }
             }
         ) {
             TimePicker(state = timePickerState)
@@ -378,6 +383,11 @@ fun LessonEditScreen(
                     endTime = LocalTime.of(timePickerState.hour, timePickerState.minute)
                     showEndTimePicker = false
                 }) { Text(stringResource(R.string.action_ok)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEndTimePicker = false }) {
+                    Text(stringResource(R.string.action_cancel_alt))
+                }
             }
         ) {
             TimePicker(state = timePickerState)

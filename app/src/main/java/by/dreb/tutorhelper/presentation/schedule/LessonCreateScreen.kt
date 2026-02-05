@@ -33,6 +33,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -220,7 +221,9 @@ fun LessonCreateScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val students by viewModel.studentsState.collectAsState()
-    val calendarLocale = remember { Locale("ru", "BY") }
+    val calendarLocale = remember {
+        Locale.Builder().setLanguage("ru").setRegion("BY").build()
+    }
     val dateFormatter = remember {
         DateTimeFormatter.ofPattern("EEE, dd MMM yyyy", calendarLocale)
     }
@@ -305,7 +308,10 @@ fun LessonCreateScreen(
                         placeholder = { Text("Выберите ученика") },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .menuAnchor(),
+                            .menuAnchor(
+                                ExposedDropdownMenuAnchorType.PrimaryNotEditable,
+                                enabled = true
+                            ),
                         readOnly = true,
                         leadingIcon = {
                             Icon(Icons.Default.Person, null)
