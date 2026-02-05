@@ -23,11 +23,15 @@ class GetSummaryUseCase @Inject constructor(
             paymentRepository.observePayments()
         ) { lessons, activeStudents, archivedStudents, payments ->
             val allExistingStudents = activeStudents + archivedStudents
-
-            val filteredPayments = payments.filter { payment ->
-                val date = payment.paidOn ?: return@filter false
+            val isWithinRange = { date: LocalDate ->
                 (startDate == null || !date.isBefore(startDate)) &&
-                        (endDate == null || !date.isAfter(endDate))
+                    (endDate == null || !date.isAfter(endDate))
+            }
+
+            val paymentsWithDate = payments.filter { it.paidOn != null }
+            val filteredPayments = paymentsWithDate.filter { payment ->
+                val date = payment.paidOn ?: return@filter false
+                isWithinRange(date)
             }
 
             val incomeTotal = filteredPayments.sumOf { it.amount }
@@ -35,15 +39,22 @@ class GetSummaryUseCase @Inject constructor(
             val paidLessonIds = filteredPayments.map { it.lessonId }.toSet()
 
             val filteredLessons = lessons.filter { details ->
-                val date = details.lesson.startTime.toLocalDate()
-                (startDate == null || !date.isBefore(startDate)) &&
-                        (endDate == null || !date.isAfter(endDate))
+                isWithinRange(details.lesson.startTime.toLocalDate())
             }
 
-            val allLessonIds = filteredLessons.map { it.lesson.id }.toSet() + paidLessonIds
-            val lessonsCount = allLessonIds.size
+            val lessonsCount = if (startDate == null && endDate == null) {
+                (filteredLessons.map { it.lesson.id }.toSet() + paidLessonIds).size
+            } else {
+                filteredLessons.size
+            }
 
-            val paidLessonsCount = paidLessonIds.size
+            val paidLessonsCount = if (startDate == null && endDate == null) {
+                val paidLessonIdsFromLessons = filteredLessons.filter { it.payment != null }
+                    .map { it.lesson.id }
+                (paidLessonIds + paidLessonIdsFromLessons).size
+            } else {
+                filteredLessons.count { it.payment != null }
+            }
 
             val unpaidLessonsCount = filteredLessons.count { it.payment == null }
 
@@ -60,11 +71,15 @@ class GetSummaryUseCase @Inject constructor(
 
             val now = LocalDate.now()
             val yearsToShow = if (startDate == null && endDate == null) {
-                listOf(now.year)
+                val paymentYears = paymentsWithDate.mapNotNull { it.paidOn?.year }
+                    .distinct()
+                    .sorted()
+                if (paymentYears.isNotEmpty()) paymentYears else listOf(now.year)
             } else {
                 val startYear =
-                    startDate?.year ?: payments.minOfOrNull { it.paidOn?.year ?: now.year }
-                    ?: now.year
+                    startDate?.year
+                        ?: paymentsWithDate.minOfOrNull { it.paidOn?.year ?: now.year }
+                        ?: now.year
                 val endYear = endDate?.year ?: now.year
                 (startYear..endYear).toList()
             }

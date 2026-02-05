@@ -68,7 +68,6 @@ fun FinanceScreen(viewModel: FinanceViewModel = hiltViewModel()) {
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Фильтры
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
