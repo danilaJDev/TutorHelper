@@ -38,6 +38,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
@@ -85,6 +86,7 @@ fun ScheduleScreen(
 ) {
     val state by viewModel.state.collectAsState()
     var lessonToDelete by remember { mutableStateOf<LessonDetails?>(null) }
+    var deleteFutureLessons by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -153,7 +155,10 @@ fun ScheduleScreen(
                             onLessonClick = onLessonClick,
                             onToggleHomework = viewModel::toggleHomework,
                             onToggleHidden = viewModel::toggleHidden,
-                            onDeleteClick = { lessonToDelete = it }
+                            onDeleteClick = {
+                                lessonToDelete = it
+                                deleteFutureLessons = false
+                            }
                         )
 
                         ScheduleMode.CALENDAR -> ScheduleCalendar(
@@ -163,7 +168,10 @@ fun ScheduleScreen(
                             onLessonClick = onLessonClick,
                             onToggleHomework = viewModel::toggleHomework,
                             onToggleHidden = viewModel::toggleHidden,
-                            onDeleteClick = { lessonToDelete = it }
+                            onDeleteClick = {
+                                lessonToDelete = it
+                                deleteFutureLessons = false
+                            }
                         )
                     }
                 }
@@ -175,9 +183,17 @@ fun ScheduleScreen(
         DeleteConfirmationDialog(
             onDismiss = { lessonToDelete = null },
             onConfirm = {
-                lessonToDelete?.let { viewModel.deleteLesson(it) }
+                lessonToDelete?.let {
+                    if (deleteFutureLessons) {
+                        viewModel.deleteLessonWithFutureDuplicates(it)
+                    } else {
+                        viewModel.deleteLesson(it)
+                    }
+                }
                 lessonToDelete = null
-            }
+            },
+            deleteFutureLessons = deleteFutureLessons,
+            onDeleteFutureLessonsChange = { deleteFutureLessons = it }
         )
     }
 }
@@ -712,7 +728,9 @@ private fun ModernLessonCard(
 @Composable
 private fun DeleteConfirmationDialog(
     onDismiss: () -> Unit,
-    onConfirm: () -> Unit
+    onConfirm: () -> Unit,
+    deleteFutureLessons: Boolean,
+    onDeleteFutureLessonsChange: (Boolean) -> Unit
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -720,10 +738,32 @@ private fun DeleteConfirmationDialog(
             Text(stringResource(R.string.action_delete_confirm_title))
         },
         text = {
-            Text(
-                stringResource(R.string.action_delete_confirm_message),
-                color = AppPalette.TextSecondary
-            )
+            Column {
+                Text(
+                    stringResource(R.string.action_delete_confirm_message),
+                    color = AppPalette.TextSecondary
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(10.dp))
+                        .clickable { onDeleteFutureLessonsChange(!deleteFutureLessons) }
+                        .padding(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Checkbox(
+                        checked = deleteFutureLessons,
+                        onCheckedChange = onDeleteFutureLessonsChange
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(R.string.lesson_delete_future_duplicates),
+                        color = AppPalette.TextSecondary,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
         },
         confirmButton = {
             TextButton(

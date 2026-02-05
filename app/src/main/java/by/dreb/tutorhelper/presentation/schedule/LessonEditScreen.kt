@@ -2,41 +2,44 @@ package by.dreb.tutorhelper.presentation.schedule
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.AttachMoney
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
+import androidx.compose.material3.TimePickerDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -46,11 +49,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import by.dreb.tutorhelper.presentation.components.FormCardSection
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -68,6 +74,10 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Locale
+import android.content.res.Configuration
+import android.os.LocaleList
+import androidx.compose.ui.graphics.vector.ImageVector
 import javax.inject.Inject
 
 @HiltViewModel
@@ -122,6 +132,19 @@ fun LessonEditScreen(
     var endTime by remember { mutableStateOf(LocalTime.of(13, 0)) }
     var price by remember { mutableStateOf("") }
     var note by remember { mutableStateOf("") }
+    val calendarLocale = remember {
+        Locale.Builder().setLanguage("ru").setRegion("BY").build()
+    }
+    val dateFormatter = remember {
+        DateTimeFormatter.ofPattern("EEE, dd MMM yyyy", calendarLocale)
+    }
+    val leadingIconColors = OutlinedTextFieldDefaults.colors(
+        focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
+        unfocusedLeadingIconColor = MaterialTheme.colorScheme.primary,
+        disabledLeadingIconColor = MaterialTheme.colorScheme.primary,
+        focusedBorderColor = MaterialTheme.colorScheme.primary,
+        unfocusedBorderColor = MaterialTheme.colorScheme.outline
+    )
 
     LaunchedEffect(details) {
         details?.let {
@@ -145,26 +168,23 @@ fun LessonEditScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(horizontal = 8.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onBackClick) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = null,
-                        modifier = Modifier.size(32.dp)
+                        contentDescription = "Назад"
                     )
                 }
                 Text(
                     text = "Редактирование занятия",
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
-                    ),
-                    modifier = Modifier.padding(start = 8.dp)
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 8.dp)
                 )
-                Spacer(modifier = Modifier.weight(1f))
-                IconButton(
+                TextButton(
                     onClick = {
                         selectedStudent?.let { student ->
                             val startDateTime = LocalDateTime.of(selectedDate, startTime)
@@ -180,13 +200,12 @@ fun LessonEditScreen(
                             onBackClick()
                         }
                     },
-                    enabled = selectedStudent != null
+                    enabled = selectedStudent != null && endTime.isAfter(startTime)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = null,
-                        modifier = Modifier.size(32.dp),
-                        tint = if (selectedStudent != null) MaterialTheme.colorScheme.primary else Color.Gray
+                    Text(
+                        text = "Сохранить",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
                     )
                 }
             }
@@ -200,120 +219,113 @@ fun LessonEditScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+            FormCardSection {
+                ExposedDropdownMenuBox(
+                    expanded = studentDropdownExpanded,
+                    onExpandedChange = { studentDropdownExpanded = it },
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    // Student Selector
-                    ExposedDropdownMenuBox(
+                    OutlinedTextField(
+                        value = selectedStudent?.name ?: "",
+                        onValueChange = {},
+                        label = { Text(stringResource(R.string.lesson_label_student)) },
+                        placeholder = { Text(stringResource(R.string.lesson_label_student)) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor(
+                                ExposedDropdownMenuAnchorType.PrimaryNotEditable,
+                                enabled = true
+                            ),
+                        readOnly = true,
+                        leadingIcon = { Icon(Icons.Default.Person, null) },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = studentDropdownExpanded)
+                        },
+                        colors = leadingIconColors,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    ExposedDropdownMenu(
                         expanded = studentDropdownExpanded,
-                        onExpandedChange = { studentDropdownExpanded = it },
-                        modifier = Modifier.fillMaxWidth()
+                        onDismissRequest = { studentDropdownExpanded = false }
                     ) {
-                        OutlinedTextField(
-                            value = selectedStudent?.name ?: "",
-                            onValueChange = {},
-                            label = { Text(stringResource(R.string.lesson_label_student)) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .menuAnchor(),
-                            readOnly = true,
-                            trailingIcon = {
-                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = studentDropdownExpanded)
-                            },
-                            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
-                        )
-                        ExposedDropdownMenu(
-                            expanded = studentDropdownExpanded,
-                            onDismissRequest = { studentDropdownExpanded = false }
-                        ) {
-                            if (students.isEmpty()) {
+                        if (students.isEmpty()) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.students_empty_active)) },
+                                onClick = { studentDropdownExpanded = false }
+                            )
+                        } else {
+                            students.forEach { student ->
                                 DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.students_empty_active)) },
-                                    onClick = { studentDropdownExpanded = false }
+                                    text = { Text(student.name) },
+                                    onClick = {
+                                        selectedStudent = student
+                                        studentDropdownExpanded = false
+                                    }
                                 )
-                            } else {
-                                students.forEach { student ->
-                                    DropdownMenuItem(
-                                        text = { Text(student.name) },
-                                        onClick = {
-                                            selectedStudent = student
-                                            studentDropdownExpanded = false
-                                        },
-                                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
-                                    )
-                                }
                             }
                         }
                     }
+                }
+            }
 
-                    // Date Selector
-                    OutlinedTextField(
-                        value = selectedDate.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
-                        onValueChange = {},
-                        label = { Text(stringResource(R.string.lesson_label_date)) },
-                        modifier = Modifier.fillMaxWidth(),
-                        readOnly = true,
-                        trailingIcon = {
-                            Icon(
-                                Icons.Default.ArrowDropDown,
-                                null,
-                                Modifier.clickable { showDatePicker = true })
-                        }
+            FormCardSection(title = "Время проведения") {
+                EditClickableField(
+                    value = selectedDate.format(dateFormatter),
+                    label = "Дата",
+                    icon = Icons.Default.CalendarMonth,
+                    onClick = { showDatePicker = true }
+                )
+
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    EditClickableField(
+                        value = startTime.format(DateTimeFormatter.ofPattern("HH:mm")),
+                        label = "Начало",
+                        icon = Icons.Default.AccessTime,
+                        modifier = Modifier.weight(1f),
+                        onClick = { showStartTimePicker = true }
                     )
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp)
-                            .clickable { showDatePicker = true })
-
-                    // Time Selectors
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        OutlinedTextField(
-                            value = startTime.format(DateTimeFormatter.ofPattern("HH:mm")),
-                            onValueChange = {},
-                            label = { Text(stringResource(R.string.lesson_label_start)) },
-                            modifier = Modifier
-                                .weight(1f)
-                                .clickable { showStartTimePicker = true },
-                            readOnly = true
-                        )
-                        OutlinedTextField(
-                            value = endTime.format(DateTimeFormatter.ofPattern("HH:mm")),
-                            onValueChange = {},
-                            label = { Text(stringResource(R.string.lesson_label_end)) },
-                            modifier = Modifier
-                                .weight(1f)
-                                .clickable { showEndTimePicker = true },
-                            readOnly = true
-                        )
-                    }
-
-                    // Price Field
-                    OutlinedTextField(
-                        value = price,
-                        onValueChange = { price = it },
-                        label = { Text(stringResource(R.string.lesson_label_price)) },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    // Note Field
-                    OutlinedTextField(
-                        value = note,
-                        onValueChange = { note = it },
-                        label = { Text(stringResource(R.string.lesson_label_note)) },
-                        modifier = Modifier.fillMaxWidth()
+                    EditClickableField(
+                        value = endTime.format(DateTimeFormatter.ofPattern("HH:mm")),
+                        label = "Конец",
+                        icon = Icons.Default.AccessTime,
+                        modifier = Modifier.weight(1f),
+                        isError = !endTime.isAfter(startTime),
+                        onClick = { showEndTimePicker = true }
                     )
                 }
+
+                if (!endTime.isAfter(startTime)) {
+                    Text(
+                        text = "Время окончания должно быть позже начала",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(start = 12.dp)
+                    )
+                }
+            }
+
+            FormCardSection {
+                OutlinedTextField(
+                    value = price,
+                    onValueChange = { price = it },
+                    label = { Text(stringResource(R.string.lesson_label_price)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    leadingIcon = { Icon(Icons.Default.AttachMoney, null) },
+                    colors = leadingIconColors,
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true
+                )
+
+                OutlinedTextField(
+                    value = note,
+                    onValueChange = { note = it },
+                    label = { Text(stringResource(R.string.lesson_label_note)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    leadingIcon = { Icon(Icons.Default.Description, null) },
+                    colors = leadingIconColors,
+                    shape = RoundedCornerShape(12.dp),
+                    maxLines = 3
+                )
             }
         }
     }
@@ -331,66 +343,213 @@ fun LessonEditScreen(
                 }
             }
         )
-        DatePickerDialog(
+        LocalizedDatePickerDialog(
+            state = datePickerState,
+            locale = calendarLocale,
             onDismissRequest = { showDatePicker = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    datePickerState.selectedDateMillis?.let {
-                        selectedDate =
-                            Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
-                    }
-                    showDatePicker = false
-                }) { Text(stringResource(R.string.action_ok)) }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    showDatePicker = false
-                }) { Text(stringResource(R.string.action_cancel_alt)) }
+            onConfirm = {
+                datePickerState.selectedDateMillis?.let {
+                    selectedDate =
+                        Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
+                }
+                showDatePicker = false
             }
-        ) {
-            DatePicker(state = datePickerState)
-        }
+        )
     }
 
     if (showStartTimePicker) {
         val timePickerState =
-            rememberTimePickerState(initialHour = startTime.hour, initialMinute = startTime.minute)
-        TimePickerDialog(
+            rememberTimePickerState(
+                initialHour = startTime.hour,
+                initialMinute = startTime.minute,
+                is24Hour = true
+            )
+        EditTimePickerDialog(
             onDismissRequest = { showStartTimePicker = false },
             confirmButton = {
-                TextButton(onClick = {
+                DialogActionButton(text = "ОК", onClick = {
                     startTime = LocalTime.of(timePickerState.hour, timePickerState.minute)
                     showStartTimePicker = false
-                }) { Text(stringResource(R.string.action_ok)) }
+                })
             },
             dismissButton = {
-                TextButton(onClick = { showStartTimePicker = false }) {
-                    Text(stringResource(R.string.action_cancel_alt))
-                }
+                DialogActionButton(text = "Отмена", onClick = { showStartTimePicker = false })
             }
         ) {
-            TimePicker(state = timePickerState)
+            TimePicker(
+                state = timePickerState,
+                colors = TimePickerDefaults.colors(containerColor = Color.White)
+            )
         }
     }
 
     if (showEndTimePicker) {
         val timePickerState =
-            rememberTimePickerState(initialHour = endTime.hour, initialMinute = endTime.minute)
-        TimePickerDialog(
+            rememberTimePickerState(
+                initialHour = endTime.hour,
+                initialMinute = endTime.minute,
+                is24Hour = true
+            )
+        EditTimePickerDialog(
             onDismissRequest = { showEndTimePicker = false },
             confirmButton = {
-                TextButton(onClick = {
+                DialogActionButton(text = "ОК", onClick = {
                     endTime = LocalTime.of(timePickerState.hour, timePickerState.minute)
                     showEndTimePicker = false
-                }) { Text(stringResource(R.string.action_ok)) }
+                })
             },
             dismissButton = {
-                TextButton(onClick = { showEndTimePicker = false }) {
-                    Text(stringResource(R.string.action_cancel_alt))
+                DialogActionButton(text = "Отмена", onClick = { showEndTimePicker = false })
+            }
+        ) {
+            TimePicker(
+                state = timePickerState,
+                colors = TimePickerDefaults.colors(containerColor = Color.White)
+            )
+        }
+    }
+}
+
+@Composable
+private fun EditClickableField(
+    value: String,
+    label: String,
+    icon: ImageVector,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    isError: Boolean = false
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = {},
+        label = { Text(label) },
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        readOnly = true,
+        enabled = false,
+        leadingIcon = { Icon(icon, contentDescription = null) },
+        colors = OutlinedTextFieldDefaults.colors(
+            disabledTextColor = MaterialTheme.colorScheme.onSurface,
+            disabledBorderColor = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline,
+            disabledLabelColor = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+            disabledLeadingIconColor = MaterialTheme.colorScheme.primary
+        ),
+        shape = RoundedCornerShape(12.dp)
+    )
+}
+
+@Composable
+private fun EditTimePickerDialog(
+    onDismissRequest: () -> Unit,
+    confirmButton: @Composable () -> Unit,
+    dismissButton: @Composable () -> Unit,
+    content: @Composable () -> Unit
+) {
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismissRequest) {
+        androidx.compose.material3.Surface(
+            shape = RoundedCornerShape(24.dp),
+            color = Color.White,
+            shadowElevation = 6.dp,
+            modifier = Modifier
+                .width(320.dp)
+                .padding(vertical = 16.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                content()
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        dismissButton()
+                        confirmButton()
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DialogActionButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    androidx.compose.material3.Button(
+        onClick = onClick,
+        modifier = modifier
+            .height(48.dp)
+            .width(120.dp),
+        shape = RoundedCornerShape(24.dp)
+    ) {
+        Text(text = text, fontWeight = FontWeight.Bold)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun LocalizedDatePickerDialog(
+    state: androidx.compose.material3.DatePickerState,
+    locale: Locale,
+    onDismissRequest: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    LocalizedContent(locale) {
+        DatePickerDialog(
+            onDismissRequest = onDismissRequest,
+            confirmButton = {
+                TextButton(onClick = onConfirm) {
+                    Text("ОК", fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismissRequest) {
+                    Text("Отмена")
                 }
             }
         ) {
-            TimePicker(state = timePickerState)
+            DatePicker(
+                state = state,
+                colors = androidx.compose.material3.DatePickerDefaults.colors(
+                    containerColor = Color.White
+                )
+            )
         }
     }
+}
+
+@Composable
+private fun LocalizedContent(
+    locale: Locale,
+    content: @Composable () -> Unit
+) {
+    val baseContext = LocalContext.current
+    val configuration = remember(locale) {
+        Configuration(baseContext.resources.configuration).apply {
+            setLocales(LocaleList(locale))
+        }
+    }
+    val localizedContext = remember(locale) {
+        baseContext.createConfigurationContext(configuration)
+    }
+    DisposableEffect(locale) {
+        val previousLocale = Locale.getDefault()
+        Locale.setDefault(locale)
+        onDispose {
+            Locale.setDefault(previousLocale)
+        }
+    }
+
+    androidx.compose.runtime.CompositionLocalProvider(
+        LocalContext provides localizedContext,
+        LocalConfiguration provides configuration,
+        content = content
+    )
 }

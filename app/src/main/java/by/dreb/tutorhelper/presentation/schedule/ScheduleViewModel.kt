@@ -79,4 +79,10 @@ class ScheduleViewModel @Inject constructor(
             lessonRepository.deleteLesson(lesson.lesson)
         }
     }
+
+    fun deleteLessonWithFutureDuplicates(lesson: LessonDetails) {
+        viewModelScope.launch {
+            lessonRepository.deleteLessonWithFutureDuplicates(lesson.lesson)
+        }
+    }
 }
