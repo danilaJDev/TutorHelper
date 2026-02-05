@@ -8,14 +8,11 @@ import by.dreb.tutorhelper.data.db.TutorHelperDatabase
 import by.dreb.tutorhelper.data.db.dao.LessonDao
 import by.dreb.tutorhelper.data.db.dao.PaymentDao
 import by.dreb.tutorhelper.data.db.dao.StudentDao
-import by.dreb.tutorhelper.data.preferences.SettingsDataStore
 import by.dreb.tutorhelper.data.repository.LessonRepositoryImpl
 import by.dreb.tutorhelper.data.repository.PaymentRepositoryImpl
-import by.dreb.tutorhelper.data.repository.SettingsRepositoryImpl
 import by.dreb.tutorhelper.data.repository.StudentRepositoryImpl
 import by.dreb.tutorhelper.domain.repository.LessonRepository
 import by.dreb.tutorhelper.domain.repository.PaymentRepository
-import by.dreb.tutorhelper.domain.repository.SettingsRepository
 import by.dreb.tutorhelper.domain.repository.StudentRepository
 import dagger.Binds
 import dagger.Module
@@ -71,11 +68,6 @@ object AppModule {
     fun providePaymentDao(database: TutorHelperDatabase): PaymentDao = database.paymentDao()
 
     @Provides
-    @Singleton
-    fun provideSettingsDataStore(@ApplicationContext context: Context): SettingsDataStore =
-        SettingsDataStore(context)
-
-    @Provides
     @ApplicationScope
     fun provideApplicationScope(): CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 }
@@ -91,9 +83,6 @@ abstract class RepositoryModule {
 
     @Binds
     abstract fun bindPaymentRepository(impl: PaymentRepositoryImpl): PaymentRepository
-
-    @Binds
-    abstract fun bindSettingsRepository(impl: SettingsRepositoryImpl): SettingsRepository
 }
 
 @Qualifier
