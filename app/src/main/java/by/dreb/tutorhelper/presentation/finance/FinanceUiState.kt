@@ -5,14 +5,18 @@ import by.dreb.tutorhelper.domain.model.Student
 
 data class FinanceUiState(
     val filter: FinanceFilter = FinanceFilter.ACTIVE,
-    val listItems: List<FinanceListItem> = emptyList()
+    val sections: List<FinanceStudentSection> = emptyList()
 )
 
 enum class FinanceFilter {
     ACTIVE, ARCHIVED
 }
 
-sealed class FinanceListItem {
-    data class StudentHeader(val student: Student, val isExpanded: Boolean) : FinanceListItem()
-    data class LessonItem(val details: LessonDetails) : FinanceListItem()
-}
+data class FinanceStudentSection(
+    val student: Student,
+    val lessons: List<LessonDetails>,
+    val isExpanded: Boolean,
+    val totalAmount: Double,
+    val paidAmount: Double,
+    val unpaidAmount: Double
+)

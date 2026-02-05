@@ -1,5 +1,7 @@
 package by.dreb.tutorhelper.presentation.finance
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -15,21 +17,24 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Payments
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -38,13 +43,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import by.dreb.tutorhelper.R
 import by.dreb.tutorhelper.domain.model.LessonDetails
-import by.dreb.tutorhelper.domain.model.Student
 import by.dreb.tutorhelper.ui.components.TutorHelperEmptyState
 import by.dreb.tutorhelper.ui.components.TutorHelperFilterChip
 import by.dreb.tutorhelper.ui.components.TutorHelperTopAppBar
@@ -94,7 +99,7 @@ fun FinanceScreen(viewModel: FinanceViewModel = hiltViewModel()) {
                 }
             }
 
-            if (state.listItems.isEmpty()) {
+            if (state.sections.isEmpty()) {
                 TutorHelperEmptyState(
                     message = stringResource(R.string.finance_empty),
                     icon = Icons.Default.Payments,
@@ -103,26 +108,18 @@ fun FinanceScreen(viewModel: FinanceViewModel = hiltViewModel()) {
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(bottom = 16.dp)
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    items(state.listItems, key = { item ->
-                        when (item) {
-                            is FinanceListItem.StudentHeader -> "student_${item.student.id}"
-                            is FinanceListItem.LessonItem -> "lesson_${item.details.lesson.id}"
-                        }
-                    }) { item ->
-                        when (item) {
-                            is FinanceListItem.StudentHeader -> StudentHeaderRow(
-                                student = item.student,
-                                isExpanded = item.isExpanded,
-                                onToggle = { viewModel.toggleStudentExpanded(item.student.id) }
-                            )
-
-                            is FinanceListItem.LessonItem -> ModernFinanceCard(
-                                details = item.details,
-                                onTap = { viewModel.togglePayment(item.details) }
-                            )
-                        }
+                    itemsIndexed(
+                        state.sections,
+                        key = { _, section -> "student_${section.student.id}" }
+                    ) { _, section ->
+                        StudentFinanceSection(
+                            section = section,
+                            onToggle = { viewModel.toggleStudentExpanded(section.student.id) },
+                            onPaymentToggle = { details -> viewModel.togglePayment(details) }
+                        )
                     }
                 }
             }
@@ -131,37 +128,107 @@ fun FinanceScreen(viewModel: FinanceViewModel = hiltViewModel()) {
 }
 
 @Composable
-private fun StudentHeaderRow(
-    student: Student,
-    isExpanded: Boolean,
-    onToggle: () -> Unit
+private fun StudentFinanceSection(
+    section: FinanceStudentSection,
+    onToggle: () -> Unit,
+    onPaymentToggle: (LessonDetails) -> Unit
 ) {
-    Row(
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onToggle() }
-            .padding(vertical = 12.dp, horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+            .animateContentSize()
+            .clickable { onToggle() }, // <-- весь блок кликабельный
+        colors = CardDefaults.cardColors(containerColor = AppPalette.Surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = AppPalette.CardElevation),
+        shape = AppPalette.CardShape
     ) {
-        Text(
-            text = student.name,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = AppPalette.TextPrimary
-        )
-        Icon(
-            imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-            contentDescription = null,
-            tint = AppPalette.TextSecondary
-        )
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(), // clickable тут больше не нужен
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = section.student.name,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = AppPalette.TextPrimary
+                        )
+                    }
+                }
+                Icon(
+                    imageVector = if (section.isExpanded)
+                        Icons.Default.KeyboardArrowUp
+                    else
+                        Icons.Default.KeyboardArrowDown,
+                    contentDescription = null,
+                    tint = AppPalette.TextSecondary,
+                    modifier = Modifier.size(28.dp)
+                )
+            }
+
+            AnimatedVisibility(visible = section.isExpanded) {
+                Column(
+                    modifier = Modifier.padding(top = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    section.lessons.forEach { lesson ->
+                        ModernFinanceCard(
+                            details = lesson,
+                            onTap = { onPaymentToggle(lesson) },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun FinanceSummaryBadge(
+    label: String,
+    value: String,
+    color: Color
+) {
+    Surface(
+        color = color.copy(alpha = 0.12f),
+        contentColor = color,
+        shape = AppPalette.CardShape,
+        shadowElevation = 0.dp
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = AppPalette.TextSecondary
+            )
+            Text(
+                text = value,
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = AppPalette.TextPrimary
+            )
+        }
     }
 }
 
 @Composable
 private fun ModernFinanceCard(
     details: LessonDetails,
-    onTap: () -> Unit
+    onTap: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val russianLocale = Locale("ru")
     val dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy, EEEE", russianLocale)
@@ -181,9 +248,9 @@ private fun ModernFinanceCard(
     }
 
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 6.dp)
+            .padding(vertical = 6.dp)
             .border(1.dp, AppPalette.Outline, AppPalette.CardShape)
             .shadow(1.dp, AppPalette.CardShape)
             .clip(AppPalette.CardShape)
@@ -252,4 +319,8 @@ private fun ModernFinanceCard(
             }
         }
     }
+}
+
+private fun formatAmount(amount: Double): String {
+    return String.format(Locale("ru"), "%.2f", amount)
 }
