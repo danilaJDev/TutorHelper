@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -39,7 +38,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -120,6 +118,7 @@ fun FinanceScreen(viewModel: FinanceViewModel = hiltViewModel()) {
                                 isExpanded = item.isExpanded,
                                 onToggle = { viewModel.toggleStudentExpanded(item.student.id) }
                             )
+
                             is FinanceListItem.LessonItem -> ModernFinanceCard(
                                 details = item.details,
                                 onTap = { viewModel.togglePayment(item.details) }
@@ -215,14 +214,20 @@ private fun ModernFinanceCard(
                         color = AppPalette.TextPrimary
                     )
                     Text(
-                        text = "${details.lesson.startTime.format(timeFormatter)} - ${endTime.format(timeFormatter)}",
+                        text = "${details.lesson.startTime.format(timeFormatter)} - ${
+                            endTime.format(
+                                timeFormatter
+                            )
+                        }",
                         style = MaterialTheme.typography.bodyMedium,
                         color = AppPalette.TextSecondary
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
-                            text = if (isCompleted) stringResource(R.string.schedule_status_done) else stringResource(R.string.schedule_status_planned),
+                            text = if (isCompleted) stringResource(R.string.schedule_status_done) else stringResource(
+                                R.string.schedule_status_planned
+                            ),
                             style = MaterialTheme.typography.labelMedium,
                             color = if (isCompleted) AppPalette.Success else AppPalette.TextSecondary,
                             fontWeight = FontWeight.SemiBold

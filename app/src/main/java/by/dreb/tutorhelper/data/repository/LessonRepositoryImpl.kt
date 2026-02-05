@@ -4,16 +4,16 @@ import by.dreb.tutorhelper.data.db.dao.LessonDao
 import by.dreb.tutorhelper.data.db.dao.PaymentDao
 import by.dreb.tutorhelper.data.mapper.toDomain
 import by.dreb.tutorhelper.data.mapper.toEntity
+import by.dreb.tutorhelper.di.ApplicationScope
 import by.dreb.tutorhelper.domain.model.Lesson
 import by.dreb.tutorhelper.domain.model.LessonDetails
 import by.dreb.tutorhelper.domain.repository.LessonRepository
-import by.dreb.tutorhelper.di.ApplicationScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 

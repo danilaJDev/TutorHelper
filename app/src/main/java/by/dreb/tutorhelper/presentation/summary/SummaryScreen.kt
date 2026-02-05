@@ -1,6 +1,5 @@
 package by.dreb.tutorhelper.presentation.summary
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,9 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Groups
-import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material3.Card
@@ -178,8 +175,10 @@ private fun PeriodRangePickerDialog(
                     val startMillis = dateRangePickerState.selectedStartDateMillis
                     val endMillis = dateRangePickerState.selectedEndDateMillis
                     if (startMillis != null && endMillis != null) {
-                        val start = Instant.ofEpochMilli(startMillis).atZone(ZoneId.systemDefault()).toLocalDate()
-                        val end = Instant.ofEpochMilli(endMillis).atZone(ZoneId.systemDefault()).toLocalDate()
+                        val start = Instant.ofEpochMilli(startMillis).atZone(ZoneId.systemDefault())
+                            .toLocalDate()
+                        val end = Instant.ofEpochMilli(endMillis).atZone(ZoneId.systemDefault())
+                            .toLocalDate()
                         onDateRangeSelected(start, end)
                     }
                 },
@@ -209,14 +208,21 @@ private fun SummaryHeroCard(summary: Summary) {
         shape = RoundedCornerShape(20.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Column(modifier = Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Column(
+            modifier = Modifier.padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
             Text(
                 text = stringResource(R.string.summary_income),
                 style = MaterialTheme.typography.titleMedium,
                 color = Color.White.copy(alpha = 0.8f)
             )
             Text(
-                text = String.format("%.2f %s", summary.incomeTotal, stringResource(R.string.currency_rub)),
+                text = String.format(
+                    "%.2f %s",
+                    summary.incomeTotal,
+                    stringResource(R.string.currency_rub)
+                ),
                 style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.ExtraBold),
                 color = Color.White
             )
@@ -274,7 +280,10 @@ private fun SummaryStatCard(
         color = AppPalette.Surface,
         shadowElevation = 1.dp
     ) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -327,7 +336,8 @@ private fun YearlyIncomeCard(year: Int, stats: List<MonthlyStat>) {
     val totalYearIncome = stats.sumOf { it.income }
     val russianLocale = Locale("ru")
     val monthNames = (1..12).map {
-        LocalDate.of(year, it, 1).format(DateTimeFormatter.ofPattern("LLL", russianLocale)).uppercase()
+        LocalDate.of(year, it, 1).format(DateTimeFormatter.ofPattern("LLL", russianLocale))
+            .uppercase()
     }
 
     Card(
@@ -337,16 +347,29 @@ private fun YearlyIncomeCard(year: Int, stats: List<MonthlyStat>) {
         shape = RoundedCornerShape(16.dp),
         border = androidx.compose.foundation.BorderStroke(1.dp, AppPalette.Outline)
     ) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
                 Text(
                     text = year.toString(),
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                     color = AppPalette.TextPrimary
                 )
                 Text(
-                    text = String.format("%.0f %s", totalYearIncome, stringResource(R.string.currency_rub)),
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = AppPalette.Primary)
+                    text = String.format(
+                        "%.0f %s",
+                        totalYearIncome,
+                        stringResource(R.string.currency_rub)
+                    ),
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = AppPalette.Primary
+                    )
                 )
             }
 
@@ -371,17 +394,34 @@ private fun MonthIncomeRow(month: String, income: Double, maxIncome: Double) {
             color = AppPalette.TextPrimary
         )
 
-        Box(modifier = Modifier.weight(1f).height(24.dp), contentAlignment = Alignment.CenterStart) {
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .height(24.dp),
+            contentAlignment = Alignment.CenterStart
+        ) {
             Surface(
-                modifier = Modifier.fillMaxWidth(fraction = (income / maxIncome).toFloat().coerceIn(0.01f, 1f)),
+                modifier = Modifier.fillMaxWidth(
+                    fraction = (income / maxIncome).toFloat().coerceIn(0.01f, 1f)
+                ),
                 shape = CircleShape,
                 color = AppPalette.Primary.copy(alpha = 0.8f)
             ) {
-                Box(modifier = Modifier.padding(horizontal = 12.dp), contentAlignment = Alignment.CenterEnd) {
+                Box(
+                    modifier = Modifier.padding(horizontal = 12.dp),
+                    contentAlignment = Alignment.CenterEnd
+                ) {
                     if (income > 0) {
                         Text(
-                            text = String.format("%.0f %s", income, stringResource(R.string.currency_rub)),
-                            style = MaterialTheme.typography.labelSmall.copy(color = Color.White, fontWeight = FontWeight.Bold)
+                            text = String.format(
+                                "%.0f %s",
+                                income,
+                                stringResource(R.string.currency_rub)
+                            ),
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold
+                            )
                         )
                     }
                 }

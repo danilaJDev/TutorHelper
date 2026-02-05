@@ -103,7 +103,8 @@ fun StudentDetailsScreen(
                         DetailItem(
                             icon = Icons.Default.Phone,
                             label = stringResource(R.string.student_label_phone),
-                            value = s.phone?.takeIf { it.isNotBlank() } ?: stringResource(R.string.field_not_filled)
+                            value = s.phone?.takeIf { it.isNotBlank() }
+                                ?: stringResource(R.string.field_not_filled)
                         )
                         HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
                         DetailItem(
@@ -115,7 +116,8 @@ fun StudentDetailsScreen(
                         DetailItem(
                             icon = Icons.Default.Notes,
                             label = stringResource(R.string.student_label_note),
-                            value = s.note?.takeIf { it.isNotBlank() } ?: stringResource(R.string.field_not_filled)
+                            value = s.note?.takeIf { it.isNotBlank() }
+                                ?: stringResource(R.string.field_not_filled)
                         )
                     }
                 }

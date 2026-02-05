@@ -4,10 +4,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
-/**
- * Единая палитра цветов приложения.
- * Используем мягкие, профессиональные цвета из экрана расписания.
- */
 object AppPalette {
     val Background = Color(0xFFF8FAFC)
     val Surface = Color(0xFFFFFFFF)
