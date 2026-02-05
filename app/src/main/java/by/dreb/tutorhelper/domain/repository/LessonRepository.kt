@@ -12,4 +12,5 @@ interface LessonRepository {
     fun observeLessonDetailsById(id: Long): Flow<LessonDetails?>
     suspend fun upsertLesson(lesson: Lesson)
     suspend fun deleteLesson(lesson: Lesson)
+    suspend fun deleteLessonWithFutureDuplicates(lesson: Lesson)
 }

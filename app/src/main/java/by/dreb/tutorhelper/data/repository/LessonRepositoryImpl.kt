@@ -50,6 +50,19 @@ class LessonRepositoryImpl @Inject constructor(
         lessonDao.delete(lesson.toEntity())
     }
 
+    override suspend fun deleteLessonWithFutureDuplicates(lesson: Lesson) {
+        val lessons = lessonDao.getLessonsByStudentFrom(lesson.studentId, lesson.startTime.toString())
+            .map { it.toDomain() }
+        val targetTime = lesson.startTime.toLocalTime()
+        val targetDay = lesson.startTime.dayOfWeek
+        lessons.filter { candidate ->
+            candidate.startTime.toLocalTime() == targetTime && candidate.startTime.dayOfWeek == targetDay
+        }.forEach { candidate ->
+            paymentDao.deleteByLessonId(candidate.id)
+            lessonDao.delete(candidate.toEntity())
+        }
+    }
+
     private fun autoCompleteLessons(lessons: List<LessonDetails>): List<LessonDetails> {
         val now = LocalDateTime.now()
         val toUpdate = lessons.filter { details ->

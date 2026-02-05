@@ -34,4 +34,7 @@ interface LessonDao {
 
     @Query("DELETE FROM lessons WHERE studentId = :studentId")
     suspend fun deleteLessonsByStudentId(studentId: Long)
+
+    @Query("SELECT * FROM lessons WHERE studentId = :studentId AND startTime >= :startTime ORDER BY startTime ASC")
+    suspend fun getLessonsByStudentFrom(studentId: Long, startTime: String): List<LessonEntity>
 }
