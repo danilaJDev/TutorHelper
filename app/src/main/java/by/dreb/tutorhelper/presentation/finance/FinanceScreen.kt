@@ -158,17 +158,17 @@ private fun StudentFinanceSection(
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         FinanceSummaryBadge(
                             label = stringResource(R.string.finance_student_paid_label),
-                            value = "${section.paidAmount} ${stringResource(R.string.currency_rub)}",
+                            value = "${formatAmount(section.paidAmount)} ${stringResource(R.string.currency_rub)}",
                             color = AppPalette.Success
                         )
                         FinanceSummaryBadge(
                             label = stringResource(R.string.finance_student_due_label),
-                            value = "${section.unpaidAmount} ${stringResource(R.string.currency_rub)}",
+                            value = "${formatAmount(section.unpaidAmount)} ${stringResource(R.string.currency_rub)}",
                             color = if (section.unpaidAmount > 0) AppPalette.Error else AppPalette.Success
                         )
                         FinanceSummaryBadge(
                             label = stringResource(R.string.finance_student_total_label),
-                            value = "${section.totalAmount} ${stringResource(R.string.currency_rub)}",
+                            value = "${formatAmount(section.totalAmount)} ${stringResource(R.string.currency_rub)}",
                             color = AppPalette.Primary
                         )
                     }
@@ -325,4 +325,8 @@ private fun ModernFinanceCard(
             }
         }
     }
+}
+
+private fun formatAmount(amount: Double): String {
+    return String.format(Locale("ru"), "%.2f", amount)
 }

@@ -48,7 +48,7 @@ class FinanceViewModel @Inject constructor(
         val sections = grouped.map { (student, studentLessons) ->
             val sortedLessons = studentLessons.sortedByDescending { it.lesson.startTime }
             val totalAmount = sortedLessons.sumOf { it.lesson.price }
-            val paidAmount = sortedLessons.sumOf { it.payment?.amount ?: 0 }
+            val paidAmount = sortedLessons.sumOf { it.payment?.amount ?: 0.0 }
             val unpaidAmount = totalAmount - paidAmount
             FinanceStudentSection(
                 student = student,

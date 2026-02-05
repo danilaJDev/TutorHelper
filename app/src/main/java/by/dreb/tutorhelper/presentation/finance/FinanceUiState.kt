@@ -16,7 +16,7 @@ data class FinanceStudentSection(
     val student: Student,
     val lessons: List<LessonDetails>,
     val isExpanded: Boolean,
-    val totalAmount: Int,
-    val paidAmount: Int,
-    val unpaidAmount: Int
+    val totalAmount: Double,
+    val paidAmount: Double,
+    val unpaidAmount: Double
 )
