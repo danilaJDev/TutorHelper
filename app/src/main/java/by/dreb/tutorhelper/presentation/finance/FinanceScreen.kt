@@ -32,8 +32,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -135,16 +135,15 @@ private fun StudentFinanceSection(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .animateContentSize(),
+            .animateContentSize()
+            .clickable { onToggle() }, // <-- весь блок кликабельный
         colors = CardDefaults.cardColors(containerColor = AppPalette.Surface),
         elevation = CardDefaults.cardElevation(defaultElevation = AppPalette.CardElevation),
         shape = AppPalette.CardShape
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onToggle() },
+                modifier = Modifier.fillMaxWidth(), // clickable тут больше не нужен
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
@@ -154,27 +153,12 @@ private fun StudentFinanceSection(
                         fontWeight = FontWeight.Bold,
                         color = AppPalette.TextPrimary
                     )
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        FinanceSummaryBadge(
-                            label = stringResource(R.string.finance_student_paid_label),
-                            value = "${formatAmount(section.paidAmount)} ${stringResource(R.string.currency_rub)}",
-                            color = AppPalette.Success
-                        )
-                        FinanceSummaryBadge(
-                            label = stringResource(R.string.finance_student_due_label),
-                            value = "${formatAmount(section.unpaidAmount)} ${stringResource(R.string.currency_rub)}",
-                            color = if (section.unpaidAmount > 0) AppPalette.Error else AppPalette.Success
-                        )
-                        FinanceSummaryBadge(
-                            label = stringResource(R.string.finance_student_total_label),
-                            value = "${formatAmount(section.totalAmount)} ${stringResource(R.string.currency_rub)}",
-                            color = AppPalette.Primary
-                        )
-                    }
                 }
                 Icon(
-                    imageVector = if (section.isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                    imageVector = if (section.isExpanded)
+                        Icons.Default.KeyboardArrowUp
+                    else
+                        Icons.Default.KeyboardArrowDown,
                     contentDescription = null,
                     tint = AppPalette.TextSecondary,
                     modifier = Modifier.size(28.dp)
