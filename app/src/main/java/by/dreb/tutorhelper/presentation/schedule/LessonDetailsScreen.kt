@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -58,8 +57,9 @@ class LessonDetailsViewModel @Inject constructor(
 ) : ViewModel() {
     private val lessonId: Long = checkNotNull(savedStateHandle["lessonId"])
 
-    val lessonDetails: StateFlow<LessonDetails?> = lessonRepository.observeLessonDetailsById(lessonId)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    val lessonDetails: StateFlow<LessonDetails?> =
+        lessonRepository.observeLessonDetailsById(lessonId)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 }
 
 @Composable
@@ -140,19 +140,27 @@ fun LessonDetailsScreen(
                         DetailItem(
                             icon = Icons.Default.Schedule,
                             label = stringResource(R.string.lesson_label_time),
-                            value = "${lesson.startTime.format(timeFormatter)} - ${endTime.format(timeFormatter)} (${lesson.durationMinutes} мин)"
+                            value = "${lesson.startTime.format(timeFormatter)} - ${
+                                endTime.format(
+                                    timeFormatter
+                                )
+                            } (${lesson.durationMinutes} мин)"
                         )
                         HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
                         DetailItem(
                             icon = Icons.Default.Payments,
-                            label = stringResource(R.string.finance_payment_amount).replace(": %1$.2f", ""),
+                            label = stringResource(R.string.finance_payment_amount).replace(
+                                ": %1$.2f",
+                                ""
+                            ),
                             value = "${lesson.price} ${stringResource(R.string.currency_rub)}"
                         )
                         HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
                         DetailItem(
                             icon = Icons.Default.Notes,
                             label = stringResource(R.string.lesson_label_note),
-                            value = lesson.note?.takeIf { it.isNotBlank() } ?: stringResource(R.string.field_not_filled)
+                            value = lesson.note?.takeIf { it.isNotBlank() }
+                                ?: stringResource(R.string.field_not_filled)
                         )
                     }
                 }

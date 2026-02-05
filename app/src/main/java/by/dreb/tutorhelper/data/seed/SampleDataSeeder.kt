@@ -25,20 +25,38 @@ class SampleDataSeeder @Inject constructor(
             if (studentDao.countStudents() > 0) return@launch
 
             val aliceId = studentDao.upsert(
-                StudentEntity(name = "Alice Petrova", phone = "+7 900 100 20 30", note = "ЕГЭ", isArchived = false, defaultPrice = 25.0)
+                StudentEntity(
+                    name = "Alice Petrova",
+                    phone = "+7 900 100 20 30",
+                    note = "ЕГЭ",
+                    isArchived = false,
+                    defaultPrice = 25.0
+                )
             )
             val bobId = studentDao.upsert(
-                StudentEntity(name = "Bob Smirnov", phone = "+7 900 555 66 77", note = "Math", isArchived = false, defaultPrice = 30.0)
+                StudentEntity(
+                    name = "Bob Smirnov",
+                    phone = "+7 900 555 66 77",
+                    note = "Math",
+                    isArchived = false,
+                    defaultPrice = 30.0
+                )
             )
             val archivedId = studentDao.upsert(
-                StudentEntity(name = "Irina Archive", phone = null, note = "Past student", isArchived = true)
+                StudentEntity(
+                    name = "Irina Archive",
+                    phone = null,
+                    note = "Past student",
+                    isArchived = true
+                )
             )
 
             val lesson1Id = lessonDao.upsert(
                 LessonEntity(
                     studentId = aliceId,
                     subject = "English",
-                    startTime = LocalDateTime.now().minusDays(1).withHour(16).withMinute(0).withSecond(0).withNano(0).toString(),
+                    startTime = LocalDateTime.now().minusDays(1).withHour(16).withMinute(0)
+                        .withSecond(0).withNano(0).toString(),
                     durationMinutes = 60,
                     price = 25.0,
                     note = "Grammar practice"
@@ -48,7 +66,8 @@ class SampleDataSeeder @Inject constructor(
                 LessonEntity(
                     studentId = bobId,
                     subject = "Mathematics",
-                    startTime = LocalDateTime.now().plusDays(1).withHour(12).withMinute(0).withSecond(0).withNano(0).toString(),
+                    startTime = LocalDateTime.now().plusDays(1).withHour(12).withMinute(0)
+                        .withSecond(0).withNano(0).toString(),
                     durationMinutes = 90,
                     price = 30.0,
                     note = "Geometry"
@@ -59,7 +78,8 @@ class SampleDataSeeder @Inject constructor(
                 LessonEntity(
                     studentId = archivedId,
                     subject = "History",
-                    startTime = LocalDateTime.now().minusWeeks(1).withHour(11).withMinute(0).withSecond(0).withNano(0).toString(),
+                    startTime = LocalDateTime.now().minusWeeks(1).withHour(11).withMinute(0)
+                        .withSecond(0).withNano(0).toString(),
                     durationMinutes = 45,
                     price = 20.0,
                     note = "Archived student"

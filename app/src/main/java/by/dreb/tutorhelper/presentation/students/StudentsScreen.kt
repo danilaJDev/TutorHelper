@@ -4,9 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -191,7 +190,12 @@ private fun ModernStudentCard(
         AlertDialog(
             onDismissRequest = { showArchiveDialog = false },
             title = { Text(stringResource(R.string.student_archive_confirm_title)) },
-            text = { Text(stringResource(R.string.student_archive_confirm_message), color = AppPalette.TextSecondary) },
+            text = {
+                Text(
+                    stringResource(R.string.student_archive_confirm_message),
+                    color = AppPalette.TextSecondary
+                )
+            },
             confirmButton = {
                 TextButton(onClick = {
                     onArchiveToggle(true)
@@ -213,7 +217,12 @@ private fun ModernStudentCard(
         AlertDialog(
             onDismissRequest = { showRestoreDialog = false },
             title = { Text(stringResource(R.string.student_restore_confirm_title)) },
-            text = { Text(stringResource(R.string.student_restore_confirm_message), color = AppPalette.TextSecondary) },
+            text = {
+                Text(
+                    stringResource(R.string.student_restore_confirm_message),
+                    color = AppPalette.TextSecondary
+                )
+            },
             confirmButton = {
                 TextButton(onClick = {
                     onArchiveToggle(false)
@@ -235,7 +244,12 @@ private fun ModernStudentCard(
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
             title = { Text(stringResource(R.string.student_delete_confirm_title)) },
-            text = { Text(stringResource(R.string.student_delete_confirm_message), color = AppPalette.TextSecondary) },
+            text = {
+                Text(
+                    stringResource(R.string.student_delete_confirm_message),
+                    color = AppPalette.TextSecondary
+                )
+            },
             confirmButton = {
                 TextButton(
                     onClick = {

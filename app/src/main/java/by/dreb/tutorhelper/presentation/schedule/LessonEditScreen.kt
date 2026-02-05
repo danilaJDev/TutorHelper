@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -94,13 +93,15 @@ class LessonEditViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             val current = lessonDetails.value?.lesson ?: return@launch
-            lessonRepository.upsertLesson(current.copy(
-                studentId = studentId,
-                startTime = startTime,
-                durationMinutes = durationMinutes,
-                price = price,
-                note = note
-            ))
+            lessonRepository.upsertLesson(
+                current.copy(
+                    studentId = studentId,
+                    startTime = startTime,
+                    durationMinutes = durationMinutes,
+                    price = price,
+                    note = note
+                )
+            )
         }
     }
 }
@@ -127,7 +128,8 @@ fun LessonEditScreen(
             selectedStudent = it.student
             selectedDate = it.lesson.startTime.toLocalDate()
             startTime = it.lesson.startTime.toLocalTime()
-            endTime = it.lesson.startTime.toLocalTime().plusMinutes(it.lesson.durationMinutes.toLong())
+            endTime =
+                it.lesson.startTime.toLocalTime().plusMinutes(it.lesson.durationMinutes.toLong())
             price = it.lesson.price.toString()
             note = it.lesson.note ?: ""
         }
@@ -166,7 +168,8 @@ fun LessonEditScreen(
                     onClick = {
                         selectedStudent?.let { student ->
                             val startDateTime = LocalDateTime.of(selectedDate, startTime)
-                            val duration = java.time.Duration.between(startTime, endTime).toMinutes().toInt()
+                            val duration =
+                                java.time.Duration.between(startTime, endTime).toMinutes().toInt()
                             viewModel.updateLesson(
                                 studentId = student.id,
                                 startTime = startDateTime,
@@ -258,25 +261,39 @@ fun LessonEditScreen(
                         modifier = Modifier.fillMaxWidth(),
                         readOnly = true,
                         trailingIcon = {
-                            Icon(Icons.Default.ArrowDropDown, null, Modifier.clickable { showDatePicker = true })
+                            Icon(
+                                Icons.Default.ArrowDropDown,
+                                null,
+                                Modifier.clickable { showDatePicker = true })
                         }
                     )
-                    Box(modifier = Modifier.fillMaxWidth().height(56.dp).clickable { showDatePicker = true })
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp)
+                            .clickable { showDatePicker = true })
 
                     // Time Selectors
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
                         OutlinedTextField(
                             value = startTime.format(DateTimeFormatter.ofPattern("HH:mm")),
                             onValueChange = {},
                             label = { Text(stringResource(R.string.lesson_label_start)) },
-                            modifier = Modifier.weight(1f).clickable { showStartTimePicker = true },
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { showStartTimePicker = true },
                             readOnly = true
                         )
                         OutlinedTextField(
                             value = endTime.format(DateTimeFormatter.ofPattern("HH:mm")),
                             onValueChange = {},
                             label = { Text(stringResource(R.string.lesson_label_end)) },
-                            modifier = Modifier.weight(1f).clickable { showEndTimePicker = true },
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { showEndTimePicker = true },
                             readOnly = true
                         )
                     }
@@ -304,10 +321,12 @@ fun LessonEditScreen(
     // Dialogs
     if (showDatePicker) {
         val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = selectedDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli(),
+            initialSelectedDateMillis = selectedDate.atStartOfDay(ZoneId.systemDefault())
+                .toInstant().toEpochMilli(),
             selectableDates = object : androidx.compose.material3.SelectableDates {
                 override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                    val today = LocalDate.now().atStartOfDay(ZoneId.of("UTC")).toInstant().toEpochMilli()
+                    val today =
+                        LocalDate.now().atStartOfDay(ZoneId.of("UTC")).toInstant().toEpochMilli()
                     return utcTimeMillis >= today
                 }
             }
@@ -317,13 +336,16 @@ fun LessonEditScreen(
             confirmButton = {
                 TextButton(onClick = {
                     datePickerState.selectedDateMillis?.let {
-                        selectedDate = Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
+                        selectedDate =
+                            Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
                     }
                     showDatePicker = false
                 }) { Text(stringResource(R.string.action_ok)) }
             },
             dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) { Text(stringResource(R.string.action_cancel_alt)) }
+                TextButton(onClick = {
+                    showDatePicker = false
+                }) { Text(stringResource(R.string.action_cancel_alt)) }
             }
         ) {
             DatePicker(state = datePickerState)
@@ -331,7 +353,8 @@ fun LessonEditScreen(
     }
 
     if (showStartTimePicker) {
-        val timePickerState = rememberTimePickerState(initialHour = startTime.hour, initialMinute = startTime.minute)
+        val timePickerState =
+            rememberTimePickerState(initialHour = startTime.hour, initialMinute = startTime.minute)
         TimePickerDialog(
             onDismissRequest = { showStartTimePicker = false },
             confirmButton = {
@@ -346,7 +369,8 @@ fun LessonEditScreen(
     }
 
     if (showEndTimePicker) {
-        val timePickerState = rememberTimePickerState(initialHour = endTime.hour, initialMinute = endTime.minute)
+        val timePickerState =
+            rememberTimePickerState(initialHour = endTime.hour, initialMinute = endTime.minute)
         TimePickerDialog(
             onDismissRequest = { showEndTimePicker = false },
             confirmButton = {

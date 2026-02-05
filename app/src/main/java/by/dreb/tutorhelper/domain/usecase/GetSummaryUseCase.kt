@@ -27,7 +27,7 @@ class GetSummaryUseCase @Inject constructor(
             val filteredPayments = payments.filter { payment ->
                 val date = payment.paidOn ?: return@filter false
                 (startDate == null || !date.isBefore(startDate)) &&
-                (endDate == null || !date.isAfter(endDate))
+                        (endDate == null || !date.isAfter(endDate))
             }
 
             val incomeTotal = filteredPayments.sumOf { it.amount }
@@ -37,7 +37,7 @@ class GetSummaryUseCase @Inject constructor(
             val filteredLessons = lessons.filter { details ->
                 val date = details.lesson.startTime.toLocalDate()
                 (startDate == null || !date.isBefore(startDate)) &&
-                (endDate == null || !date.isAfter(endDate))
+                        (endDate == null || !date.isAfter(endDate))
             }
 
             val allLessonIds = filteredLessons.map { it.lesson.id }.toSet() + paidLessonIds
@@ -47,11 +47,13 @@ class GetSummaryUseCase @Inject constructor(
 
             val unpaidLessonsCount = filteredLessons.count { it.payment == null }
 
-            val studentIdsFromPayments = filteredPayments.map { it.studentId }.filter { it != 0L }.toSet()
+            val studentIdsFromPayments =
+                filteredPayments.map { it.studentId }.filter { it != 0L }.toSet()
             val studentIdsFromLessons = filteredLessons.map { it.student.id }.toSet()
 
             val totalStudentsCount = if (startDate == null && endDate == null) {
-                (allExistingStudents.map { it.id } + payments.map { it.studentId }.filter { it != 0L }).toSet().size
+                (allExistingStudents.map { it.id } + payments.map { it.studentId }
+                    .filter { it != 0L }).toSet().size
             } else {
                 (studentIdsFromPayments + studentIdsFromLessons).size
             }
@@ -60,7 +62,9 @@ class GetSummaryUseCase @Inject constructor(
             val yearsToShow = if (startDate == null && endDate == null) {
                 listOf(now.year)
             } else {
-                val startYear = startDate?.year ?: payments.minOfOrNull { it.paidOn?.year ?: now.year } ?: now.year
+                val startYear =
+                    startDate?.year ?: payments.minOfOrNull { it.paidOn?.year ?: now.year }
+                    ?: now.year
                 val endYear = endDate?.year ?: now.year
                 (startYear..endYear).toList()
             }
@@ -72,7 +76,8 @@ class GetSummaryUseCase @Inject constructor(
                 }?.takeIf { it > 0 } ?: 1.0
 
                 (1..12).map { month ->
-                    val income = yearPayments.filter { it.paidOn?.monthValue == month }.sumOf { it.amount }
+                    val income =
+                        yearPayments.filter { it.paidOn?.monthValue == month }.sumOf { it.amount }
                     MonthlyStat(year, month, income, maxMonthIncome)
                 }
             }
