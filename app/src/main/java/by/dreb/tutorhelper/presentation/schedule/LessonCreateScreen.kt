@@ -1,5 +1,8 @@
 package by.dreb.tutorhelper.presentation.schedule
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,6 +22,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Event
+import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.filled.Payments
+import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.StickyNote2
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
@@ -33,6 +42,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
@@ -203,10 +213,35 @@ fun LessonCreateScreen(
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp),
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .animateContentSize(animationSpec = tween(durationMillis = 220)),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // Student Selector
+                    Surface(
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 12.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Event,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                            Text(
+                                text = stringResource(R.string.lesson_create_title),
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                    }
+
                     ExposedDropdownMenuBox(
                         expanded = studentDropdownExpanded,
                         onExpandedChange = { studentDropdownExpanded = it },
@@ -220,6 +255,12 @@ fun LessonCreateScreen(
                                 .fillMaxWidth()
                                 .menuAnchor(),
                             readOnly = true,
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Group,
+                                    contentDescription = null
+                                )
+                            },
                             trailingIcon = {
                                 ExposedDropdownMenuDefaults.TrailingIcon(expanded = studentDropdownExpanded)
                             },
@@ -250,13 +291,13 @@ fun LessonCreateScreen(
                         }
                     }
 
-                    // Date Selector
                     OutlinedTextField(
                         value = selectedDate.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
                         onValueChange = {},
                         label = { Text(stringResource(R.string.lesson_label_date)) },
                         modifier = Modifier.fillMaxWidth(),
                         readOnly = true,
+                        leadingIcon = { Icon(imageVector = Icons.Default.Event, contentDescription = null) },
                         trailingIcon = {
                             Icon(
                                 Icons.Default.ArrowDropDown,
@@ -270,7 +311,6 @@ fun LessonCreateScreen(
                             .height(56.dp)
                             .clickable { showDatePicker = true })
 
-                    // Time Selectors
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -282,7 +322,8 @@ fun LessonCreateScreen(
                             modifier = Modifier
                                 .weight(1f)
                                 .clickable { showStartTimePicker = true },
-                            readOnly = true
+                            readOnly = true,
+                            leadingIcon = { Icon(imageVector = Icons.Default.Schedule, contentDescription = null) }
                         )
                         OutlinedTextField(
                             value = endTime.format(DateTimeFormatter.ofPattern("HH:mm")),
@@ -291,53 +332,64 @@ fun LessonCreateScreen(
                             modifier = Modifier
                                 .weight(1f)
                                 .clickable { showEndTimePicker = true },
-                            readOnly = true
+                            readOnly = true,
+                            leadingIcon = { Icon(imageVector = Icons.Default.Schedule, contentDescription = null) }
                         )
                     }
 
-                    // Price Field
                     OutlinedTextField(
                         value = price,
                         onValueChange = { price = it },
                         label = { Text(stringResource(R.string.lesson_label_price)) },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        leadingIcon = { Icon(imageVector = Icons.Default.Payments, contentDescription = null) }
                     )
 
-                    // Note Field
                     OutlinedTextField(
                         value = note,
                         onValueChange = { note = it },
                         label = { Text(stringResource(R.string.lesson_label_note)) },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        leadingIcon = { Icon(imageVector = Icons.Default.StickyNote2, contentDescription = null) }
                     )
 
-                    // Duplicate Checkbox
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Checkbox(checked = isDuplicate, onCheckedChange = { isDuplicate = it })
+                        Icon(
+                            imageVector = Icons.Default.ContentCopy,
+                            contentDescription = null,
+                            modifier = Modifier.padding(end = 8.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
                         Text(
                             stringResource(R.string.lesson_label_duplicate),
                             modifier = Modifier.clickable { isDuplicate = !isDuplicate })
                     }
 
-                    if (isDuplicate) {
-                        OutlinedTextField(
-                            value = duplicateUntil.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
-                            onValueChange = {},
-                            label = { Text(stringResource(R.string.lesson_label_duplicate_until)) },
-                            modifier = Modifier.fillMaxWidth(),
-                            readOnly = true,
-                            trailingIcon = {
-                                Icon(
-                                    Icons.Default.ArrowDropDown,
-                                    null,
-                                    Modifier.clickable { showDuplicateUntilPicker = true })
-                            }
-                        )
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(56.dp)
-                                .clickable { showDuplicateUntilPicker = true })
+                    AnimatedVisibility(visible = isDuplicate) {
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            OutlinedTextField(
+                                value = duplicateUntil.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
+                                onValueChange = {},
+                                label = { Text(stringResource(R.string.lesson_label_duplicate_until)) },
+                                modifier = Modifier.fillMaxWidth(),
+                                readOnly = true,
+                                leadingIcon = {
+                                    Icon(imageVector = Icons.Default.Event, contentDescription = null)
+                                },
+                                trailingIcon = {
+                                    Icon(
+                                        Icons.Default.ArrowDropDown,
+                                        null,
+                                        Modifier.clickable { showDuplicateUntilPicker = true })
+                                }
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(56.dp)
+                                    .clickable { showDuplicateUntilPicker = true })
+                        }
                     }
                 }
             }
@@ -346,7 +398,6 @@ fun LessonCreateScreen(
         }
     }
 
-    // Dialogs
     if (showDatePicker) {
         val datePickerState = rememberDatePickerState(
             initialSelectedDateMillis = selectedDate.atStartOfDay(ZoneId.systemDefault())
