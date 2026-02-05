@@ -690,7 +690,7 @@ private fun ModernLessonCard(
                         Icon(
                             imageVector = if (isHomeworkSent) Icons.Filled.Home else Icons.Outlined.Home,
                             contentDescription = "Homework",
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(30.dp)
                         )
                     }
 
@@ -703,7 +703,7 @@ private fun ModernLessonCard(
                                 imageVector = Icons.Default.VisibilityOff,
                                 contentDescription = "Hide",
                                 tint = AppPalette.TextSecondary.copy(alpha = 0.5f),
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(30.dp)
                             )
                         }
                     } else {
@@ -715,7 +715,7 @@ private fun ModernLessonCard(
                                 imageVector = Icons.Default.Delete,
                                 contentDescription = "Delete",
                                 tint = AppPalette.Error.copy(alpha = 0.7f),
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(30.dp)
                             )
                         }
                     }

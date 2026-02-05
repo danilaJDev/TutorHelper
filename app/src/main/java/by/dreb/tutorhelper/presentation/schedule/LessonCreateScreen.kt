@@ -1,5 +1,7 @@
 package by.dreb.tutorhelper.presentation.schedule
 
+import android.content.res.Configuration
+import android.os.LocaleList
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -29,12 +31,14 @@ import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -51,8 +55,8 @@ import androidx.compose.material3.TimePickerDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -71,11 +75,11 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import by.dreb.tutorhelper.presentation.components.FormCardSection
 import by.dreb.tutorhelper.domain.model.Lesson
 import by.dreb.tutorhelper.domain.model.Student
 import by.dreb.tutorhelper.domain.repository.LessonRepository
 import by.dreb.tutorhelper.domain.repository.StudentRepository
+import by.dreb.tutorhelper.presentation.components.FormCardSection
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -83,8 +87,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import android.content.res.Configuration
-import android.os.LocaleList
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
@@ -186,7 +188,8 @@ class LessonCreateViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true) }
 
             val startDateTime = LocalDateTime.of(currentState.date, currentState.startTime)
-            val durationMinutes = Duration.between(currentState.startTime, currentState.endTime).toMinutes().toInt()
+            val durationMinutes =
+                Duration.between(currentState.startTime, currentState.endTime).toMinutes().toInt()
 
             val baseLesson = Lesson(
                 id = 0,
@@ -395,7 +398,7 @@ fun LessonCreateScreen(
                 OutlinedTextField(
                     value = uiState.price,
                     onValueChange = viewModel::onPriceChanged,
-                    label = { Text("Цена") },
+                    label = { Text("Стоимость занятия") },
                     modifier = Modifier.fillMaxWidth(),
                     leadingIcon = { Icon(Icons.Default.AttachMoney, null) },
                     colors = leadingIconColors,
@@ -603,9 +606,9 @@ fun ClickableField(
         label = { Text(label) },
         modifier = modifier
             .fillMaxWidth()
-            .clickable { onClick() }, // Обработка клика по всему полю
+            .clickable { onClick() },
         readOnly = true,
-        enabled = false, // Отключаем стандартный ввод, но оставляем кликабельность через Box/Modifier
+        enabled = false,
         leadingIcon = { Icon(icon, contentDescription = null) },
         colors = OutlinedTextFieldDefaults.colors(
             disabledTextColor = MaterialTheme.colorScheme.onSurface,
@@ -631,7 +634,7 @@ fun TimePickerDialog(
             color = Color.White,
             shadowElevation = 6.dp,
             modifier = Modifier
-                .width(320.dp) // Стандартная ширина для диалогов
+                .width(320.dp)
                 .padding(vertical = 16.dp)
         ) {
             Column(
@@ -641,8 +644,7 @@ fun TimePickerDialog(
                 content()
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp),
+                        .fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -675,7 +677,7 @@ private fun DialogActionButton(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun LocalizedDatePickerDialog(
-    state: androidx.compose.material3.DatePickerState,
+    state: DatePickerState,
     locale: Locale,
     onDismissRequest: () -> Unit,
     onConfirm: () -> Unit
@@ -683,20 +685,33 @@ private fun LocalizedDatePickerDialog(
     LocalizedContent(locale) {
         DatePickerDialog(
             onDismissRequest = onDismissRequest,
+            colors = DatePickerDefaults.colors(
+                containerColor = Color.White
+            ),
             confirmButton = {
-                TextButton(onClick = onConfirm) {
-                    Text("ОК", fontWeight = FontWeight.Bold)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        DialogActionButton(
+                            text = "Отмена",
+                            onClick = onDismissRequest
+                        )
+                        DialogActionButton(
+                            text = "ОК",
+                            onClick = onConfirm
+                        )
+                    }
                 }
             },
-            dismissButton = {
-                TextButton(onClick = onDismissRequest) {
-                    Text("Отмена")
-                }
-            }
+            dismissButton = {}
         ) {
             DatePicker(
                 state = state,
-                colors = androidx.compose.material3.DatePickerDefaults.colors(
+                colors = DatePickerDefaults.colors(
                     containerColor = Color.White
                 )
             )
