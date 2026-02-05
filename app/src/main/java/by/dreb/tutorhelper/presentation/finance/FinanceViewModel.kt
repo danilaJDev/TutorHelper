@@ -93,16 +93,4 @@ class FinanceViewModel @Inject constructor(
             }
         }
     }
-
-    fun toggleHidden(details: LessonDetails) {
-        viewModelScope.launch {
-            lessonRepository.upsertLesson(details.lesson.copy(isHidden = !details.lesson.isHidden))
-        }
-    }
-
-    fun deleteLesson(details: LessonDetails) {
-        viewModelScope.launch {
-            lessonRepository.deleteLesson(details.lesson)
-        }
-    }
 }

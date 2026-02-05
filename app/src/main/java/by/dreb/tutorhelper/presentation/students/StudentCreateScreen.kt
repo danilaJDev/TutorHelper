@@ -1,5 +1,7 @@
 package by.dreb.tutorhelper.presentation.students
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,6 +18,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.LocalPhone
+import androidx.compose.material.icons.filled.Payments
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.StickyNote2
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -23,6 +29,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -113,14 +120,41 @@ fun StudentCreateScreen(
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp),
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .animateContentSize(animationSpec = tween(durationMillis = 220)),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 12.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Person,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                            Text(
+                                text = stringResource(R.string.student_create_title),
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                    }
+
                     OutlinedTextField(
                         value = name,
                         onValueChange = { name = it },
                         label = { Text(stringResource(R.string.student_label_name)) },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        leadingIcon = { Icon(imageVector = Icons.Default.Person, contentDescription = null) }
                     )
 
                     OutlinedTextField(
@@ -128,6 +162,7 @@ fun StudentCreateScreen(
                         onValueChange = { phone = it },
                         label = { Text(stringResource(R.string.student_label_phone)) },
                         modifier = Modifier.fillMaxWidth(),
+                        leadingIcon = { Icon(imageVector = Icons.Default.LocalPhone, contentDescription = null) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
                     )
 
@@ -136,6 +171,7 @@ fun StudentCreateScreen(
                         onValueChange = { defaultPrice = it },
                         label = { Text(stringResource(R.string.student_label_default_price)) },
                         modifier = Modifier.fillMaxWidth(),
+                        leadingIcon = { Icon(imageVector = Icons.Default.Payments, contentDescription = null) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
                     )
 
@@ -144,6 +180,7 @@ fun StudentCreateScreen(
                         onValueChange = { note = it },
                         label = { Text(stringResource(R.string.student_label_note)) },
                         modifier = Modifier.fillMaxWidth(),
+                        leadingIcon = { Icon(imageVector = Icons.Default.StickyNote2, contentDescription = null) },
                         minLines = 3
                     )
                 }

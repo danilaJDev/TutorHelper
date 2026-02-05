@@ -139,13 +139,11 @@ fun AppRoot() {
                 navController = navController,
                 startDestination = "schedule",
                 modifier = Modifier.padding(padding),
-                // Добавляем плавные анимации для всех переходов
                 enterTransition = { fadeIn(animationSpec = tween(300)) + slideInHorizontally { it / 10 } },
                 exitTransition = { fadeOut(animationSpec = tween(300)) },
                 popEnterTransition = { fadeIn(animationSpec = tween(300)) },
                 popExitTransition = { fadeOut(animationSpec = tween(300)) + slideOutHorizontally { it / 10 } }
             ) {
-                // --- ГРУППА: РАСПИСАНИЕ ---
                 composable("schedule") {
                     ScheduleScreen(
                         onLessonClick = { id -> navController.navigate("lesson_details/$id") },
@@ -179,7 +177,6 @@ fun AppRoot() {
                     LessonCreateScreen(onBackClick = { navController.popBackStack() })
                 }
 
-                // --- ГРУППА: УЧЕНИКИ ---
                 composable("students") {
                     StudentsScreen(
                         onStudentClick = { id -> navController.navigate("student_details/$id") },
@@ -208,7 +205,6 @@ fun AppRoot() {
                     StudentCreateScreen(onBackClick = { navController.popBackStack() })
                 }
 
-                // --- ОСТАЛЬНОЕ ---
                 composable("finance") { FinanceScreen() }
                 composable("summary") { SummaryScreen() }
             }
