@@ -161,7 +161,7 @@ fun StudentCreateScreen(
                     },
                     colors = leadingIconColors,
                     shape = RoundedCornerShape(12.dp),
-                    minLines = 3
+                    singleLine = true
                 )
             }
             Spacer(modifier = Modifier.height(32.dp))

@@ -61,7 +61,7 @@
     <string name="student_label_name">Имя</string>
     <string name="student_label_phone">Телефон</string>
     <string name="student_label_note">Заметка</string>
-    <string name="student_label_default_price">Стоимость занятия по умолчанию</string>
+    <string name="student_label_default_price">Стоимость занятия</string>
     <string name="student_delete_confirm_title">Удалить ученика?</string>
     <string name="student_delete_confirm_message">Вы уверены, что хотите полностью удалить ученика и все его занятия? Это действие нельзя отменить.</string>
     <string name="student_restore_confirm_title">Восстановить?</string>
