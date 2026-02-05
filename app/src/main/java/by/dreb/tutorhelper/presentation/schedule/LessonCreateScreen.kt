@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -509,8 +510,9 @@ fun LessonCreateScreen(
                 .toInstant().toEpochMilli(),
             selectableDates = object : androidx.compose.material3.SelectableDates {
                 override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                    // Разрешаем только даты в будущем
-                    return utcTimeMillis >= System.currentTimeMillis()
+                    val today =
+                        LocalDate.now().atStartOfDay(ZoneId.of("UTC")).toInstant().toEpochMilli()
+                    return utcTimeMillis >= today
                 }
             }
         )
@@ -679,35 +681,25 @@ private fun LocalizedDatePickerDialog(
     onConfirm: () -> Unit
 ) {
     LocalizedContent(locale) {
-        androidx.compose.ui.window.Dialog(onDismissRequest = onDismissRequest) {
-            Surface(
-                shape = RoundedCornerShape(24.dp),
-                color = Color.White,
-                shadowElevation = 6.dp,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 16.dp)
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    DatePicker(
-                        state = state,
-                        colors = androidx.compose.material3.DatePickerDefaults.colors(
-                            containerColor = Color.White
-                        )
-                    )
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 16.dp),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            DialogActionButton(text = "Отмена", onClick = onDismissRequest)
-                            DialogActionButton(text = "ОК", onClick = onConfirm)
-                        }
-                    }
+        DatePickerDialog(
+            onDismissRequest = onDismissRequest,
+            confirmButton = {
+                TextButton(onClick = onConfirm) {
+                    Text("ОК", fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismissRequest) {
+                    Text("Отмена")
                 }
             }
+        ) {
+            DatePicker(
+                state = state,
+                colors = androidx.compose.material3.DatePickerDefaults.colors(
+                    containerColor = Color.White
+                )
+            )
         }
     }
 }
