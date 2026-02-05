@@ -51,6 +51,7 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -717,6 +718,13 @@ private fun LocalizedContent(
     }
     val localizedContext = remember(locale) {
         baseContext.createConfigurationContext(configuration)
+    }
+    DisposableEffect(locale) {
+        val previousLocale = Locale.getDefault()
+        Locale.setDefault(locale)
+        onDispose {
+            Locale.setDefault(previousLocale)
+        }
     }
 
     androidx.compose.runtime.CompositionLocalProvider(
