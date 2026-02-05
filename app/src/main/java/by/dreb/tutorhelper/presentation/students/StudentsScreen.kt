@@ -95,7 +95,6 @@ fun StudentsScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Фильтры
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -118,7 +117,6 @@ fun StudentsScreen(
                 )
             }
 
-            // Поиск
             OutlinedTextField(
                 modifier = Modifier
                     .fillMaxWidth()

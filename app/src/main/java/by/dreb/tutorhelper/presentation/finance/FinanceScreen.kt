@@ -137,14 +137,14 @@ private fun StudentFinanceSection(
         modifier = Modifier
             .fillMaxWidth()
             .animateContentSize()
-            .clickable { onToggle() }, // <-- весь блок кликабельный
+            .clickable { onToggle() },
         colors = CardDefaults.cardColors(containerColor = AppPalette.Surface),
         elevation = CardDefaults.cardElevation(defaultElevation = AppPalette.CardElevation),
         shape = AppPalette.CardShape
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
-                modifier = Modifier.fillMaxWidth(), // clickable тут больше не нужен
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
