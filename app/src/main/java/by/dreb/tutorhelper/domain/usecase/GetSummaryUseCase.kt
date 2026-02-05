@@ -28,19 +28,23 @@ class GetSummaryUseCase @Inject constructor(
                     (endDate == null || !date.isAfter(endDate))
             }
 
+            val filteredLessons = lessons.filter { details ->
+                isWithinRange(details.lesson.startTime.toLocalDate())
+            }
+
             val paymentsWithDate = payments.filter { it.paidOn != null }
             val filteredPayments = paymentsWithDate.filter { payment ->
                 val date = payment.paidOn ?: return@filter false
                 isWithinRange(date)
             }
 
-            val incomeTotal = filteredPayments.sumOf { it.amount }
+            val paidCompletedLessons = filteredLessons.filter { details ->
+                details.lesson.isCompleted && details.payment != null
+            }
+
+            val incomeTotal = paidCompletedLessons.sumOf { it.payment?.amount ?: 0.0 }
 
             val paidLessonIds = filteredPayments.map { it.lessonId }.toSet()
-
-            val filteredLessons = lessons.filter { details ->
-                isWithinRange(details.lesson.startTime.toLocalDate())
-            }
 
             val lessonsCount = if (startDate == null && endDate == null) {
                 (filteredLessons.map { it.lesson.id }.toSet() + paidLessonIds).size
@@ -85,14 +89,15 @@ class GetSummaryUseCase @Inject constructor(
             }
 
             val monthlyStats = yearsToShow.flatMap { year ->
-                val yearPayments = filteredPayments.filter { it.paidOn?.year == year }
+                val yearLessons = paidCompletedLessons.filter { it.lesson.startTime.year == year }
                 val maxMonthIncome = (1..12).maxOfOrNull { m ->
-                    yearPayments.filter { it.paidOn?.monthValue == m }.sumOf { it.amount }
+                    yearLessons.filter { it.lesson.startTime.monthValue == m }
+                        .sumOf { it.payment?.amount ?: 0.0 }
                 }?.takeIf { it > 0 } ?: 1.0
 
                 (1..12).map { month ->
-                    val income =
-                        yearPayments.filter { it.paidOn?.monthValue == month }.sumOf { it.amount }
+                    val income = yearLessons.filter { it.lesson.startTime.monthValue == month }
+                        .sumOf { it.payment?.amount ?: 0.0 }
                     MonthlyStat(year, month, income, maxMonthIncome)
                 }
             }
