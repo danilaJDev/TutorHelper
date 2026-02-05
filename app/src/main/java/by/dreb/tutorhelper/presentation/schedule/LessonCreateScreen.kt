@@ -479,7 +479,14 @@ fun LessonCreateScreen(
     if (showDatePicker) {
         val datePickerState = rememberDatePickerState(
             initialSelectedDateMillis = uiState.date.atStartOfDay(ZoneId.systemDefault())
-                .toInstant().toEpochMilli()
+                .toInstant().toEpochMilli(),
+            selectableDates = object : androidx.compose.material3.SelectableDates {
+                override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                    val today =
+                        LocalDate.now().atStartOfDay(ZoneId.of("UTC")).toInstant().toEpochMilli()
+                    return utcTimeMillis >= today
+                }
+            }
         )
         LocalizedDatePickerDialog(
             state = datePickerState,
@@ -678,8 +685,8 @@ private fun LocalizedDatePickerDialog(
                 color = Color.White,
                 shadowElevation = 6.dp,
                 modifier = Modifier
-                    .width(360.dp)
-                    .padding(vertical = 16.dp)
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 16.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     DatePicker(
