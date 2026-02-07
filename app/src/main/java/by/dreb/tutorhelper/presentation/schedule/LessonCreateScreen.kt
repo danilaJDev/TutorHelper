@@ -463,14 +463,7 @@ fun LessonCreateScreen(
     if (showDatePicker) {
         val datePickerState = rememberDatePickerState(
             initialSelectedDateMillis = uiState.date.atStartOfDay(ZoneId.systemDefault())
-                .toInstant().toEpochMilli(),
-            selectableDates = object : androidx.compose.material3.SelectableDates {
-                override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                    val today =
-                        LocalDate.now().atStartOfDay(ZoneId.of("UTC")).toInstant().toEpochMilli()
-                    return utcTimeMillis >= today
-                }
-            }
+                .toInstant().toEpochMilli()
         )
         LocalizedDatePickerDialog(
             state = datePickerState,
@@ -490,14 +483,7 @@ fun LessonCreateScreen(
     if (showDuplicateUntilPicker) {
         val datePickerState = rememberDatePickerState(
             initialSelectedDateMillis = uiState.duplicateUntil.atStartOfDay(ZoneId.systemDefault())
-                .toInstant().toEpochMilli(),
-            selectableDates = object : androidx.compose.material3.SelectableDates {
-                override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                    val today =
-                        LocalDate.now().atStartOfDay(ZoneId.of("UTC")).toInstant().toEpochMilli()
-                    return utcTimeMillis >= today
-                }
-            }
+                .toInstant().toEpochMilli()
         )
         LocalizedDatePickerDialog(
             state = datePickerState,
