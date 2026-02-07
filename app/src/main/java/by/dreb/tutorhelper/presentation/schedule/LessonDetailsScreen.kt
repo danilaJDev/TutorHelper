@@ -145,7 +145,7 @@ fun LessonDetailsScreen(
                                 endTime.format(
                                     timeFormatter
                                 )
-                            } (${lesson.durationMinutes} мин)"
+                            } (${if (lesson.isCompleted) stringResource(R.string.schedule_status_done) else stringResource(R.string.schedule_status_planned)})"
                         )
                         HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
                         DetailItem(

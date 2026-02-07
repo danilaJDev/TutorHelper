@@ -651,16 +651,17 @@ private fun ModernLessonCard(
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = "Проведено",
+                                text = stringResource(R.string.schedule_status_done),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = AppPalette.Success,
                                 fontWeight = FontWeight.SemiBold
                             )
                         } else {
                             Text(
-                                text = "${lesson.lesson.durationMinutes} мин",
+                                text = stringResource(R.string.schedule_status_planned),
                                 style = MaterialTheme.typography.labelSmall,
-                                color = AppPalette.TextSecondary
+                                color = AppPalette.Primary,
+                                fontWeight = FontWeight.SemiBold
                             )
                         }
                     }
