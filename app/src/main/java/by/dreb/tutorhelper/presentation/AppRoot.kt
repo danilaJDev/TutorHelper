@@ -47,6 +47,7 @@ import by.dreb.tutorhelper.presentation.students.StudentEditScreen
 import by.dreb.tutorhelper.presentation.students.StudentsScreen
 import by.dreb.tutorhelper.presentation.summary.SummaryScreen
 import by.dreb.tutorhelper.ui.theme.TutorHelperTheme
+import java.time.LocalDate
 
 data class BottomDestination(
     val route: String,
@@ -147,7 +148,7 @@ fun AppRoot() {
                 composable("schedule") {
                     ScheduleScreen(
                         onLessonClick = { id -> navController.navigate("lesson_details/$id") },
-                        onAddLessonClick = { navController.navigate("lesson_create") }
+                        onAddLessonClick = { selectedDate -> navController.navigate("lesson_create?date=$selectedDate") }
                     )
                 }
                 composable(
@@ -173,8 +174,22 @@ fun AppRoot() {
                         onBackClick = { navController.popBackStack() }
                     )
                 }
-                composable("lesson_create") {
-                    LessonCreateScreen(onBackClick = { navController.popBackStack() })
+                composable(
+                    route = "lesson_create?date={date}",
+                    arguments = listOf(
+                        navArgument("date") {
+                            type = NavType.StringType
+                            nullable = true
+                            defaultValue = null
+                        }
+                    )
+                ) { backStackEntry ->
+                    val selectedDateArg = backStackEntry.arguments?.getString("date")
+                    val initialDate = selectedDateArg?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+                    LessonCreateScreen(
+                        initialDate = initialDate,
+                        onBackClick = { navController.popBackStack() }
+                    )
                 }
 
                 composable("students") {

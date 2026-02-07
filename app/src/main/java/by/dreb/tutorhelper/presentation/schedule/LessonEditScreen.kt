@@ -333,14 +333,7 @@ fun LessonEditScreen(
     if (showDatePicker) {
         val datePickerState = rememberDatePickerState(
             initialSelectedDateMillis = selectedDate.atStartOfDay(ZoneId.systemDefault())
-                .toInstant().toEpochMilli(),
-            selectableDates = object : androidx.compose.material3.SelectableDates {
-                override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                    val today =
-                        LocalDate.now().atStartOfDay(ZoneId.of("UTC")).toInstant().toEpochMilli()
-                    return utcTimeMillis >= today
-                }
-            }
+                .toInstant().toEpochMilli()
         )
         LocalizedDatePickerDialog(
             state = datePickerState,

@@ -57,9 +57,11 @@ import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -212,6 +214,7 @@ class LessonCreateViewModel @Inject constructor(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LessonCreateScreen(
+    initialDate: LocalDate? = null,
     onBackClick: () -> Unit,
     viewModel: LessonCreateViewModel = hiltViewModel()
 ) {
@@ -237,6 +240,15 @@ fun LessonCreateScreen(
     if (uiState.isSaved) {
         androidx.compose.runtime.LaunchedEffect(Unit) {
             onBackClick()
+        }
+    }
+
+    var isInitialDateApplied by rememberSaveable(initialDate) { mutableStateOf(false) }
+
+    LaunchedEffect(initialDate) {
+        if (!isInitialDateApplied && initialDate != null) {
+            viewModel.onDateChanged(initialDate)
+            isInitialDateApplied = true
         }
     }
 
@@ -463,14 +475,7 @@ fun LessonCreateScreen(
     if (showDatePicker) {
         val datePickerState = rememberDatePickerState(
             initialSelectedDateMillis = uiState.date.atStartOfDay(ZoneId.systemDefault())
-                .toInstant().toEpochMilli(),
-            selectableDates = object : androidx.compose.material3.SelectableDates {
-                override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                    val today =
-                        LocalDate.now().atStartOfDay(ZoneId.of("UTC")).toInstant().toEpochMilli()
-                    return utcTimeMillis >= today
-                }
-            }
+                .toInstant().toEpochMilli()
         )
         LocalizedDatePickerDialog(
             state = datePickerState,
@@ -490,14 +495,7 @@ fun LessonCreateScreen(
     if (showDuplicateUntilPicker) {
         val datePickerState = rememberDatePickerState(
             initialSelectedDateMillis = uiState.duplicateUntil.atStartOfDay(ZoneId.systemDefault())
-                .toInstant().toEpochMilli(),
-            selectableDates = object : androidx.compose.material3.SelectableDates {
-                override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                    val today =
-                        LocalDate.now().atStartOfDay(ZoneId.of("UTC")).toInstant().toEpochMilli()
-                    return utcTimeMillis >= today
-                }
-            }
+                .toInstant().toEpochMilli()
         )
         LocalizedDatePickerDialog(
             state = datePickerState,

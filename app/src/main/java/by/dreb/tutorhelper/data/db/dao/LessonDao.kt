@@ -29,6 +29,9 @@ interface LessonDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(lesson: LessonEntity): Long
 
+    @Query("SELECT * FROM lessons WHERE id = :id LIMIT 1")
+    suspend fun getLessonById(id: Long): LessonEntity?
+
     @androidx.room.Delete
     suspend fun delete(lesson: LessonEntity)
 
@@ -37,4 +40,8 @@ interface LessonDao {
 
     @Query("SELECT * FROM lessons WHERE studentId = :studentId AND startTime >= :startTime ORDER BY startTime ASC")
     suspend fun getLessonsByStudentFrom(studentId: Long, startTime: String): List<LessonEntity>
+
+    @Transaction
+    @Query("SELECT * FROM lessons WHERE studentId = :studentId AND startTime > :startTime ORDER BY startTime ASC")
+    suspend fun getLessonDetailsByStudentAfter(studentId: Long, startTime: String): List<LessonWithDetails>
 }
