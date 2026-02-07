@@ -81,7 +81,7 @@ import java.util.Locale
 @Composable
 fun ScheduleScreen(
     onLessonClick: (Long) -> Unit,
-    onAddLessonClick: () -> Unit,
+    onAddLessonClick: (LocalDate) -> Unit,
     viewModel: ScheduleViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -103,7 +103,7 @@ fun ScheduleScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = onAddLessonClick,
+                onClick = { onAddLessonClick(state.selectedDate) },
                 containerColor = AppPalette.Primary,
                 contentColor = Color.White,
                 shape = RoundedCornerShape(16.dp),
