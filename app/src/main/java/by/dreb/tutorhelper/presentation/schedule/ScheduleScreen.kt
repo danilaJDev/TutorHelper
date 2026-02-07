@@ -613,29 +613,20 @@ private fun ModernLessonCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(
-                    modifier = Modifier.width(90.dp),
+                    modifier = Modifier.width(60.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    if (isCompleted) {
-                        Text(
-                            text = startTime,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = AppPalette.TextPrimary
-                        )
-                        Text(
-                            text = endTime,
-                            style = MaterialTheme.typography.labelMedium,
-                            color = AppPalette.TextSecondary
-                        )
-                    } else {
-                        Text(
-                            text = stringResource(R.string.schedule_status_planned),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = AppPalette.Primary,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
+                    Text(
+                        text = startTime,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = AppPalette.TextPrimary
+                    )
+                    Text(
+                        text = endTime,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = AppPalette.TextSecondary
+                    )
                 }
 
                 Spacer(modifier = Modifier.width(16.dp))
