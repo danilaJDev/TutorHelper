@@ -57,7 +57,7 @@ class LessonRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteLesson(lesson: Lesson) {
-        paymentDao.deleteByLessonId(lesson.id)
+        transferPaymentToNextNearestLesson(lesson)
         lessonDao.delete(lesson.toEntity())
     }
 
@@ -66,11 +66,39 @@ class LessonRepositoryImpl @Inject constructor(
             .map { it.toDomain() }
         val targetTime = lesson.startTime.toLocalTime()
         val targetDay = lesson.startTime.dayOfWeek
-        lessons.filter { candidate ->
+        val candidatesToDelete = lessons.filter { candidate ->
             candidate.startTime.toLocalTime() == targetTime && candidate.startTime.dayOfWeek == targetDay
-        }.forEach { candidate ->
-            paymentDao.deleteByLessonId(candidate.id)
+        }
+        val excludedLessonIds = candidatesToDelete.map { it.id }.toSet()
+
+        candidatesToDelete.forEach { candidate ->
+            transferPaymentToNextNearestLesson(candidate, excludedLessonIds)
             lessonDao.delete(candidate.toEntity())
+        }
+    }
+
+
+
+    private suspend fun transferPaymentToNextNearestLesson(
+        lesson: Lesson,
+        excludedLessonIds: Set<Long> = emptySet()
+    ) {
+        val payment = paymentDao.getByLessonId(lesson.id) ?: return
+        val nextLesson = lessonDao.getLessonDetailsByStudentAfter(lesson.studentId, lesson.startTime.toString())
+            .map { it.toDomain() }
+            .firstOrNull { details ->
+                details.lesson.id !in excludedLessonIds && details.payment == null
+            }
+
+        if (nextLesson != null) {
+            paymentDao.upsert(
+                payment.copy(
+                    lessonId = nextLesson.lesson.id,
+                    studentId = nextLesson.student.id
+                )
+            )
+        } else {
+            paymentDao.deleteByLessonId(lesson.id)
         }
     }
 

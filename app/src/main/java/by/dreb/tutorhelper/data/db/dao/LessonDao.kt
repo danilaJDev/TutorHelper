@@ -40,4 +40,8 @@ interface LessonDao {
 
     @Query("SELECT * FROM lessons WHERE studentId = :studentId AND startTime >= :startTime ORDER BY startTime ASC")
     suspend fun getLessonsByStudentFrom(studentId: Long, startTime: String): List<LessonEntity>
+
+    @Transaction
+    @Query("SELECT * FROM lessons WHERE studentId = :studentId AND startTime > :startTime ORDER BY startTime ASC")
+    suspend fun getLessonDetailsByStudentAfter(studentId: Long, startTime: String): List<LessonWithDetails>
 }
