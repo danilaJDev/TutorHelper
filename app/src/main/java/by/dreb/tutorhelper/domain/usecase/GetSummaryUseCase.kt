@@ -29,17 +29,21 @@ class GetSummaryUseCase @Inject constructor(
                 isWithinRange(details.lesson.startTime.toLocalDate())
             }
 
+            val completedLessons = filteredLessons.filter { details ->
+                details.lesson.isCompleted
+            }
+
             val paidLessons = filteredLessons.filter { details ->
                 details.payment != null
             }
 
             val incomeTotal = paidLessons.sumOf { it.payment?.amount ?: 0.0 }
 
-            val lessonsCount = filteredLessons.size
+            val lessonsCount = completedLessons.size
 
             val paidLessonsCount = filteredLessons.count { it.payment != null }
 
-            val unpaidLessonsCount = filteredLessons.count { it.payment == null }
+            val unpaidLessonsCount = completedLessons.count { it.payment == null }
 
             val studentIdsFromLessons = filteredLessons.map { it.student.id }.toSet()
 
