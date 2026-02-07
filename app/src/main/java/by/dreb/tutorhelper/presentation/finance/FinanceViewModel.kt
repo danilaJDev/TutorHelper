@@ -46,7 +46,7 @@ class FinanceViewModel @Inject constructor(
             .toSortedMap(compareBy<by.dreb.tutorhelper.domain.model.Student> { it.name }.thenBy { it.id })
 
         val sections = grouped.map { (student, studentLessons) ->
-            val sortedLessons = studentLessons.sortedByDescending { it.lesson.startTime }
+            val sortedLessons = studentLessons.sortedBy { it.lesson.startTime }
             val totalAmount = sortedLessons.sumOf { it.lesson.price }
             val paidAmount = sortedLessons.sumOf { it.payment?.amount ?: 0.0 }
             val unpaidAmount = totalAmount - paidAmount
