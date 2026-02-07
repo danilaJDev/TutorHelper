@@ -42,7 +42,18 @@ class LessonRepositoryImpl @Inject constructor(
             }
 
     override suspend fun upsertLesson(lesson: Lesson) {
-        lessonDao.upsert(lesson.toEntity())
+        val existingLesson = if (lesson.id != 0L) lessonDao.getLessonById(lesson.id)?.toDomain() else null
+        val shouldResetCompletedStatus = existingLesson?.let { oldLesson ->
+            oldLesson.isCompleted && oldLesson.startTime != lesson.startTime
+        } ?: false
+
+        val lessonToSave = if (shouldResetCompletedStatus) {
+            lesson.copy(isCompleted = false)
+        } else {
+            lesson
+        }
+
+        lessonDao.upsert(lessonToSave.toEntity())
     }
 
     override suspend fun deleteLesson(lesson: Lesson) {

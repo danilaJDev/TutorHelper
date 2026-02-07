@@ -29,6 +29,9 @@ interface LessonDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(lesson: LessonEntity): Long
 
+    @Query("SELECT * FROM lessons WHERE id = :id LIMIT 1")
+    suspend fun getLessonById(id: Long): LessonEntity?
+
     @androidx.room.Delete
     suspend fun delete(lesson: LessonEntity)
 
