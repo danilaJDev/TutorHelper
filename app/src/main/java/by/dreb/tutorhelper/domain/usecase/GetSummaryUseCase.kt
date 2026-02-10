@@ -33,11 +33,11 @@ class GetSummaryUseCase @Inject constructor(
                 details.lesson.isCompleted
             }
 
-            val paidLessons = filteredLessons.filter { details ->
-                details.payment != null
+            val paidCompletedLessons = filteredLessons.filter { details ->
+                details.lesson.isCompleted && details.payment != null
             }
 
-            val incomeTotal = paidLessons.sumOf { it.payment?.amount ?: 0.0 }
+            val incomeTotal = paidCompletedLessons.sumOf { it.payment?.amount ?: 0.0 }
 
             val lessonsCount = completedLessons.size
 
@@ -55,21 +55,21 @@ class GetSummaryUseCase @Inject constructor(
 
             val now = LocalDate.now()
             val yearsToShow = if (startDate == null && endDate == null) {
-                val paymentYears = paidLessons.map { it.lesson.startTime.year }
+                val paymentYears = paidCompletedLessons.map { it.lesson.startTime.year }
                     .distinct()
                     .sorted()
                 if (paymentYears.isNotEmpty()) paymentYears else listOf(now.year)
             } else {
                 val startYear =
                     startDate?.year
-                        ?: paidLessons.minOfOrNull { it.lesson.startTime.year }
+                        ?: paidCompletedLessons.minOfOrNull { it.lesson.startTime.year }
                         ?: now.year
                 val endYear = endDate?.year ?: now.year
                 (startYear..endYear).toList()
             }
 
             val monthlyStats = yearsToShow.flatMap { year ->
-                val yearLessons = paidLessons.filter { it.lesson.startTime.year == year }
+                val yearLessons = paidCompletedLessons.filter { it.lesson.startTime.year == year }
                 val maxMonthIncome = (1..12).maxOfOrNull { m ->
                     yearLessons.filter { it.lesson.startTime.monthValue == m }
                         .sumOf { it.payment?.amount ?: 0.0 }

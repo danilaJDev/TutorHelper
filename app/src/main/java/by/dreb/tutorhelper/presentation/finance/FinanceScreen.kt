@@ -1,7 +1,5 @@
 package by.dreb.tutorhelper.presentation.finance
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -136,7 +134,6 @@ private fun StudentFinanceSection(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .animateContentSize()
             .clickable { onToggle() },
         colors = CardDefaults.cardColors(containerColor = AppPalette.Surface),
         elevation = CardDefaults.cardElevation(defaultElevation = AppPalette.CardElevation),
@@ -175,7 +172,7 @@ private fun StudentFinanceSection(
                 )
             }
 
-            AnimatedVisibility(visible = section.isExpanded) {
+            if (section.isExpanded) {
                 Column(
                     modifier = Modifier.padding(top = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
