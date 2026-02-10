@@ -120,26 +120,28 @@ fun ScheduleScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 12.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                TutorHelperFilterChip(
-                    selected = state.filter == ScheduleFilter.ACTIVE,
-                    onClick = { viewModel.updateFilter(ScheduleFilter.ACTIVE) },
-                    label = stringResource(R.string.schedule_filter_active),
-                    icon = Icons.Default.CheckCircle
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                TutorHelperFilterChip(
-                    selected = state.filter == ScheduleFilter.HIDDEN,
-                    onClick = { viewModel.updateFilter(ScheduleFilter.HIDDEN) },
-                    label = stringResource(R.string.schedule_filter_hidden),
-                    icon = Icons.Default.VisibilityOff
-                )
+            if (state.mode == ScheduleMode.LIST) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 12.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TutorHelperFilterChip(
+                        selected = state.filter == ScheduleFilter.ACTIVE,
+                        onClick = { viewModel.updateFilter(ScheduleFilter.ACTIVE) },
+                        label = stringResource(R.string.schedule_filter_active),
+                        icon = Icons.Default.CheckCircle
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    TutorHelperFilterChip(
+                        selected = state.filter == ScheduleFilter.HIDDEN,
+                        onClick = { viewModel.updateFilter(ScheduleFilter.HIDDEN) },
+                        label = stringResource(R.string.schedule_filter_hidden),
+                        icon = Icons.Default.VisibilityOff
+                    )
+                }
             }
 
             Box(modifier = Modifier.fillMaxSize()) {
