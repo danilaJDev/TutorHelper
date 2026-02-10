@@ -651,7 +651,7 @@ private fun ModernLessonCard(
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = "Проведено",
+                                text = stringResource(R.string.schedule_status_done),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = AppPalette.Success,
                                 fontWeight = FontWeight.SemiBold

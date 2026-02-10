@@ -103,13 +103,15 @@ class LessonEditViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             val current = lessonDetails.value?.lesson ?: return@launch
+            val dateChanged = current.startTime.toLocalDate() != startTime.toLocalDate()
             lessonRepository.upsertLesson(
                 current.copy(
                     studentId = studentId,
                     startTime = startTime,
                     durationMinutes = durationMinutes,
                     price = price,
-                    note = note
+                    note = note,
+                    isCompleted = if (dateChanged) false else current.isCompleted
                 )
             )
         }
