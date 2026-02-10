@@ -314,7 +314,8 @@ private fun ScheduleList(
                         onLessonClick = { onLessonClick(lesson.lesson.id) },
                         onToggleHomework = { onToggleHomework(lesson) },
                         onToggleHidden = { onToggleHidden(lesson) },
-                        onDeleteClick = { onDeleteClick(lesson) }
+                        onDeleteClick = { onDeleteClick(lesson) },
+                        showHideAction = true
                     )
                 }
             }
@@ -498,7 +499,8 @@ private fun ScheduleCalendar(
                         onLessonClick = { onLessonClick(lesson.lesson.id) },
                         onToggleHomework = { onToggleHomework(lesson) },
                         onToggleHidden = { onToggleHidden(lesson) },
-                        onDeleteClick = { onDeleteClick(lesson) }
+                        onDeleteClick = { onDeleteClick(lesson) },
+                        showHideAction = false
                     )
                 }
             }
@@ -570,7 +572,8 @@ private fun ModernLessonCard(
     onLessonClick: () -> Unit,
     onToggleHomework: () -> Unit,
     onToggleHidden: () -> Unit,
-    onDeleteClick: () -> Unit
+    onDeleteClick: () -> Unit,
+    showHideAction: Boolean
 ) {
     val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
     val startTime = lesson.lesson.startTime.format(timeFormatter)
@@ -692,7 +695,7 @@ private fun ModernLessonCard(
                         )
                     }
 
-                    if (isHidden) {
+                    if (isHidden && showHideAction) {
                         IconButton(
                             onClick = onToggleHidden,
                             modifier = Modifier.size(40.dp)
@@ -704,7 +707,7 @@ private fun ModernLessonCard(
                                 modifier = Modifier.size(25.dp)
                             )
                         }
-                    } else {
+                    } else if (!isHidden) {
                         IconButton(
                             onClick = onDeleteClick,
                             modifier = Modifier.size(40.dp)

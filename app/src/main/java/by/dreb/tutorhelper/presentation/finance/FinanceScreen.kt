@@ -1,5 +1,11 @@
 package by.dreb.tutorhelper.presentation.finance
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -172,7 +178,13 @@ private fun StudentFinanceSection(
                 )
             }
 
-            if (section.isExpanded) {
+            AnimatedVisibility(
+                visible = section.isExpanded,
+                enter = expandVertically(animationSpec = tween(durationMillis = 140)) +
+                    fadeIn(animationSpec = tween(durationMillis = 120)),
+                exit = shrinkVertically(animationSpec = tween(durationMillis = 120)) +
+                    fadeOut(animationSpec = tween(durationMillis = 90))
+            ) {
                 Column(
                     modifier = Modifier.padding(top = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
