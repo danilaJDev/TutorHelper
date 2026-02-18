@@ -106,4 +106,18 @@
     <string name="settings_title">Настройки</string>
     <string name="settings_theme">Тема</string>
     <string name="settings_theme_toggle_label">Тёмная тема</string>
+
+    <string name="privacy_policy_title">Политика конфиденциальности</string>
+    <string name="privacy_policy_for_whom_title">Для кого это приложение</string>
+    <string name="privacy_policy_for_whom_text">TutorHelper предназначен для взрослых пользователей (репетиторов и преподавателей). Приложение не разработано как продукт для детей.</string>
+    <string name="privacy_policy_data_title">Какие данные обрабатываются</string>
+    <string name="privacy_policy_data_text">Приложение сохраняет введённые пользователем данные: карточки учеников, расписание занятий, заметки по занятиям и информацию об оплате.</string>
+    <string name="privacy_policy_storage_title">Где хранятся данные</string>
+    <string name="privacy_policy_storage_text">Все данные хранятся локально на устройстве пользователя в базе данных приложения (Room/SQLite). Доступ к ним есть только у пользователя устройства.</string>
+    <string name="privacy_policy_sharing_title">Передача третьим лицам</string>
+    <string name="privacy_policy_sharing_text">Приложение не отправляет персональные данные на сервер и не передаёт их третьим лицам.</string>
+    <string name="privacy_policy_access_title">Доступ к политике</string>
+    <string name="privacy_policy_access_text">Политика конфиденциальности доступна из раздела «Итоги» без регистрации и авторизации.</string>
+    <string name="play_readiness_title">Подготовка к публикации</string>
+    <string name="play_readiness_desc">Перед публикацией проверьте политику конфиденциальности и корректность данных в карточках учеников и занятий.</string>
 </resources>

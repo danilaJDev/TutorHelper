@@ -16,8 +16,13 @@ class StudentDetailsViewModel @Inject constructor(
     private val studentRepository: StudentRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-    private val studentId: Long = checkNotNull(savedStateHandle["studentId"])
+    private val studentId: Long = savedStateHandle.get<Long>("studentId") ?: -1L
 
-    val student: StateFlow<Student?> = studentRepository.observeStudentById(studentId)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    val student: StateFlow<Student?> = if (studentId > 0) {
+        studentRepository.observeStudentById(studentId)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    } else {
+        kotlinx.coroutines.flow.flowOf(null)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    }
 }

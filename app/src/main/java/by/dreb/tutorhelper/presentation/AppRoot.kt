@@ -45,6 +45,7 @@ import by.dreb.tutorhelper.presentation.students.StudentCreateScreen
 import by.dreb.tutorhelper.presentation.students.StudentDetailsScreen
 import by.dreb.tutorhelper.presentation.students.StudentEditScreen
 import by.dreb.tutorhelper.presentation.students.StudentsScreen
+import by.dreb.tutorhelper.presentation.summary.PrivacyPolicyScreen
 import by.dreb.tutorhelper.presentation.summary.SummaryScreen
 import by.dreb.tutorhelper.ui.theme.TutorHelperTheme
 import java.time.LocalDate
@@ -221,7 +222,12 @@ fun AppRoot() {
                 }
 
                 composable("finance") { FinanceScreen() }
-                composable("summary") { SummaryScreen() }
+                composable("summary") {
+                    SummaryScreen(onOpenPrivacyPolicy = { navController.navigate("privacy_policy") })
+                }
+                composable("privacy_policy") {
+                    PrivacyPolicyScreen(onBackClick = { navController.popBackStack() })
+                }
             }
         }
     }

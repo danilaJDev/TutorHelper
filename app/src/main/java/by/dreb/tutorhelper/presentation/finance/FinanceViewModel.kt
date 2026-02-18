@@ -82,7 +82,8 @@ class FinanceViewModel @Inject constructor(
 
     fun togglePayment(details: LessonDetails) {
         viewModelScope.launch {
-            if (details.payment == null) {
+            runCatching {
+                if (details.payment == null) {
                 val payment = Payment(
                     id = 0,
                     lessonId = details.lesson.id,
@@ -94,6 +95,7 @@ class FinanceViewModel @Inject constructor(
                 paymentRepository.upsertPayment(payment)
             } else {
                 paymentRepository.deletePaymentByLessonId(details.lesson.id)
+                }
             }
         }
     }

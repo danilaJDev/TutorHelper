@@ -1,5 +1,7 @@
 package by.dreb.tutorhelper.presentation.schedule
 
+import android.content.res.Configuration
+import android.os.LocaleList
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,9 +25,9 @@ import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -49,6 +51,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -56,7 +59,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import by.dreb.tutorhelper.presentation.components.FormCardSection
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -64,6 +66,7 @@ import by.dreb.tutorhelper.R
 import by.dreb.tutorhelper.domain.model.Student
 import by.dreb.tutorhelper.domain.repository.LessonRepository
 import by.dreb.tutorhelper.domain.repository.StudentRepository
+import by.dreb.tutorhelper.presentation.components.FormCardSection
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
@@ -75,9 +78,6 @@ import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-import android.content.res.Configuration
-import android.os.LocaleList
-import androidx.compose.ui.graphics.vector.ImageVector
 import javax.inject.Inject
 
 @HiltViewModel
@@ -86,13 +86,18 @@ class LessonEditViewModel @Inject constructor(
     private val studentRepository: StudentRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-    val lessonId: Long = checkNotNull(savedStateHandle["lessonId"])
+    val lessonId: Long = savedStateHandle.get<Long>("lessonId") ?: -1L
 
     val students = studentRepository.observeStudents(false)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val lessonDetails = lessonRepository.observeLessonDetailsById(lessonId)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    val lessonDetails = if (lessonId > 0) {
+        lessonRepository.observeLessonDetailsById(lessonId)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    } else {
+        kotlinx.coroutines.flow.flowOf(null)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    }
 
     fun updateLesson(
         studentId: Long,
@@ -104,16 +109,18 @@ class LessonEditViewModel @Inject constructor(
         viewModelScope.launch {
             val current = lessonDetails.value?.lesson ?: return@launch
             val dateChanged = current.startTime.toLocalDate() != startTime.toLocalDate()
-            lessonRepository.upsertLesson(
-                current.copy(
-                    studentId = studentId,
-                    startTime = startTime,
-                    durationMinutes = durationMinutes,
-                    price = price,
-                    note = note,
-                    isCompleted = if (dateChanged) false else current.isCompleted
+            runCatching {
+                lessonRepository.upsertLesson(
+                    current.copy(
+                        studentId = studentId,
+                        startTime = startTime,
+                        durationMinutes = durationMinutes,
+                        price = price,
+                        note = note,
+                        isCompleted = if (dateChanged) false else current.isCompleted
+                    )
                 )
-            )
+            }
         }
     }
 }

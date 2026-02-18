@@ -196,17 +196,19 @@ class LessonCreateViewModel @Inject constructor(
                 note = currentState.note.ifBlank { null }
             )
 
-            lessonRepository.upsertLesson(baseLesson)
+            val saved = runCatching {
+                lessonRepository.upsertLesson(baseLesson)
 
-            if (currentState.isDuplicate) {
-                var currentStartTime = startDateTime.plusWeeks(1)
-                while (!currentStartTime.toLocalDate().isAfter(currentState.duplicateUntil)) {
-                    lessonRepository.upsertLesson(baseLesson.copy(startTime = currentStartTime))
-                    currentStartTime = currentStartTime.plusWeeks(1)
+                if (currentState.isDuplicate) {
+                    var currentStartTime = startDateTime.plusWeeks(1)
+                    while (!currentStartTime.toLocalDate().isAfter(currentState.duplicateUntil)) {
+                        lessonRepository.upsertLesson(baseLesson.copy(startTime = currentStartTime))
+                        currentStartTime = currentStartTime.plusWeeks(1)
+                    }
                 }
-            }
+            }.isSuccess
 
-            _uiState.update { it.copy(isLoading = false, isSaved = true) }
+            _uiState.update { it.copy(isLoading = false, isSaved = saved) }
         }
     }
 }

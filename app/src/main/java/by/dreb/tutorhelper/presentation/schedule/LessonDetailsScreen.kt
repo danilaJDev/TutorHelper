@@ -56,11 +56,15 @@ class LessonDetailsViewModel @Inject constructor(
     private val lessonRepository: LessonRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-    private val lessonId: Long = checkNotNull(savedStateHandle["lessonId"])
+    private val lessonId: Long = savedStateHandle.get<Long>("lessonId") ?: -1L
 
-    val lessonDetails: StateFlow<LessonDetails?> =
+    val lessonDetails: StateFlow<LessonDetails?> = if (lessonId > 0) {
         lessonRepository.observeLessonDetailsById(lessonId)
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    } else {
+        kotlinx.coroutines.flow.flowOf(null)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    }
 }
 
 @Composable

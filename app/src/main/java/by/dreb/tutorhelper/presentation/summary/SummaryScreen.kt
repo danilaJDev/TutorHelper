@@ -29,6 +29,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -62,6 +63,7 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SummaryScreen(
+    onOpenPrivacyPolicy: () -> Unit,
     viewModel: SummaryViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -93,6 +95,7 @@ fun SummaryScreen(
                 item { SummaryHeroCard(state.summary) }
                 item { SummaryStatsGrid(state.summary) }
                 item { MonthlyIncomeSection(state.summary.monthlyStats) }
+                item { PublicationReadinessCard(onOpenPrivacyPolicy = onOpenPrivacyPolicy) }
             }
         }
     }
@@ -154,6 +157,35 @@ private fun PeriodFilterBar(
                         tint = AppPalette.TextSecondary
                     )
                 }
+            }
+        }
+    }
+}
+
+
+@Composable
+private fun PublicationReadinessCard(onOpenPrivacyPolicy: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = AppPalette.Surface),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.play_readiness_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = stringResource(R.string.play_readiness_desc),
+                style = MaterialTheme.typography.bodyMedium,
+                color = AppPalette.TextSecondary
+            )
+            OutlinedButton(onClick = onOpenPrivacyPolicy) {
+                Text(text = stringResource(R.string.privacy_policy_title))
             }
         }
     }
