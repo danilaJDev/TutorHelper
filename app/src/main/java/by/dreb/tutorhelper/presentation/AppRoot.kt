@@ -21,9 +21,13 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import android.app.Activity
+import android.content.ContextWrapper
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -37,6 +41,9 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import by.dreb.tutorhelper.R
 import by.dreb.tutorhelper.presentation.finance.FinanceScreen
+import androidx.hilt.navigation.compose.hiltViewModel
+import by.dreb.tutorhelper.presentation.monetization.MonetizationViewModel
+import by.dreb.tutorhelper.presentation.monetization.PaywallScreen
 import by.dreb.tutorhelper.presentation.schedule.LessonCreateScreen
 import by.dreb.tutorhelper.presentation.schedule.LessonDetailsScreen
 import by.dreb.tutorhelper.presentation.schedule.LessonEditScreen
@@ -56,9 +63,36 @@ data class BottomDestination(
     val icon: @Composable () -> Unit
 )
 
+
+private tailrec fun ContextWrapper?.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    null -> null
+    else -> baseContext.let { if (it is ContextWrapper) it else null }.findActivity()
+}
+
 @Composable
 fun AppRoot() {
+    val monetizationViewModel: MonetizationViewModel = hiltViewModel()
+    val monetizationState = monetizationViewModel.uiState
+        .collectAsStateWithLifecycle().value
+
+    val activity = (androidx.compose.ui.platform.LocalContext.current as? ContextWrapper).findActivity()
+
+    LaunchedEffect(Unit) {
+        monetizationViewModel.refreshStatus()
+    }
+
     TutorHelperTheme {
+        if (monetizationState.shouldShowPaywall) {
+            PaywallScreen(
+                uiState = monetizationState,
+                onSubscribeClick = { selectedActivity -> monetizationViewModel.launchPurchase(selectedActivity) },
+                onRestoreClick = monetizationViewModel::refreshStatus,
+                activity = activity
+            )
+            return@TutorHelperTheme
+        }
+
         val navController = rememberNavController()
         val destinations = remember {
             listOf(
