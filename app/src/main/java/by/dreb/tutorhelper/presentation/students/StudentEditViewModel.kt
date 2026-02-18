@@ -23,9 +23,12 @@ class StudentEditViewModel @Inject constructor(
     val student: StateFlow<Student?> = _student.asStateFlow()
 
     init {
-        if (studentId <= 0) return
-        viewModelScope.launch {
-            _student.value = runCatching { studentRepository.getStudentById(studentId) }.getOrNull()
+        if (studentId > 0) {
+            viewModelScope.launch {
+                _student.value = runCatching {
+                    studentRepository.getStudentById(studentId)
+                }.getOrNull()
+            }
         }
     }
 
