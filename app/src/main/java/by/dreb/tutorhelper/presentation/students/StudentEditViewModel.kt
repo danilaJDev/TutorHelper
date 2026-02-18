@@ -17,21 +17,23 @@ class StudentEditViewModel @Inject constructor(
     private val studentRepository: StudentRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-    private val studentId: Long = checkNotNull(savedStateHandle["studentId"])
+    private val studentId: Long = savedStateHandle.get<Long>("studentId") ?: -1L
 
     private val _student = MutableStateFlow<Student?>(null)
     val student: StateFlow<Student?> = _student.asStateFlow()
 
     init {
+        if (studentId <= 0) return
         viewModelScope.launch {
-            _student.value = studentRepository.getStudentById(studentId)
+            _student.value = runCatching { studentRepository.getStudentById(studentId) }.getOrNull()
         }
     }
 
     fun updateStudent(name: String, phone: String?, note: String?, defaultPrice: Double) {
         val current = _student.value ?: return
         viewModelScope.launch {
-            studentRepository.upsertStudent(
+            runCatching {
+                studentRepository.upsertStudent(
                 current.copy(
                     name = name,
                     phone = phone,
@@ -39,6 +41,7 @@ class StudentEditViewModel @Inject constructor(
                     defaultPrice = defaultPrice
                 )
             )
+            }
         }
     }
 }

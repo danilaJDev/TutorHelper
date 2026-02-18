@@ -14,15 +14,17 @@ class StudentCreateViewModel @Inject constructor(
 ) : ViewModel() {
     fun createStudent(name: String, phone: String?, note: String?, defaultPrice: Double) {
         viewModelScope.launch {
+            val safeName = name.trim()
+            if (safeName.isBlank()) return@launch
             val student = Student(
                 id = 0,
-                name = name,
+                name = safeName,
                 phone = phone,
                 note = note,
                 isArchived = false,
                 defaultPrice = defaultPrice
             )
-            studentRepository.upsertStudent(student)
+            runCatching { studentRepository.upsertStudent(student) }
         }
     }
 }

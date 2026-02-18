@@ -1,5 +1,7 @@
 package by.dreb.tutorhelper.data.repository
 
+import androidx.room.withTransaction
+import by.dreb.tutorhelper.data.db.TutorHelperDatabase
 import by.dreb.tutorhelper.data.db.dao.LessonDao
 import by.dreb.tutorhelper.data.db.dao.PaymentDao
 import by.dreb.tutorhelper.data.mapper.toDomain
@@ -21,6 +23,7 @@ import javax.inject.Singleton
 class LessonRepositoryImpl @Inject constructor(
     private val lessonDao: LessonDao,
     private val paymentDao: PaymentDao,
+    private val database: TutorHelperDatabase,
     @ApplicationScope private val applicationScope: CoroutineScope
 ) : LessonRepository {
     override fun observeLessons(): Flow<List<Lesson>> =
@@ -57,23 +60,27 @@ class LessonRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteLesson(lesson: Lesson) {
-        transferPaymentToNextNearestLesson(lesson)
-        lessonDao.delete(lesson.toEntity())
+        database.withTransaction {
+            transferPaymentToNextNearestLesson(lesson)
+            lessonDao.delete(lesson.toEntity())
+        }
     }
 
     override suspend fun deleteLessonWithFutureDuplicates(lesson: Lesson) {
-        val lessons = lessonDao.getLessonsByStudentFrom(lesson.studentId, lesson.startTime.toString())
-            .map { it.toDomain() }
-        val targetTime = lesson.startTime.toLocalTime()
-        val targetDay = lesson.startTime.dayOfWeek
-        val candidatesToDelete = lessons.filter { candidate ->
-            candidate.startTime.toLocalTime() == targetTime && candidate.startTime.dayOfWeek == targetDay
-        }
-        val excludedLessonIds = candidatesToDelete.map { it.id }.toSet()
+        database.withTransaction {
+            val lessons = lessonDao.getLessonsByStudentFrom(lesson.studentId, lesson.startTime.toString())
+                .map { it.toDomain() }
+            val targetTime = lesson.startTime.toLocalTime()
+            val targetDay = lesson.startTime.dayOfWeek
+            val candidatesToDelete = lessons.filter { candidate ->
+                candidate.startTime.toLocalTime() == targetTime && candidate.startTime.dayOfWeek == targetDay
+            }
+            val excludedLessonIds = candidatesToDelete.map { it.id }.toSet()
 
-        candidatesToDelete.forEach { candidate ->
-            transferPaymentToNextNearestLesson(candidate, excludedLessonIds)
-            lessonDao.delete(candidate.toEntity())
+            candidatesToDelete.forEach { candidate ->
+                transferPaymentToNextNearestLesson(candidate, excludedLessonIds)
+                lessonDao.delete(candidate.toEntity())
+            }
         }
     }
 

@@ -1,5 +1,7 @@
 package by.dreb.tutorhelper.data.repository
 
+import androidx.room.withTransaction
+import by.dreb.tutorhelper.data.db.TutorHelperDatabase
 import by.dreb.tutorhelper.data.db.dao.LessonDao
 import by.dreb.tutorhelper.data.db.dao.PaymentDao
 import by.dreb.tutorhelper.data.db.dao.StudentDao
@@ -16,7 +18,8 @@ import javax.inject.Singleton
 class StudentRepositoryImpl @Inject constructor(
     private val studentDao: StudentDao,
     private val lessonDao: LessonDao,
-    private val paymentDao: PaymentDao
+    private val paymentDao: PaymentDao,
+    private val database: TutorHelperDatabase
 ) : StudentRepository {
     override fun observeStudents(isArchived: Boolean): Flow<List<Student>> =
         studentDao.observeStudents(isArchived).map { entities -> entities.map { it.toDomain() } }
@@ -39,8 +42,11 @@ class StudentRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteStudentFull(studentId: Long) {
-        paymentDao.deleteByStudentId(studentId)
-        lessonDao.deleteLessonsByStudentId(studentId)
-        studentDao.deleteById(studentId)
+        if (studentId <= 0) return
+        database.withTransaction {
+            paymentDao.deleteByStudentId(studentId)
+            lessonDao.deleteLessonsByStudentId(studentId)
+            studentDao.deleteById(studentId)
+        }
     }
 }

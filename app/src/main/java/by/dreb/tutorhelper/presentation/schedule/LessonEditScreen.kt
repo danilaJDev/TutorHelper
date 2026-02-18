@@ -86,13 +86,18 @@ class LessonEditViewModel @Inject constructor(
     private val studentRepository: StudentRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-    val lessonId: Long = checkNotNull(savedStateHandle["lessonId"])
+    val lessonId: Long = savedStateHandle.get<Long>("lessonId") ?: -1L
 
     val students = studentRepository.observeStudents(false)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val lessonDetails = lessonRepository.observeLessonDetailsById(lessonId)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    val lessonDetails = if (lessonId > 0) {
+        lessonRepository.observeLessonDetailsById(lessonId)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    } else {
+        kotlinx.coroutines.flow.flowOf(null)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    }
 
     fun updateLesson(
         studentId: Long,
@@ -104,7 +109,8 @@ class LessonEditViewModel @Inject constructor(
         viewModelScope.launch {
             val current = lessonDetails.value?.lesson ?: return@launch
             val dateChanged = current.startTime.toLocalDate() != startTime.toLocalDate()
-            lessonRepository.upsertLesson(
+            runCatching {
+                lessonRepository.upsertLesson(
                 current.copy(
                     studentId = studentId,
                     startTime = startTime,
@@ -114,6 +120,7 @@ class LessonEditViewModel @Inject constructor(
                     isCompleted = if (dateChanged) false else current.isCompleted
                 )
             )
+            }
         }
     }
 }
@@ -515,6 +522,7 @@ private fun LocalizedDatePickerDialog(
                     containerColor = Color.White
                 )
             )
+            }
         }
     }
 }
