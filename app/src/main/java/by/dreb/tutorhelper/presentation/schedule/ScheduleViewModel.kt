@@ -37,6 +37,11 @@ class ScheduleViewModel @Inject constructor(
                     ScheduleFilter.ACTIVE -> !it.lesson.isHidden
                     ScheduleFilter.HIDDEN -> it.lesson.isHidden
                 }
+            }.let { filtered ->
+                when (filterValue) {
+                    ScheduleFilter.ACTIVE -> filtered
+                    ScheduleFilter.HIDDEN -> filtered.sortedByDescending { it.lesson.startTime }
+                }
             }
         }
         ScheduleUiState(
