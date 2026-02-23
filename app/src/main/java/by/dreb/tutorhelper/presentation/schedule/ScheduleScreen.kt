@@ -152,6 +152,7 @@ fun ScheduleScreen(
                     when (mode) {
                         ScheduleMode.LIST -> ScheduleList(
                             lessons = state.lessons,
+                            filter = state.filter,
                             onLessonClick = onLessonClick,
                             onToggleHomework = viewModel::toggleHomework,
                             onToggleHidden = viewModel::toggleHidden,
@@ -283,6 +284,7 @@ private fun ModeIconButton(
 @Composable
 private fun ScheduleList(
     lessons: List<LessonDetails>,
+    filter: ScheduleFilter,
     onLessonClick: (Long) -> Unit,
     onToggleHomework: (LessonDetails) -> Unit,
     onToggleHidden: (LessonDetails) -> Unit,
@@ -296,7 +298,10 @@ private fun ScheduleList(
         )
     } else {
         val groupedLessons = lessons.groupBy { it.lesson.startTime.toLocalDate() }
-        val sortedDates = groupedLessons.keys.sorted()
+        val sortedDates = when (filter) {
+            ScheduleFilter.ACTIVE -> groupedLessons.keys.sorted()
+            ScheduleFilter.HIDDEN -> groupedLessons.keys.sortedDescending()
+        }
         val russianLocale = Locale("ru")
 
         LazyColumn(
