@@ -4,6 +4,9 @@ data class Student(
     val id: Long,
     val name: String,
     val phone: String?,
+    val telegramUsername: String?,
+    val viberPhone: String?,
+    val whatsappPhone: String?,
     val note: String?,
     val isArchived: Boolean,
     val defaultPrice: Double

@@ -26,6 +26,9 @@ interface LessonDao {
     @Query("SELECT * FROM lessons WHERE id = :id")
     fun observeLessonDetailsById(id: Long): Flow<LessonWithDetails?>
 
+    @Query("SELECT * FROM lessons ORDER BY id ASC")
+    suspend fun getAll(): List<LessonEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(lesson: LessonEntity): Long
 
@@ -37,6 +40,9 @@ interface LessonDao {
 
     @Query("DELETE FROM lessons WHERE studentId = :studentId")
     suspend fun deleteLessonsByStudentId(studentId: Long)
+
+    @Query("DELETE FROM lessons")
+    suspend fun clearAll()
 
     @Query("SELECT * FROM lessons WHERE studentId = :studentId AND startTime >= :startTime ORDER BY startTime ASC")
     suspend fun getLessonsByStudentFrom(studentId: Long, startTime: String): List<LessonEntity>

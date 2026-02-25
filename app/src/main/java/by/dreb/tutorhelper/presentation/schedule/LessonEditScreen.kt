@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -21,6 +22,7 @@ import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
@@ -56,6 +58,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -104,7 +107,8 @@ class LessonEditViewModel @Inject constructor(
         startTime: LocalDateTime,
         durationMinutes: Int,
         price: Double,
-        note: String?
+        note: String?,
+        reminderMinutesBefore: Int?
     ) {
         viewModelScope.launch {
             val current = lessonDetails.value?.lesson ?: return@launch
@@ -117,6 +121,7 @@ class LessonEditViewModel @Inject constructor(
                         durationMinutes = durationMinutes,
                         price = price,
                         note = note,
+                        reminderMinutesBefore = reminderMinutesBefore,
                         isCompleted = if (dateChanged) false else current.isCompleted
                     )
                 )
@@ -141,6 +146,7 @@ fun LessonEditScreen(
     var endTime by remember { mutableStateOf(LocalTime.of(13, 0)) }
     var price by remember { mutableStateOf("") }
     var note by remember { mutableStateOf("") }
+    var reminderMinutes by remember { mutableStateOf("") }
     val calendarLocale = remember {
         Locale.Builder().setLanguage("ru").setRegion("BY").build()
     }
@@ -164,6 +170,7 @@ fun LessonEditScreen(
                 it.lesson.startTime.toLocalTime().plusMinutes(it.lesson.durationMinutes.toLong())
             price = it.lesson.price.toString()
             note = it.lesson.note ?: ""
+            reminderMinutes = it.lesson.reminderMinutesBefore?.toString() ?: ""
         }
     }
 
@@ -204,7 +211,8 @@ fun LessonEditScreen(
                                 startTime = startDateTime,
                                 durationMinutes = if (duration > 0) duration else 60,
                                 price = price.toDoubleOrNull() ?: student.defaultPrice,
-                                note = note.ifBlank { null }
+                                note = note.ifBlank { null },
+                                reminderMinutesBefore = reminderMinutes.toIntOrNull()
                             )
                             onBackClick()
                         }
@@ -334,6 +342,19 @@ fun LessonEditScreen(
                     colors = leadingIconColors,
                     shape = RoundedCornerShape(12.dp),
                     maxLines = 3
+                )
+
+
+                OutlinedTextField(
+                    value = reminderMinutes,
+                    onValueChange = { if (it.all(Char::isDigit)) reminderMinutes = it },
+                    label = { Text("Напомнить за (мин)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    leadingIcon = { Icon(Icons.Default.Notifications, null) },
+                    colors = leadingIconColors,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true
                 )
             }
         }

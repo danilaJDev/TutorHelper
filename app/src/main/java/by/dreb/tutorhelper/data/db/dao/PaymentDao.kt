@@ -12,6 +12,9 @@ interface PaymentDao {
     @Query("SELECT * FROM payments ORDER BY paidOn DESC")
     fun observePayments(): Flow<List<PaymentEntity>>
 
+    @Query("SELECT * FROM payments ORDER BY id ASC")
+    suspend fun getAll(): List<PaymentEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(payment: PaymentEntity): Long
 
@@ -29,4 +32,7 @@ interface PaymentDao {
 
     @Query("DELETE FROM payments WHERE lessonId IN (SELECT id FROM lessons WHERE studentId = :studentId)")
     suspend fun deleteByStudentId(studentId: Long)
+
+    @Query("DELETE FROM payments")
+    suspend fun clearAll()
 }

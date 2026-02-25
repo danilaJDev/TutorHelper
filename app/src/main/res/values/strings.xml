@@ -120,4 +120,5 @@
     <string name="privacy_policy_access_text">Политика конфиденциальности доступна из раздела «Итоги» без регистрации и авторизации.</string>
     <string name="play_readiness_title">Подготовка к публикации</string>
     <string name="play_readiness_desc">Перед публикацией проверьте политику конфиденциальности и корректность данных в карточках учеников и занятий.</string>
+    <string name="notification_channel_lessons">Напоминания о занятиях</string>
 </resources>

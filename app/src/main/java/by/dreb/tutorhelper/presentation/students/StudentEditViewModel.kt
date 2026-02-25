@@ -32,7 +32,15 @@ class StudentEditViewModel @Inject constructor(
         }
     }
 
-    fun updateStudent(name: String, phone: String?, note: String?, defaultPrice: Double) {
+    fun updateStudent(
+        name: String,
+        phone: String?,
+        telegramUsername: String?,
+        viberPhone: String?,
+        whatsappPhone: String?,
+        note: String?,
+        defaultPrice: Double
+    ) {
         val current = _student.value ?: return
         viewModelScope.launch {
             runCatching {
@@ -40,6 +48,9 @@ class StudentEditViewModel @Inject constructor(
                 current.copy(
                     name = name,
                     phone = phone,
+                    telegramUsername = telegramUsername,
+                    viberPhone = viberPhone,
+                    whatsappPhone = whatsappPhone,
                     note = note,
                     defaultPrice = defaultPrice
                 )
