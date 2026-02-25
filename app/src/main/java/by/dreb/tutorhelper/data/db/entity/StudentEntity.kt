@@ -17,5 +17,6 @@ data class StudentEntity(
     val name: String,
     val phone: String?,
     val note: String?,
-    val isArchived: Boolean
+    val isArchived: Boolean,
+    val defaultPrice: Double = 0.0
 )

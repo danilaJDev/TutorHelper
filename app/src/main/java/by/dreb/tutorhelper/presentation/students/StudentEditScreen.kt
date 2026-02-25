@@ -1,0 +1,181 @@
+package by.dreb.tutorhelper.presentation.students
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.StickyNote2
+import androidx.compose.material.icons.filled.LocalPhone
+import androidx.compose.material.icons.filled.Payments
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import by.dreb.tutorhelper.R
+import by.dreb.tutorhelper.presentation.components.FormCardSection
+import androidx.compose.ui.text.input.KeyboardType
+
+@Composable
+fun StudentEditScreen(
+    onBackClick: () -> Unit,
+    viewModel: StudentEditViewModel = hiltViewModel()
+) {
+    val student by viewModel.student.collectAsState()
+
+    var name by remember { mutableStateOf("") }
+    var phone by remember { mutableStateOf("") }
+    var note by remember { mutableStateOf("") }
+    var defaultPrice by remember { mutableStateOf("") }
+    val leadingIconColors = OutlinedTextFieldDefaults.colors(
+        focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
+        unfocusedLeadingIconColor = MaterialTheme.colorScheme.primary,
+        disabledLeadingIconColor = MaterialTheme.colorScheme.primary,
+        focusedBorderColor = MaterialTheme.colorScheme.primary,
+        unfocusedBorderColor = MaterialTheme.colorScheme.outline
+    )
+
+    LaunchedEffect(student) {
+        student?.let {
+            name = it.name
+            phone = it.phone ?: ""
+            note = it.note ?: ""
+            defaultPrice = it.defaultPrice.toString()
+        }
+    }
+
+    Scaffold(
+        topBar = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onBackClick) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Назад"
+                    )
+                }
+                Text(
+                    text = stringResource(R.string.student_edit_title),
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 8.dp)
+                )
+                TextButton(
+                    onClick = {
+                        if (name.isNotBlank()) {
+                            viewModel.updateStudent(
+                                name = name,
+                                phone = phone.ifBlank { null },
+                                note = note.ifBlank { null },
+                                defaultPrice = defaultPrice.toDoubleOrNull() ?: 0.0
+                            )
+                            onBackClick()
+                        }
+                    },
+                    enabled = name.isNotBlank()
+                ) {
+                    Text(
+                        text = "Сохранить",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
+                }
+            }
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            FormCardSection(title = "Данные ученика") {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text(stringResource(R.string.student_label_name)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    leadingIcon = { Icon(imageVector = Icons.Default.Person, contentDescription = null) },
+                    colors = leadingIconColors,
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true
+                )
+
+                OutlinedTextField(
+                    value = phone,
+                    onValueChange = { phone = it },
+                    label = { Text(stringResource(R.string.student_label_phone)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    leadingIcon = { Icon(imageVector = Icons.Default.LocalPhone, contentDescription = null) },
+                    colors = leadingIconColors,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true
+                )
+            }
+
+            FormCardSection(title = "Оплата и заметки") {
+                OutlinedTextField(
+                    value = defaultPrice,
+                    onValueChange = { defaultPrice = it },
+                    label = { Text(stringResource(R.string.student_label_default_price)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    leadingIcon = { Icon(imageVector = Icons.Default.Payments, contentDescription = null) },
+                    colors = leadingIconColors,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true
+                )
+
+                OutlinedTextField(
+                    value = note,
+                    onValueChange = { note = it },
+                    label = { Text(stringResource(R.string.student_label_note)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.StickyNote2,
+                            contentDescription = null
+                        )
+                    },
+                    colors = leadingIconColors,
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true
+                )
+            }
+        }
+    }
+}

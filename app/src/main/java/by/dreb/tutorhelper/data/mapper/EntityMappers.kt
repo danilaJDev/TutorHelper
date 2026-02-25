@@ -16,7 +16,8 @@ fun StudentEntity.toDomain() = Student(
     name = name,
     phone = phone,
     note = note,
-    isArchived = isArchived
+    isArchived = isArchived,
+    defaultPrice = defaultPrice
 )
 
 fun Student.toEntity() = StudentEntity(
@@ -24,7 +25,8 @@ fun Student.toEntity() = StudentEntity(
     name = name,
     phone = phone,
     note = note,
-    isArchived = isArchived
+    isArchived = isArchived,
+    defaultPrice = defaultPrice
 )
 
 fun LessonEntity.toDomain() = Lesson(
@@ -34,7 +36,10 @@ fun LessonEntity.toDomain() = Lesson(
     startTime = LocalDateTime.parse(startTime),
     durationMinutes = durationMinutes,
     price = price,
-    note = note
+    note = note,
+    isHidden = isHidden,
+    isHomeworkSent = isHomeworkSent,
+    isCompleted = isCompleted
 )
 
 fun Lesson.toEntity() = LessonEntity(
@@ -44,12 +49,16 @@ fun Lesson.toEntity() = LessonEntity(
     startTime = startTime.toString(),
     durationMinutes = durationMinutes,
     price = price,
-    note = note
+    note = note,
+    isHidden = isHidden,
+    isHomeworkSent = isHomeworkSent,
+    isCompleted = isCompleted
 )
 
 fun PaymentEntity.toDomain() = Payment(
     id = id,
     lessonId = lessonId,
+    studentId = studentId,
     amount = amount,
     paidOn = paidOn?.let { LocalDate.parse(it) },
     method = method
@@ -58,6 +67,7 @@ fun PaymentEntity.toDomain() = Payment(
 fun Payment.toEntity() = PaymentEntity(
     id = id,
     lessonId = lessonId,
+    studentId = studentId,
     amount = amount,
     paidOn = paidOn?.toString(),
     method = method

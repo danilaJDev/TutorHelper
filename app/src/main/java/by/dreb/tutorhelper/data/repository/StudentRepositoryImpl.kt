@@ -1,5 +1,9 @@
 package by.dreb.tutorhelper.data.repository
 
+import androidx.room.withTransaction
+import by.dreb.tutorhelper.data.db.TutorHelperDatabase
+import by.dreb.tutorhelper.data.db.dao.LessonDao
+import by.dreb.tutorhelper.data.db.dao.PaymentDao
 import by.dreb.tutorhelper.data.db.dao.StudentDao
 import by.dreb.tutorhelper.data.mapper.toDomain
 import by.dreb.tutorhelper.data.mapper.toEntity
@@ -12,7 +16,10 @@ import javax.inject.Singleton
 
 @Singleton
 class StudentRepositoryImpl @Inject constructor(
-    private val studentDao: StudentDao
+    private val studentDao: StudentDao,
+    private val lessonDao: LessonDao,
+    private val paymentDao: PaymentDao,
+    private val database: TutorHelperDatabase
 ) : StudentRepository {
     override fun observeStudents(isArchived: Boolean): Flow<List<Student>> =
         studentDao.observeStudents(isArchived).map { entities -> entities.map { it.toDomain() } }
@@ -20,11 +27,26 @@ class StudentRepositoryImpl @Inject constructor(
     override fun observeStudentsCount(isArchived: Boolean?): Flow<Int> =
         studentDao.observeStudentsCount(isArchived)
 
+    override suspend fun getStudentById(id: Long): Student? =
+        studentDao.getStudentById(id)?.toDomain()
+
+    override fun observeStudentById(id: Long): Flow<Student?> =
+        studentDao.observeStudentById(id).map { it?.toDomain() }
+
     override suspend fun upsertStudent(student: Student) {
         studentDao.upsert(student.toEntity())
     }
 
     override suspend fun archiveStudent(studentId: Long, archived: Boolean) {
         studentDao.updateArchived(studentId, archived)
+    }
+
+    override suspend fun deleteStudentFull(studentId: Long) {
+        if (studentId <= 0) return
+        database.withTransaction {
+            paymentDao.deleteByStudentId(studentId)
+            lessonDao.deleteLessonsByStudentId(studentId)
+            studentDao.deleteById(studentId)
+        }
     }
 }
