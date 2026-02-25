@@ -25,6 +25,10 @@ interface StudentDao {
     @Query("SELECT COUNT(*) FROM students")
     suspend fun countStudents(): Int
 
+
+    @Query("SELECT * FROM students ORDER BY id ASC")
+    suspend fun getAll(): List<StudentEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(student: StudentEntity): Long
 
@@ -36,4 +40,7 @@ interface StudentDao {
 
     @Query("DELETE FROM students WHERE id = :id")
     suspend fun deleteById(id: Long)
+
+    @Query("DELETE FROM students")
+    suspend fun clearAll()
 }

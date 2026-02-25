@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
@@ -106,6 +107,7 @@ data class LessonCreateUiState(
     val endTime: LocalTime = LocalTime.of(13, 0),
     val price: String = "",
     val note: String = "",
+    val reminderMinutesBefore: String = "",
     val isDuplicate: Boolean = false,
     val duplicateUntil: LocalDate = LocalDate.now().plusMonths(1),
     val isLoading: Boolean = false,
@@ -165,6 +167,12 @@ class LessonCreateViewModel @Inject constructor(
         _uiState.update { it.copy(note = note) }
     }
 
+    fun onReminderMinutesChanged(value: String) {
+        if (value.all { it.isDigit() }) {
+            _uiState.update { it.copy(reminderMinutesBefore = value) }
+        }
+    }
+
     fun onDuplicateChanged(isDuplicate: Boolean) {
         _uiState.update { it.copy(isDuplicate = isDuplicate) }
     }
@@ -193,7 +201,8 @@ class LessonCreateViewModel @Inject constructor(
                 startTime = startDateTime,
                 durationMinutes = if (durationMinutes > 0) durationMinutes else 60,
                 price = currentState.price.toDoubleOrNull() ?: 0.0,
-                note = currentState.note.ifBlank { null }
+                note = currentState.note.ifBlank { null },
+                reminderMinutesBefore = currentState.reminderMinutesBefore.toIntOrNull()
             )
 
             val saved = runCatching {
@@ -414,6 +423,19 @@ fun LessonCreateScreen(
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                     shape = RoundedCornerShape(12.dp),
                     maxLines = 3
+                )
+
+
+                OutlinedTextField(
+                    value = uiState.reminderMinutesBefore,
+                    onValueChange = viewModel::onReminderMinutesChanged,
+                    label = { Text("Напомнить за (мин)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    leadingIcon = { Icon(Icons.Default.Notifications, null) },
+                    colors = leadingIconColors,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true
                 )
             }
 

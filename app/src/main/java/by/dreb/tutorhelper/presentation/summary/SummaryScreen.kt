@@ -29,6 +29,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -41,12 +43,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import by.dreb.tutorhelper.R
@@ -58,6 +62,8 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import android.widget.Toast
+import kotlinx.coroutines.launch
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -68,6 +74,27 @@ fun SummaryScreen(
 ) {
     val state by viewModel.state.collectAsState()
     var showDatePicker by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+        if (uri != null) {
+            scope.launch {
+                runCatching { viewModel.exportBackup(uri) }
+                    .onSuccess { Toast.makeText(context, "Экспорт завершён", Toast.LENGTH_SHORT).show() }
+                    .onFailure { Toast.makeText(context, "Ошибка экспорта", Toast.LENGTH_SHORT).show() }
+            }
+        }
+    }
+    val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) {
+            scope.launch {
+                runCatching { viewModel.importBackup(uri) }
+                    .onSuccess { Toast.makeText(context, "Импорт завершён", Toast.LENGTH_SHORT).show() }
+                    .onFailure { Toast.makeText(context, "Ошибка импорта", Toast.LENGTH_SHORT).show() }
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -95,6 +122,12 @@ fun SummaryScreen(
                 item { SummaryHeroCard(state.summary) }
                 item { SummaryStatsGrid(state.summary) }
                 item { MonthlyIncomeSection(state.summary.monthlyStats) }
+                item {
+                    BackupCard(
+                        onExport = { exportLauncher.launch("tutorhelper-backup.json") },
+                        onImport = { importLauncher.launch(arrayOf("application/json", "*/*")) }
+                    )
+                }
                 item { PublicationReadinessCard(onOpenPrivacyPolicy = onOpenPrivacyPolicy) }
             }
         }
@@ -162,6 +195,28 @@ private fun PeriodFilterBar(
     }
 }
 
+
+
+@Composable
+private fun BackupCard(
+    onExport: () -> Unit,
+    onImport: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = AppPalette.Surface),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("Резервная копия", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text("Экспортируйте и импортируйте базу в JSON-файл для переноса на другое устройство.")
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(onClick = onExport, modifier = Modifier.weight(1f)) { Text("Экспорт") }
+                OutlinedButton(onClick = onImport, modifier = Modifier.weight(1f)) { Text("Импорт") }
+            }
+        }
+    }
+}
 
 @Composable
 private fun PublicationReadinessCard(onOpenPrivacyPolicy: () -> Unit) {

@@ -4,11 +4,13 @@ import androidx.room.withTransaction
 import by.dreb.tutorhelper.data.db.TutorHelperDatabase
 import by.dreb.tutorhelper.data.db.dao.LessonDao
 import by.dreb.tutorhelper.data.db.dao.PaymentDao
+import by.dreb.tutorhelper.data.db.dao.StudentDao
 import by.dreb.tutorhelper.data.mapper.toDomain
 import by.dreb.tutorhelper.data.mapper.toEntity
 import by.dreb.tutorhelper.di.ApplicationScope
 import by.dreb.tutorhelper.domain.model.Lesson
 import by.dreb.tutorhelper.domain.model.LessonDetails
+import by.dreb.tutorhelper.domain.reminder.LessonReminderScheduler
 import by.dreb.tutorhelper.domain.repository.LessonRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -23,7 +25,9 @@ import javax.inject.Singleton
 class LessonRepositoryImpl @Inject constructor(
     private val lessonDao: LessonDao,
     private val paymentDao: PaymentDao,
+    private val studentDao: StudentDao,
     private val database: TutorHelperDatabase,
+    private val reminderScheduler: LessonReminderScheduler,
     @ApplicationScope private val applicationScope: CoroutineScope
 ) : LessonRepository {
     override fun observeLessons(): Flow<List<Lesson>> =
@@ -56,13 +60,17 @@ class LessonRepositoryImpl @Inject constructor(
             lesson
         }
 
-        lessonDao.upsert(lessonToSave.toEntity())
+        val savedId = lessonDao.upsert(lessonToSave.toEntity())
+        val lessonId = if (lessonToSave.id == 0L) savedId else lessonToSave.id
+        val studentName = studentDao.getStudentById(lessonToSave.studentId)?.name ?: "Ученик"
+        reminderScheduler.scheduleOrCancel(lessonToSave.copy(id = lessonId), studentName)
     }
 
     override suspend fun deleteLesson(lesson: Lesson) {
         database.withTransaction {
             transferPaymentToNextNearestLesson(lesson)
             lessonDao.delete(lesson.toEntity())
+            reminderScheduler.cancel(lesson.id)
         }
     }
 
@@ -80,6 +88,7 @@ class LessonRepositoryImpl @Inject constructor(
             candidatesToDelete.forEach { candidate ->
                 transferPaymentToNextNearestLesson(candidate, excludedLessonIds)
                 lessonDao.delete(candidate.toEntity())
+                reminderScheduler.cancel(candidate.id)
             }
         }
     }

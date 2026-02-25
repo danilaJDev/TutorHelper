@@ -12,7 +12,15 @@ import javax.inject.Inject
 class StudentCreateViewModel @Inject constructor(
     private val studentRepository: StudentRepository
 ) : ViewModel() {
-    fun createStudent(name: String, phone: String?, note: String?, defaultPrice: Double) {
+    fun createStudent(
+        name: String,
+        phone: String?,
+        telegramUsername: String?,
+        viberPhone: String?,
+        whatsappPhone: String?,
+        note: String?,
+        defaultPrice: Double
+    ) {
         viewModelScope.launch {
             val safeName = name.trim()
             if (safeName.isBlank()) return@launch
@@ -20,6 +28,9 @@ class StudentCreateViewModel @Inject constructor(
                 id = 0,
                 name = safeName,
                 phone = phone,
+                telegramUsername = telegramUsername,
+                viberPhone = viberPhone,
+                whatsappPhone = whatsappPhone,
                 note = note,
                 isArchived = false,
                 defaultPrice = defaultPrice

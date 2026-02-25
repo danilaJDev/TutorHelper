@@ -8,9 +8,13 @@ import by.dreb.tutorhelper.data.db.TutorHelperDatabase
 import by.dreb.tutorhelper.data.db.dao.LessonDao
 import by.dreb.tutorhelper.data.db.dao.PaymentDao
 import by.dreb.tutorhelper.data.db.dao.StudentDao
+import by.dreb.tutorhelper.data.backup.BackupRepositoryImpl
+import by.dreb.tutorhelper.data.reminder.WorkManagerLessonReminderScheduler
 import by.dreb.tutorhelper.data.repository.LessonRepositoryImpl
 import by.dreb.tutorhelper.data.repository.PaymentRepositoryImpl
 import by.dreb.tutorhelper.data.repository.StudentRepositoryImpl
+import by.dreb.tutorhelper.domain.backup.BackupRepository
+import by.dreb.tutorhelper.domain.reminder.LessonReminderScheduler
 import by.dreb.tutorhelper.domain.repository.LessonRepository
 import by.dreb.tutorhelper.domain.repository.PaymentRepository
 import by.dreb.tutorhelper.domain.repository.StudentRepository
@@ -50,11 +54,20 @@ object AppModule {
         }
     }
 
+    private val MIGRATION_4_5 = object : Migration(4, 5) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE students ADD COLUMN telegramUsername TEXT")
+            db.execSQL("ALTER TABLE students ADD COLUMN viberPhone TEXT")
+            db.execSQL("ALTER TABLE students ADD COLUMN whatsappPhone TEXT")
+            db.execSQL("ALTER TABLE lessons ADD COLUMN reminderMinutesBefore INTEGER")
+        }
+    }
+
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): TutorHelperDatabase =
         Room.databaseBuilder(context, TutorHelperDatabase::class.java, "tutor_helper.db")
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
             .fallbackToDestructiveMigration()
             .build()
 
@@ -83,6 +96,13 @@ abstract class RepositoryModule {
 
     @Binds
     abstract fun bindPaymentRepository(impl: PaymentRepositoryImpl): PaymentRepository
+
+    @Binds
+    abstract fun bindLessonReminderScheduler(impl: WorkManagerLessonReminderScheduler): LessonReminderScheduler
+
+    @Binds
+    abstract fun bindBackupRepository(impl: BackupRepositoryImpl): BackupRepository
+
 }
 
 @Qualifier

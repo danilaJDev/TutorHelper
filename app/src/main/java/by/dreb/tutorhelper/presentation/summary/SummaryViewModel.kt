@@ -2,6 +2,8 @@ package by.dreb.tutorhelper.presentation.summary
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import android.net.Uri
+import by.dreb.tutorhelper.domain.backup.BackupRepository
 import by.dreb.tutorhelper.domain.usecase.GetSummaryUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -18,7 +20,8 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class SummaryViewModel @Inject constructor(
-    private val getSummaryUseCase: GetSummaryUseCase
+    private val getSummaryUseCase: GetSummaryUseCase,
+    private val backupRepository: BackupRepository
 ) : ViewModel() {
     private val _startDate = MutableStateFlow<LocalDate?>(null)
     private val _endDate = MutableStateFlow<LocalDate?>(null)
@@ -34,5 +37,13 @@ class SummaryViewModel @Inject constructor(
     fun updatePeriod(start: LocalDate?, end: LocalDate?) {
         _startDate.value = start
         _endDate.value = end
+    }
+
+    suspend fun exportBackup(uri: Uri) {
+        backupRepository.exportToUri(uri)
+    }
+
+    suspend fun importBackup(uri: Uri) {
+        backupRepository.importFromUri(uri)
     }
 }

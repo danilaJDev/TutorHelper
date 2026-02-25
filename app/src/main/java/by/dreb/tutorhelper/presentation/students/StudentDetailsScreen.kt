@@ -1,11 +1,15 @@
 package by.dreb.tutorhelper.presentation.students
 
+import android.content.Intent
+import android.net.Uri
+
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
@@ -30,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -45,6 +50,7 @@ fun StudentDetailsScreen(
     viewModel: StudentDetailsViewModel = hiltViewModel()
 ) {
     val student by viewModel.student.collectAsState()
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -108,6 +114,34 @@ fun StudentDetailsScreen(
                         )
                         HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
                         DetailItem(
+                            icon = Icons.Default.Notes,
+                            label = "Telegram",
+                            value = s.telegramUsername ?: stringResource(R.string.field_not_filled),
+                            onClick = s.telegramUsername?.let { username -> {
+                                val clean = username.removePrefix("@")
+                                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/$clean")))
+                            } }
+                        )
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+                        DetailItem(
+                            icon = Icons.Default.Notes,
+                            label = "Viber",
+                            value = s.viberPhone ?: stringResource(R.string.field_not_filled),
+                            onClick = s.viberPhone?.let { phone -> {
+                                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("viber://chat?number=${phone.filter { ch -> ch.isDigit() || ch == '+' }}")))
+                            } }
+                        )
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+                        DetailItem(
+                            icon = Icons.Default.Notes,
+                            label = "WhatsApp",
+                            value = s.whatsappPhone ?: stringResource(R.string.field_not_filled),
+                            onClick = s.whatsappPhone?.let { phone -> {
+                                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://wa.me/${phone.filter { ch -> ch.isDigit() }}")))
+                            } }
+                        )
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+                        DetailItem(
                             icon = Icons.Default.Payments,
                             label = stringResource(R.string.student_label_default_price),
                             value = "${s.defaultPrice} ${stringResource(R.string.currency_rub)}"
@@ -130,9 +164,13 @@ fun StudentDetailsScreen(
 private fun DetailItem(
     icon: ImageVector,
     label: String,
-    value: String
+    value: String,
+    onClick: (() -> Unit)? = null
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier
+    ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
