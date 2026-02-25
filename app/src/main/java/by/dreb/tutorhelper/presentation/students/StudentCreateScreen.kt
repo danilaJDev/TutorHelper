@@ -27,6 +27,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,6 +49,15 @@ fun StudentCreateScreen(
     onBackClick: () -> Unit,
     viewModel: StudentCreateViewModel = hiltViewModel()
 ) {
+    val isSaved by viewModel.isSaved.collectAsState()
+    val nameError by viewModel.nameError.collectAsState()
+
+    LaunchedEffect(isSaved) {
+        if (isSaved) {
+            onBackClick()
+        }
+    }
+
     var name by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
     var note by remember { mutableStateOf("") }
@@ -71,7 +82,7 @@ fun StudentCreateScreen(
                 IconButton(onClick = onBackClick) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Назад"
+                        contentDescription = stringResource(R.string.action_back)
                     )
                 }
                 Text(
@@ -89,7 +100,6 @@ fun StudentCreateScreen(
                             note = note.ifBlank { null },
                             defaultPrice = defaultPrice.toDoubleOrNull() ?: 0.0
                         )
-                        onBackClick()
                     },
                     enabled = isValid
                 ) {
@@ -113,13 +123,18 @@ fun StudentCreateScreen(
             FormCardSection(title = "Данные ученика") {
                 OutlinedTextField(
                     value = name,
-                    onValueChange = { name = it },
+                    onValueChange = {
+                        name = it
+                        if (nameError != null) viewModel.clearErrors()
+                    },
                     label = { Text(stringResource(R.string.student_label_name)) },
                     modifier = Modifier.fillMaxWidth(),
                     leadingIcon = { Icon(imageVector = Icons.Default.Person, contentDescription = null) },
                     colors = leadingIconColors,
                     shape = RoundedCornerShape(12.dp),
-                    singleLine = true
+                    singleLine = true,
+                    isError = nameError != null,
+                    supportingText = nameError?.let { { Text(stringResource(it)) } }
                 )
 
                 OutlinedTextField(

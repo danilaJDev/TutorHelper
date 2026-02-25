@@ -26,6 +26,10 @@ interface LessonDao {
     @Query("SELECT * FROM lessons WHERE id = :id")
     fun observeLessonDetailsById(id: Long): Flow<LessonWithDetails?>
 
+    @Transaction
+    @Query("SELECT * FROM lessons WHERE id = :id")
+    suspend fun getLessonDetailsById(id: Long): LessonWithDetails?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(lesson: LessonEntity): Long
 

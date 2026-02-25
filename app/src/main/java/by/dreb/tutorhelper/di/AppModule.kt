@@ -11,6 +11,8 @@ import by.dreb.tutorhelper.data.db.dao.StudentDao
 import by.dreb.tutorhelper.data.repository.LessonRepositoryImpl
 import by.dreb.tutorhelper.data.repository.PaymentRepositoryImpl
 import by.dreb.tutorhelper.data.repository.StudentRepositoryImpl
+import by.dreb.tutorhelper.util.FinanceExporter
+import by.dreb.tutorhelper.util.ReminderManager
 import by.dreb.tutorhelper.domain.repository.LessonRepository
 import by.dreb.tutorhelper.domain.repository.PaymentRepository
 import by.dreb.tutorhelper.domain.repository.StudentRepository
@@ -70,6 +72,16 @@ object AppModule {
     @Provides
     @ApplicationScope
     fun provideApplicationScope(): CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    @Provides
+    @Singleton
+    fun provideReminderManager(@ApplicationContext context: Context): ReminderManager =
+        ReminderManager(context)
+
+    @Provides
+    @Singleton
+    fun provideFinanceExporter(@ApplicationContext context: Context): FinanceExporter =
+        FinanceExporter(context)
 }
 
 @Module

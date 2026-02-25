@@ -48,6 +48,14 @@ fun StudentEditScreen(
     viewModel: StudentEditViewModel = hiltViewModel()
 ) {
     val student by viewModel.student.collectAsState()
+    val isSaved by viewModel.isSaved.collectAsState()
+    val nameError by viewModel.nameError.collectAsState()
+
+    LaunchedEffect(isSaved) {
+        if (isSaved) {
+            onBackClick()
+        }
+    }
 
     var name by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
@@ -81,7 +89,7 @@ fun StudentEditScreen(
                 IconButton(onClick = onBackClick) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Назад"
+                        contentDescription = stringResource(R.string.action_back)
                     )
                 }
                 Text(
@@ -93,15 +101,12 @@ fun StudentEditScreen(
                 )
                 TextButton(
                     onClick = {
-                        if (name.isNotBlank()) {
-                            viewModel.updateStudent(
-                                name = name,
-                                phone = phone.ifBlank { null },
-                                note = note.ifBlank { null },
-                                defaultPrice = defaultPrice.toDoubleOrNull() ?: 0.0
-                            )
-                            onBackClick()
-                        }
+                        viewModel.updateStudent(
+                            name = name,
+                            phone = phone.ifBlank { null },
+                            note = note.ifBlank { null },
+                            defaultPrice = defaultPrice.toDoubleOrNull() ?: 0.0
+                        )
                     },
                     enabled = name.isNotBlank()
                 ) {
@@ -125,13 +130,18 @@ fun StudentEditScreen(
             FormCardSection(title = "Данные ученика") {
                 OutlinedTextField(
                     value = name,
-                    onValueChange = { name = it },
+                    onValueChange = {
+                        name = it
+                        if (nameError != null) viewModel.clearErrors()
+                    },
                     label = { Text(stringResource(R.string.student_label_name)) },
                     modifier = Modifier.fillMaxWidth(),
                     leadingIcon = { Icon(imageVector = Icons.Default.Person, contentDescription = null) },
                     colors = leadingIconColors,
                     shape = RoundedCornerShape(12.dp),
-                    singleLine = true
+                    singleLine = true,
+                    isError = nameError != null,
+                    supportingText = nameError?.let { { Text(stringResource(it)) } }
                 )
 
                 OutlinedTextField(

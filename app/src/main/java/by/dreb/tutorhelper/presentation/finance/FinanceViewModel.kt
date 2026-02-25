@@ -6,11 +6,13 @@ import by.dreb.tutorhelper.domain.model.LessonDetails
 import by.dreb.tutorhelper.domain.model.Payment
 import by.dreb.tutorhelper.domain.repository.LessonRepository
 import by.dreb.tutorhelper.domain.repository.PaymentRepository
+import by.dreb.tutorhelper.util.FinanceExporter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -20,7 +22,8 @@ import javax.inject.Inject
 @HiltViewModel
 class FinanceViewModel @Inject constructor(
     private val lessonRepository: LessonRepository,
-    private val paymentRepository: PaymentRepository
+    private val paymentRepository: PaymentRepository,
+    private val financeExporter: FinanceExporter
 ) : ViewModel() {
 
     private val _filter = MutableStateFlow(FinanceFilter.ACTIVE)
@@ -76,6 +79,15 @@ class FinanceViewModel @Inject constructor(
                 current - studentId
             } else {
                 current + studentId
+            }
+        }
+    }
+
+    fun exportFinance() {
+        viewModelScope.launch {
+            val lessons = lessonRepository.observeLessonDetails().firstOrNull() ?: emptyList()
+            if (lessons.isNotEmpty()) {
+                financeExporter.exportFinanceToCsv(lessons)
             }
         }
     }

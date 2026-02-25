@@ -69,6 +69,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -77,6 +78,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import by.dreb.tutorhelper.R
 import by.dreb.tutorhelper.domain.model.Lesson
 import by.dreb.tutorhelper.domain.model.Student
 import by.dreb.tutorhelper.domain.repository.LessonRepository
@@ -109,13 +111,15 @@ data class LessonCreateUiState(
     val isDuplicate: Boolean = false,
     val duplicateUntil: LocalDate = LocalDate.now().plusMonths(1),
     val isLoading: Boolean = false,
-    val isSaved: Boolean = false
+    val isSaved: Boolean = false,
+    val priceError: Int? = null
 ) {
     val isValid: Boolean
         get() = selectedStudent != null &&
                 price.isNotBlank() &&
                 price.toDoubleOrNull() != null &&
-                endTime.isAfter(startTime)
+                endTime.isAfter(startTime) &&
+                priceError == null
 }
 
 @HiltViewModel
@@ -134,7 +138,8 @@ class LessonCreateViewModel @Inject constructor(
         _uiState.update {
             it.copy(
                 selectedStudent = student,
-                price = student.defaultPrice.toString()
+                price = student.defaultPrice.toString(),
+                priceError = null
             )
         }
     }
@@ -157,7 +162,7 @@ class LessonCreateViewModel @Inject constructor(
 
     fun onPriceChanged(price: String) {
         if (price.count { it == '.' } <= 1 && price.replace(".", "").all { it.isDigit() }) {
-            _uiState.update { it.copy(price = price) }
+            _uiState.update { it.copy(price = price, priceError = null) }
         }
     }
 
@@ -177,6 +182,12 @@ class LessonCreateViewModel @Inject constructor(
         val currentState = _uiState.value
         val student = currentState.selectedStudent ?: return
 
+        val priceVal = currentState.price.toDoubleOrNull()
+        if (priceVal == null) {
+            _uiState.update { it.copy(priceError = R.string.error_invalid_price) }
+            return
+        }
+
         if (!currentState.isValid) return
 
         viewModelScope.launch {
@@ -192,7 +203,7 @@ class LessonCreateViewModel @Inject constructor(
                 subject = "Занятие",
                 startTime = startDateTime,
                 durationMinutes = if (durationMinutes > 0) durationMinutes else 60,
-                price = currentState.price.toDoubleOrNull() ?: 0.0,
+                price = priceVal,
                 note = currentState.note.ifBlank { null }
             )
 
@@ -271,11 +282,11 @@ fun LessonCreateScreen(
                 IconButton(onClick = onBackClick) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Назад"
+                        contentDescription = stringResource(R.string.action_back)
                     )
                 }
                 Text(
-                    text = "Новое занятие",
+                    text = stringResource(R.string.lesson_create_title),
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                     modifier = Modifier
                         .weight(1f)
@@ -311,8 +322,8 @@ fun LessonCreateScreen(
                     OutlinedTextField(
                         value = uiState.selectedStudent?.name ?: "",
                         onValueChange = {},
-                        label = { Text("Ученик") },
-                        placeholder = { Text("Выберите ученика") },
+                        label = { Text(stringResource(R.string.lesson_label_student)) },
+                        placeholder = { Text(stringResource(R.string.lesson_label_student)) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .menuAnchor(
@@ -335,7 +346,7 @@ fun LessonCreateScreen(
                     ) {
                         if (students.isEmpty()) {
                             DropdownMenuItem(
-                                text = { Text("Нет активных учеников") },
+                                text = { Text(stringResource(R.string.students_empty_active)) },
                                 onClick = { studentDropdownExpanded = false }
                             )
                         } else {
@@ -356,7 +367,7 @@ fun LessonCreateScreen(
             FormCardSection(title = "Время проведения") {
                 ClickableField(
                     value = uiState.date.format(dateFormatter),
-                    label = "Дата",
+                    label = stringResource(R.string.lesson_label_date),
                     icon = Icons.Default.CalendarMonth,
                     onClick = { showDatePicker = true }
                 )
@@ -366,14 +377,14 @@ fun LessonCreateScreen(
                 ) {
                     ClickableField(
                         value = uiState.startTime.format(DateTimeFormatter.ofPattern("HH:mm")),
-                        label = "Начало",
+                        label = stringResource(R.string.lesson_label_start),
                         icon = Icons.Default.AccessTime,
                         modifier = Modifier.weight(1f),
                         onClick = { showStartTimePicker = true }
                     )
                     ClickableField(
                         value = uiState.endTime.format(DateTimeFormatter.ofPattern("HH:mm")),
-                        label = "Конец",
+                        label = stringResource(R.string.lesson_label_end),
                         icon = Icons.Default.AccessTime,
                         modifier = Modifier.weight(1f),
                         isError = !uiState.endTime.isAfter(uiState.startTime),
@@ -383,7 +394,7 @@ fun LessonCreateScreen(
 
                 if (!uiState.endTime.isAfter(uiState.startTime)) {
                     Text(
-                        text = "Время окончания должно быть позже начала",
+                        text = stringResource(R.string.error_time_range),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.error,
                         modifier = Modifier.padding(start = 12.dp)
@@ -395,19 +406,21 @@ fun LessonCreateScreen(
                 OutlinedTextField(
                     value = uiState.price,
                     onValueChange = viewModel::onPriceChanged,
-                    label = { Text("Стоимость занятия") },
+                    label = { Text(stringResource(R.string.lesson_label_price)) },
                     modifier = Modifier.fillMaxWidth(),
                     leadingIcon = { Icon(Icons.Default.AttachMoney, null) },
                     colors = leadingIconColors,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     shape = RoundedCornerShape(12.dp),
-                    singleLine = true
+                    singleLine = true,
+                    isError = uiState.priceError != null,
+                    supportingText = uiState.priceError?.let { { Text(stringResource(it)) } }
                 )
 
                 OutlinedTextField(
                     value = uiState.note,
                     onValueChange = viewModel::onNoteChanged,
-                    label = { Text("Заметка") },
+                    label = { Text(stringResource(R.string.lesson_label_note)) },
                     modifier = Modifier.fillMaxWidth(),
                     leadingIcon = { Icon(Icons.Default.Description, null) },
                     colors = leadingIconColors,
@@ -437,7 +450,7 @@ fun LessonCreateScreen(
                         Spacer(modifier = Modifier.width(16.dp))
                         Column {
                             Text(
-                                text = "Повторение",
+                                text = stringResource(R.string.lesson_label_duplicate),
                                 style = MaterialTheme.typography.bodyLarge
                             )
                             Text(
@@ -462,7 +475,7 @@ fun LessonCreateScreen(
                         HorizontalDivider(modifier = Modifier.padding(bottom = 16.dp))
                         ClickableField(
                             value = uiState.duplicateUntil.format(duplicateFormatter),
-                            label = "Повторять до",
+                            label = stringResource(R.string.lesson_label_duplicate_until),
                             icon = Icons.Default.CalendarMonth,
                             onClick = { showDuplicateUntilPicker = true }
                         )

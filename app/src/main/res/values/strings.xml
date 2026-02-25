@@ -68,6 +68,9 @@
     <string name="student_restore_confirm_title">Восстановить?</string>
     <string name="student_restore_confirm_message">Вернуть ученика в список активных?</string>
     <string name="field_not_filled">не заполнено</string>
+    <string name="error_name_empty">Имя не может быть пустым</string>
+    <string name="error_invalid_price">Некорректная цена</string>
+    <string name="error_time_range">Время окончания должно быть позже начала</string>
 
     <string name="finance_title">Финансы</string>
     <string name="finance_total_income">Общий доход: %1$.2f</string>
@@ -87,6 +90,9 @@
     <string name="finance_student_paid_label">Оплачено</string>
     <string name="finance_student_due_label">Долг</string>
     <string name="action_mark_as_paid">Отметить как оплаченное</string>
+    <string name="action_export">Экспорт</string>
+    <string name="export_filename_finance">finance_export_%1$s.csv</string>
+    <string name="export_title">Экспорт финансов</string>
 
     <string name="summary_title">Итоги</string>
     <string name="summary_subtitle">Обзор вашей преподавательской активности</string>
@@ -106,6 +112,10 @@
     <string name="settings_title">Настройки</string>
     <string name="settings_theme">Тема</string>
     <string name="settings_theme_toggle_label">Тёмная тема</string>
+
+    <string name="notification_upcoming_lesson_title">Предстоящее занятие</string>
+    <string name="notification_upcoming_lesson_desc">%1$s в %2$s</string>
+    <string name="notification_channel_reminders">Напоминания о занятиях</string>
 
     <string name="privacy_policy_title">Политика конфиденциальности</string>
     <string name="privacy_policy_for_whom_title">Для кого это приложение</string>

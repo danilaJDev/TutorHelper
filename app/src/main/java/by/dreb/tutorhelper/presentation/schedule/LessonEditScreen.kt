@@ -68,7 +68,9 @@ import by.dreb.tutorhelper.domain.repository.LessonRepository
 import by.dreb.tutorhelper.domain.repository.StudentRepository
 import by.dreb.tutorhelper.presentation.components.FormCardSection
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.Instant
@@ -91,6 +93,12 @@ class LessonEditViewModel @Inject constructor(
     val students = studentRepository.observeStudents(false)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    private val _isSaved = MutableStateFlow(false)
+    val isSaved = _isSaved.asStateFlow()
+
+    private val _priceError = MutableStateFlow<Int?>(null)
+    val priceError = _priceError.asStateFlow()
+
     val lessonDetails = if (lessonId > 0) {
         lessonRepository.observeLessonDetailsById(lessonId)
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
@@ -99,17 +107,28 @@ class LessonEditViewModel @Inject constructor(
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
     }
 
+    fun clearErrors() {
+        _priceError.value = null
+    }
+
     fun updateLesson(
         studentId: Long,
         startTime: LocalDateTime,
         durationMinutes: Int,
-        price: Double,
+        priceStr: String,
         note: String?
     ) {
+        val price = priceStr.toDoubleOrNull()
+        if (price == null) {
+            _priceError.value = R.string.error_invalid_price
+            return
+        }
+        _priceError.value = null
+
         viewModelScope.launch {
             val current = lessonDetails.value?.lesson ?: return@launch
             val dateChanged = current.startTime.toLocalDate() != startTime.toLocalDate()
-            runCatching {
+            val result = runCatching {
                 lessonRepository.upsertLesson(
                     current.copy(
                         studentId = studentId,
@@ -120,6 +139,9 @@ class LessonEditViewModel @Inject constructor(
                         isCompleted = if (dateChanged) false else current.isCompleted
                     )
                 )
+            }
+            if (result.isSuccess) {
+                _isSaved.value = true
             }
         }
     }
@@ -134,6 +156,8 @@ fun LessonEditScreen(
 ) {
     val details by viewModel.lessonDetails.collectAsState()
     val students by viewModel.students.collectAsState()
+    val isSaved by viewModel.isSaved.collectAsState()
+    val priceError by viewModel.priceError.collectAsState()
 
     var selectedStudent by remember { mutableStateOf<Student?>(null) }
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
@@ -154,6 +178,12 @@ fun LessonEditScreen(
         focusedBorderColor = MaterialTheme.colorScheme.primary,
         unfocusedBorderColor = MaterialTheme.colorScheme.outline
     )
+
+    LaunchedEffect(isSaved) {
+        if (isSaved) {
+            onBackClick()
+        }
+    }
 
     LaunchedEffect(details) {
         details?.let {
@@ -183,11 +213,11 @@ fun LessonEditScreen(
                 IconButton(onClick = onBackClick) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Назад"
+                        contentDescription = stringResource(R.string.action_back)
                     )
                 }
                 Text(
-                    text = "Редактирование занятия",
+                    text = stringResource(R.string.action_edit),
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                     modifier = Modifier
                         .weight(1f)
@@ -203,10 +233,9 @@ fun LessonEditScreen(
                                 studentId = student.id,
                                 startTime = startDateTime,
                                 durationMinutes = if (duration > 0) duration else 60,
-                                price = price.toDoubleOrNull() ?: student.defaultPrice,
+                                priceStr = price,
                                 note = note.ifBlank { null }
                             )
-                            onBackClick()
                         }
                     },
                     enabled = selectedStudent != null && endTime.isAfter(startTime)
@@ -280,7 +309,7 @@ fun LessonEditScreen(
             FormCardSection(title = "Время проведения") {
                 EditClickableField(
                     value = selectedDate.format(dateFormatter),
-                    label = "Дата",
+                    label = stringResource(R.string.lesson_label_date),
                     icon = Icons.Default.CalendarMonth,
                     onClick = { showDatePicker = true }
                 )
@@ -288,14 +317,14 @@ fun LessonEditScreen(
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     EditClickableField(
                         value = startTime.format(DateTimeFormatter.ofPattern("HH:mm")),
-                        label = "Начало",
+                        label = stringResource(R.string.lesson_label_start),
                         icon = Icons.Default.AccessTime,
                         modifier = Modifier.weight(1f),
                         onClick = { showStartTimePicker = true }
                     )
                     EditClickableField(
                         value = endTime.format(DateTimeFormatter.ofPattern("HH:mm")),
-                        label = "Конец",
+                        label = stringResource(R.string.lesson_label_end),
                         icon = Icons.Default.AccessTime,
                         modifier = Modifier.weight(1f),
                         isError = !endTime.isAfter(startTime),
@@ -305,7 +334,7 @@ fun LessonEditScreen(
 
                 if (!endTime.isAfter(startTime)) {
                     Text(
-                        text = "Время окончания должно быть позже начала",
+                        text = stringResource(R.string.error_time_range),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.error,
                         modifier = Modifier.padding(start = 12.dp)
@@ -316,13 +345,18 @@ fun LessonEditScreen(
             FormCardSection {
                 OutlinedTextField(
                     value = price,
-                    onValueChange = { price = it },
+                    onValueChange = {
+                        price = it
+                        if (priceError != null) viewModel.clearErrors()
+                    },
                     label = { Text(stringResource(R.string.lesson_label_price)) },
                     modifier = Modifier.fillMaxWidth(),
                     leadingIcon = { Icon(Icons.Default.AttachMoney, null) },
                     colors = leadingIconColors,
                     shape = RoundedCornerShape(12.dp),
-                    singleLine = true
+                    singleLine = true,
+                    isError = priceError != null,
+                    supportingText = priceError?.let { { Text(stringResource(it)) } }
                 )
 
                 OutlinedTextField(

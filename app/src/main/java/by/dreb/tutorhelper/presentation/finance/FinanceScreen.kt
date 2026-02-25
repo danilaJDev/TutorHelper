@@ -28,6 +28,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.IosShare
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Payments
@@ -36,6 +37,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -68,7 +70,18 @@ fun FinanceScreen(viewModel: FinanceViewModel = hiltViewModel()) {
 
     Scaffold(
         topBar = {
-            TutorHelperTopAppBar(title = stringResource(R.string.finance_title))
+            TutorHelperTopAppBar(
+                title = stringResource(R.string.finance_title),
+                actions = {
+                    IconButton(onClick = { viewModel.exportFinance() }) {
+                        Icon(
+                            imageVector = Icons.Default.IosShare,
+                            contentDescription = stringResource(R.string.action_export),
+                            tint = AppPalette.Primary
+                        )
+                    }
+                }
+            )
         },
         containerColor = AppPalette.Background
     ) { paddingValues ->

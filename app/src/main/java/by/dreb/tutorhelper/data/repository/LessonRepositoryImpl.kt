@@ -10,6 +10,7 @@ import by.dreb.tutorhelper.di.ApplicationScope
 import by.dreb.tutorhelper.domain.model.Lesson
 import by.dreb.tutorhelper.domain.model.LessonDetails
 import by.dreb.tutorhelper.domain.repository.LessonRepository
+import by.dreb.tutorhelper.util.ReminderManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -24,6 +25,7 @@ class LessonRepositoryImpl @Inject constructor(
     private val lessonDao: LessonDao,
     private val paymentDao: PaymentDao,
     private val database: TutorHelperDatabase,
+    private val reminderManager: ReminderManager,
     @ApplicationScope private val applicationScope: CoroutineScope
 ) : LessonRepository {
     override fun observeLessons(): Flow<List<Lesson>> =
@@ -44,6 +46,9 @@ class LessonRepositoryImpl @Inject constructor(
                 details?.let { autoCompleteLesson(it) }
             }
 
+    override suspend fun getLessonDetailsById(id: Long): LessonDetails? =
+        lessonDao.getLessonDetailsById(id)?.toDomain()
+
     override suspend fun upsertLesson(lesson: Lesson) {
         val existingLesson = if (lesson.id != 0L) lessonDao.getLessonById(lesson.id)?.toDomain() else null
         val shouldResetCompletedStatus = existingLesson?.let { oldLesson ->
@@ -56,13 +61,21 @@ class LessonRepositoryImpl @Inject constructor(
             lesson
         }
 
-        lessonDao.upsert(lessonToSave.toEntity())
+        val id = lessonDao.upsert(lessonToSave.toEntity())
+        val savedLessonId = if (lesson.id == 0L) id else lesson.id
+
+        if (!lessonToSave.isCompleted && !lessonToSave.isHidden) {
+            reminderManager.scheduleLessonReminder(savedLessonId, lessonToSave.startTime)
+        } else {
+            reminderManager.cancelLessonReminder(savedLessonId)
+        }
     }
 
     override suspend fun deleteLesson(lesson: Lesson) {
         database.withTransaction {
             transferPaymentToNextNearestLesson(lesson)
             lessonDao.delete(lesson.toEntity())
+            reminderManager.cancelLessonReminder(lesson.id)
         }
     }
 
@@ -80,11 +93,10 @@ class LessonRepositoryImpl @Inject constructor(
             candidatesToDelete.forEach { candidate ->
                 transferPaymentToNextNearestLesson(candidate, excludedLessonIds)
                 lessonDao.delete(candidate.toEntity())
+                reminderManager.cancelLessonReminder(candidate.id)
             }
         }
     }
-
-
 
     private suspend fun transferPaymentToNextNearestLesson(
         lesson: Lesson,
@@ -118,6 +130,7 @@ class LessonRepositoryImpl @Inject constructor(
             applicationScope.launch {
                 toUpdate.forEach { details ->
                     lessonDao.upsert(details.lesson.copy(isCompleted = true).toEntity())
+                    reminderManager.cancelLessonReminder(details.lesson.id)
                 }
             }
         }
@@ -135,6 +148,7 @@ class LessonRepositoryImpl @Inject constructor(
         if (!details.lesson.isCompleted && now.isAfter(details.lesson.endTime())) {
             applicationScope.launch {
                 lessonDao.upsert(details.lesson.copy(isCompleted = true).toEntity())
+                reminderManager.cancelLessonReminder(details.lesson.id)
             }
             return details.copy(lesson = details.lesson.copy(isCompleted = true))
         }
