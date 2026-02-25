@@ -23,6 +23,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -50,6 +52,7 @@ fun StudentEditScreen(
     viewModel: StudentEditViewModel = hiltViewModel()
 ) {
     val student by viewModel.student.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
 
     var name by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
@@ -58,6 +61,8 @@ fun StudentEditScreen(
     var telegram by remember { mutableStateOf("") }
     var useViber by remember { mutableStateOf(false) }
     var useWhatsApp by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+
     val leadingIconColors = OutlinedTextFieldDefaults.colors(
         focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
         unfocusedLeadingIconColor = MaterialTheme.colorScheme.primary,
@@ -78,7 +83,21 @@ fun StudentEditScreen(
         }
     }
 
-    Scaffold(topBar = {
+    LaunchedEffect(uiState.errorMessage) {
+        val message = uiState.errorMessage ?: return@LaunchedEffect
+        snackbarHostState.showSnackbar(message)
+        viewModel.consumeError()
+    }
+
+    LaunchedEffect(uiState.isSaved) {
+        if (uiState.isSaved) {
+            onBackClick()
+        }
+    }
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        topBar = {
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -100,9 +119,8 @@ fun StudentEditScreen(
                         note = note.ifBlank { null },
                         defaultPrice = defaultPrice.toDoubleOrNull() ?: 0.0
                     )
-                    onBackClick()
                 }
-            }, enabled = name.isNotBlank()) {
+            }, enabled = name.isNotBlank() && !uiState.isSaving) {
                 Text(text = "Сохранить", fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
         }

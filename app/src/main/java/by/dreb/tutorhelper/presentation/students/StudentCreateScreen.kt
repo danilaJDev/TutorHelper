@@ -25,10 +25,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,6 +53,8 @@ fun StudentCreateScreen(
     onBackClick: () -> Unit,
     viewModel: StudentCreateViewModel = hiltViewModel()
 ) {
+    val uiState by viewModel.uiState.collectAsState()
+
     var name by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
     var note by remember { mutableStateOf("") }
@@ -65,8 +71,23 @@ fun StudentCreateScreen(
         unfocusedBorderColor = MaterialTheme.colorScheme.outline
     )
     val isValid = name.isNotBlank()
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    Scaffold(topBar = {
+    LaunchedEffect(uiState.errorMessage) {
+        val message = uiState.errorMessage ?: return@LaunchedEffect
+        snackbarHostState.showSnackbar(message)
+        viewModel.consumeError()
+    }
+
+    LaunchedEffect(uiState.isSaved) {
+        if (uiState.isSaved) {
+            onBackClick()
+        }
+    }
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        topBar = {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -91,8 +112,7 @@ fun StudentCreateScreen(
                     note = note.ifBlank { null },
                     defaultPrice = defaultPrice.toDoubleOrNull() ?: 0.0
                 )
-                onBackClick()
-            }, enabled = isValid) {
+            }, enabled = isValid && !uiState.isSaving) {
                 Text(text = "Сохранить", fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
         }

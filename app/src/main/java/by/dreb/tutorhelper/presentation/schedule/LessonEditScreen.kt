@@ -36,6 +36,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
@@ -72,7 +74,10 @@ import by.dreb.tutorhelper.domain.repository.StudentRepository
 import by.dreb.tutorhelper.presentation.components.FormCardSection
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
@@ -82,6 +87,12 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import javax.inject.Inject
+
+data class LessonEditUiState(
+    val isSaving: Boolean = false,
+    val isSaved: Boolean = false,
+    val errorMessage: String? = null
+)
 
 @HiltViewModel
 class LessonEditViewModel @Inject constructor(
@@ -102,6 +113,13 @@ class LessonEditViewModel @Inject constructor(
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
     }
 
+    private val _uiState = MutableStateFlow(LessonEditUiState())
+    val uiState = _uiState.asStateFlow()
+
+    fun consumeError() {
+        _uiState.update { it.copy(errorMessage = null) }
+    }
+
     fun updateLesson(
         studentId: Long,
         startTime: LocalDateTime,
@@ -113,19 +131,32 @@ class LessonEditViewModel @Inject constructor(
         viewModelScope.launch {
             val current = lessonDetails.value?.lesson ?: return@launch
             val dateChanged = current.startTime.toLocalDate() != startTime.toLocalDate()
+            _uiState.update { it.copy(isSaving = true, isSaved = false, errorMessage = null) }
             runCatching {
                 lessonRepository.upsertLesson(
                     current.copy(
                         studentId = studentId,
                         startTime = startTime,
                         durationMinutes = durationMinutes,
-                        price = price,
-                        note = note,
-                        reminderMinutesBefore = reminderMinutesBefore,
+                        price = price.takeIf { it >= 0.0 } ?: 0.0,
+                        note = note?.trim()?.ifBlank { null },
+                        reminderMinutesBefore = reminderMinutesBefore?.takeIf { it >= 0 },
                         isCompleted = if (dateChanged) false else current.isCompleted
                     )
                 )
             }
+                .onSuccess {
+                    _uiState.update { it.copy(isSaving = false, isSaved = true) }
+                }
+                .onFailure {
+                    _uiState.update {
+                        it.copy(
+                            isSaving = false,
+                            isSaved = false,
+                            errorMessage = "Не удалось сохранить занятие"
+                        )
+                    }
+                }
         }
     }
 }
@@ -138,6 +169,7 @@ fun LessonEditScreen(
     viewModel: LessonEditViewModel = hiltViewModel()
 ) {
     val details by viewModel.lessonDetails.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
     val students by viewModel.students.collectAsState()
 
     var selectedStudent by remember { mutableStateOf<Student?>(null) }
@@ -153,6 +185,8 @@ fun LessonEditScreen(
     val dateFormatter = remember {
         DateTimeFormatter.ofPattern("EEE, dd MMM yyyy", calendarLocale)
     }
+    val snackbarHostState = remember { SnackbarHostState() }
+
     val leadingIconColors = OutlinedTextFieldDefaults.colors(
         focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
         unfocusedLeadingIconColor = MaterialTheme.colorScheme.primary,
@@ -179,7 +213,20 @@ fun LessonEditScreen(
     var showEndTimePicker by remember { mutableStateOf(false) }
     var studentDropdownExpanded by remember { mutableStateOf(false) }
 
+    LaunchedEffect(uiState.errorMessage) {
+        val message = uiState.errorMessage ?: return@LaunchedEffect
+        snackbarHostState.showSnackbar(message)
+        viewModel.consumeError()
+    }
+
+    LaunchedEffect(uiState.isSaved) {
+        if (uiState.isSaved) {
+            onBackClick()
+        }
+    }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             Row(
                 modifier = Modifier
@@ -214,10 +261,9 @@ fun LessonEditScreen(
                                 note = note.ifBlank { null },
                                 reminderMinutesBefore = reminderMinutes.toIntOrNull()
                             )
-                            onBackClick()
                         }
                     },
-                    enabled = selectedStudent != null && endTime.isAfter(startTime)
+                    enabled = selectedStudent != null && endTime.isAfter(startTime) && !uiState.isSaving
                 ) {
                     Text(
                         text = "Сохранить",
