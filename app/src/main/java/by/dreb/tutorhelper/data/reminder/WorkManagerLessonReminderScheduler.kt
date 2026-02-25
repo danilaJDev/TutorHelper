@@ -1,17 +1,17 @@
 package by.dreb.tutorhelper.data.reminder
 
 import android.content.Context
-import androidx.hilt.android.qualifiers.ApplicationContext
 import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import by.dreb.tutorhelper.domain.model.Lesson
 import by.dreb.tutorhelper.domain.reminder.LessonReminderScheduler
-import javax.inject.Singleton
+import dagger.hilt.android.qualifiers.ApplicationContext
 import java.time.Duration
 import java.time.LocalDateTime
 import javax.inject.Inject
+import javax.inject.Singleton
 
 @Singleton
 class WorkManagerLessonReminderScheduler @Inject constructor(

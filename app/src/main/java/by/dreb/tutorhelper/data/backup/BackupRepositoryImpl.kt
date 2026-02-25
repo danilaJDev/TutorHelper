@@ -102,7 +102,7 @@ private data class BackupPayment(
     val studentId: Long,
     val amount: Double,
     val paidOn: String? = null,
-    val method: String
+    val method: String?
 )
 
 private fun StudentEntity.toBackup() = BackupStudent(
